@@ -1,0 +1,119 @@
+package Jobapplication
+
+import (
+	jobdomain "back-end/internal/Job/Job-domain"
+	jobinfrastructure "back-end/internal/Job/Job-infrastructure"
+	"errors"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+// JobService se encarga de la lógica de negocio relacionada con los jobs.
+type JobService struct {
+	JobRepository *jobinfrastructure.JobRepository
+}
+
+// NewJobService crea una nueva instancia de JobService.
+func NewJobService(jobRepository *jobinfrastructure.JobRepository) *JobService {
+	return &JobService{
+		JobRepository: jobRepository,
+	}
+}
+
+// CreateJob crea una nueva publicación de trabajo a partir de la información del request y el ID del usuario creador.
+func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID primitive.ObjectID) (primitive.ObjectID, error) {
+	newJob := jobdomain.Job{
+		UserID:           userID,
+		Title:            createReq.Title,
+		Description:      createReq.Description,
+		Location:         jobdomain.GeoPoint{},
+		Tags:             createReq.Tags,
+		Budget:           createReq.Budget,
+		FinalCost:        0,                       // Se asigna en una etapa posterior
+		Status:           jobdomain.JobStatusOpen, // Estado inicial
+		Applicants:       []primitive.ObjectID{},  // Sin postulantes inicialmente
+		AssignedTo:       nil,                     // Sin asignación inicial
+		EmployerFeedback: nil,
+		WorkerFeedback:   nil,
+		CreatedAt:        time.Now(),
+		UpdatedAt:        time.Now(),
+	}
+
+	jobID, err := js.JobRepository.CreateJob(newJob)
+	if err != nil {
+		return jobID, err
+	}
+
+	return jobID, nil
+}
+
+// ApplyToJob permite que un trabajador se postule a un job.
+func (js *JobService) ApplyToJob(jobID, applicantID primitive.ObjectID) error {
+	return js.JobRepository.ApplyToJob(jobID, applicantID)
+}
+
+// AssignJob asigna a un trabajador a un job, cambiando el estado a "in_progress".
+func (js *JobService) AssignJob(jobID, workerID primitive.ObjectID) error {
+	return js.JobRepository.AssignJob(jobID, workerID)
+}
+
+// ReassignJob permite reasignar el job a un nuevo trabajador en caso de inconvenientes.
+func (js *JobService) ReassignJob(jobID, newWorkerID primitive.ObjectID) error {
+	return js.JobRepository.ReassignJob(jobID, newWorkerID)
+}
+
+// ProvideEmployerFeedback permite que el empleador deje feedback sobre el trabajador.
+func (js *JobService) ProvideEmployerFeedback(jobID primitive.ObjectID, feedback jobdomain.Feedback) error {
+	return js.JobRepository.ProvideEmployerFeedback(jobID, feedback)
+}
+
+// ProvideWorkerFeedback permite que el trabajador deje feedback sobre el empleador.
+func (js *JobService) ProvideWorkerFeedback(jobID primitive.ObjectID, feedback jobdomain.Feedback) error {
+	return js.JobRepository.ProvideWorkerFeedback(jobID, feedback)
+}
+func (js *JobService) RegisterPayment(jobID primitive.ObjectID, amount float64) error {
+	job, err := js.JobRepository.GetJobByID(jobID)
+	if err != nil {
+		return err
+	}
+
+	if job.PaymentStatus == "paid" || job.PaymentStatus == "released" {
+		return errors.New("El pago ya fue procesado anteriormente")
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"paymentStatus": "paid",
+			"paymentAmount": amount,
+			"updatedAt":     time.Now(),
+		},
+	}
+
+	err = js.JobRepository.UpdateJob(jobID, update)
+	if err != nil {
+		return err
+	}
+
+	// Notificar al trabajador que el pago ha sido realizado y retenido
+	// if job.AssignedTo != nil {
+	// 	js.notifyWorker(*job.AssignedTo, "El pago para el trabajo ha sido realizado y está retenido hasta su finalización.")
+	// }
+
+	return nil
+}
+func (js *JobService) UpdateJobPaymentStatus(jobID primitive.ObjectID, status string, paymentIntentID string) error {
+	return js.JobRepository.UpdateJobPaymentStatus(jobID, status, paymentIntentID)
+}
+func (js *JobService) GetJobByID(jobID primitive.ObjectID) (*jobdomain.Job, error) {
+	return js.JobRepository.GetJobByID(jobID)
+
+}
+
+func (js *JobService) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.Job, error) {
+	return js.JobRepository.FindJobsByTagsAndLocation(jobFilter)
+}
+func (js *JobService) UpdateJobStatusToCompleted(jobId, UserId primitive.ObjectID) (*jobdomain.Job, error) {
+	return js.JobRepository.UpdateJobStatusToCompleted(jobId, UserId)
+}
