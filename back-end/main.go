@@ -27,12 +27,14 @@ func main() {
 	app := fiber.New(fiber.Config{
 		BodyLimit: 200 * 1024 * 1024,
 	})
-	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:19000, http://192.168.0.22:8084",
-		AllowCredentials: true,
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
-		AllowHeaders:     "Origin, Content-Type, Accept, Accept-Language, Content-Length",
-	}))
+	app.Use(cors.New(
+	// cors.Config{
+	// 	AllowCredentials: true,
+	// 	AllowOrigins:     "https://www.pinkker.tv,https://pinkker.tv",
+	// 	AllowHeaders:     "Origin, Content-Type, Accept, Accept-Language, Content-Length",
+	// 	AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+	// },
+	))
 
 	app.Use("/ws", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {

@@ -16,14 +16,13 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	JobRepository := jobinfrastructure.NewjobRepository(redisClient, newMongoDB)
 	JobService := jobapplication.NewJobService(JobRepository)
 	JobHandler := Jobinterfaces.NewJobHandler(JobService)
-	job := App.Group("/job", middleware.UseExtractor())
 
-	job.Post("/create", JobHandler.CreateJob)                                                // Crear un nuevo trabajo
-	job.Post("/:jobId/apply", JobHandler.ApplyToJob)                                         // Postularse a un trabajo
-	job.Put("/:jobId/assign", JobHandler.AssignJob)                                          // Asignar un trabajador a un trabajo
-	job.Put("/:jobId/reassign", JobHandler.ReassignJob)                                      // Reasignar un trabajador a un trabajo
-	job.Post("/:jobId/employer-feedback", JobHandler.ProvideEmployerFeedback)                // Feedback del empleador
-	job.Post("/:jobId/worker-feedback", JobHandler.ProvideWorkerFeedback)                    // Feedback del empleado
-	job.Post("/:jobId/get-jobsBy-filters", JobHandler.GetJobsByFilters)                      // GetJobsByFilters
-	job.Post("/:jobId/update-job-statusTo-completed", JobHandler.UpdateJobStatusToCompleted) // CreateJob maneja la creación de un nuevo job.
+	App.Post("/job/create", middleware.UseExtractor(), JobHandler.CreateJob)                                         // Crear un nuevo trabajo
+	App.Post("/job/apply", middleware.UseExtractor(), JobHandler.ApplyToJob)                                         // Postularse a un trabajo
+	App.Put("/job/assign", middleware.UseExtractor(), JobHandler.AssignJob)                                          // Asignar un trabajador a un trabajo
+	App.Put("/job/reassign", middleware.UseExtractor(), JobHandler.ReassignJob)                                      // Reasignar un trabajador a un trabajo
+	App.Post("/job/employer-feedback", middleware.UseExtractor(), JobHandler.ProvideEmployerFeedback)                // Feedback del empleador
+	App.Post("/job/worker-feedback", middleware.UseExtractor(), JobHandler.ProvideWorkerFeedback)                    // Feedback del empleado
+	App.Post("/job/get-jobsBy-filters", middleware.UseExtractor(), JobHandler.GetJobsByFilters)                      // GetJobsByFilters
+	App.Post("/job/update-job-statusTo-completed", middleware.UseExtractor(), JobHandler.UpdateJobStatusToCompleted) // CreateJob maneja la creación de un nuevo job.
 }

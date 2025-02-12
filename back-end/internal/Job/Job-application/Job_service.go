@@ -28,7 +28,7 @@ func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID pri
 		UserID:           userID,
 		Title:            createReq.Title,
 		Description:      createReq.Description,
-		Location:         jobdomain.GeoPoint{},
+		Location:         createReq.Location,
 		Tags:             createReq.Tags,
 		Budget:           createReq.Budget,
 		FinalCost:        0,                       // Se asigna en una etapa posterior

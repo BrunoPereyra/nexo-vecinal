@@ -3,6 +3,7 @@ package Jobinterfaces
 import (
 	Jobapplication "back-end/internal/Job/Job-application"
 	jobdomain "back-end/internal/Job/Job-domain"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,6 +25,7 @@ func NewJobHandler(jobService *Jobapplication.JobService) *JobHandler {
 // CreateJob maneja la creación de un nuevo job.
 func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 	var createReq jobdomain.CreateJobRequest
+	fmt.Println(createReq.Location)
 	if err := c.BodyParser(&createReq); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",
