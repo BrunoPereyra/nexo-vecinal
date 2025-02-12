@@ -24,15 +24,15 @@ export const createJob = async (jobData: any, token: string) => {
         alert('Ocurrió un error al crear el job');
     }
 };
-export const getJobDetail = async (id: any, token: string) => {
+export const GetJobTokenAdmin = async (JobId: any, token: string) => {
     try {
-        const res = await fetch(`${API}/job/create`, {
+        const res = await fetch(`${API}/job/get-job-token-admin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: id
+            body: JobId
         });
         return await res.json();
     } catch (error) {
@@ -40,6 +40,29 @@ export const getJobDetail = async (id: any, token: string) => {
         alert('Ocurrió un error al crear el job');
     }
 };
+export const jobIdEmployee = async (jobId: string, token: string) => {
+    try {
+        const url = `${API}/job/get-jobIdEmploye?jobId=${encodeURIComponent(jobId)}`;
+
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+
+        return await res.json();
+    } catch (error) {
+        console.error("Error al obtener el job:", error);
+        alert('Ocurrió un error al obtener el job');
+    }
+};
+
 
 /**
  * Realiza una petición POST para que un usuario se postule a un trabajo.

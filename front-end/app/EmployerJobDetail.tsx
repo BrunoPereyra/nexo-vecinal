@@ -11,7 +11,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import {
-  getJobDetail,
+  GetJobTokenAdmin,
   assignJob,
   reassignJob,
   updateJobStatusToCompleted
@@ -34,10 +34,9 @@ export default function EmployerJobDetail() {
       if (!jobId || !token) return;
       setLoading(true);
       try {
-        const data = await getJobDetail(jobId, token);
+        const data = await GetJobTokenAdmin(jobId, token);
         setJobDetail(data);
       } catch (err) {
-        console.error(err);
         setError('Error al obtener el detalle del trabajo');
       } finally {
         setLoading(false);
