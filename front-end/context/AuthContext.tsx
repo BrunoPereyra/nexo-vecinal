@@ -17,7 +17,6 @@ const AuthContext = createContext<AuthContextProps>({
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    console.log("storedToken 2222222");
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     // Cargar el token almacenado

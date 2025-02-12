@@ -24,6 +24,22 @@ export const createJob = async (jobData: any, token: string) => {
         alert('Ocurrió un error al crear el job');
     }
 };
+export const getJobDetail = async (id: any, token: string) => {
+    try {
+        const res = await fetch(`${API}/job/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: id
+        });
+        return await res.json();
+    } catch (error) {
+        console.error("Error en createJob:", error);
+        alert('Ocurrió un error al crear el job');
+    }
+};
 
 /**
  * Realiza una petición POST para que un usuario se postule a un trabajo.

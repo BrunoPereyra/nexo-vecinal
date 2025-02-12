@@ -17,9 +17,10 @@ const Home: React.FC = () => {
   const { token } = useAuth();
   const [jobs, setJobs] = useState<any[]>([]);
   const [tags, setTags] = useState('');
-  // Valores iniciales para la ubicación (ejemplo: coordenadas de Buenos Aires)
-  const [longitude, setLongitude] = useState<number>(-58.3816);
-  const [latitude, setLatitude] = useState<number>(-34.6037);
+  // Valores iniciales para la ubicación (coordenadas de Córdoba Capital)
+  const [longitude, setLongitude] = useState<number>(-64.1811);
+  const [latitude, setLatitude] = useState<number>(-31.4201);
+
   const [radius, setRadius] = useState<number>(5000); // Radio en metros
 
   useEffect(() => {
@@ -36,7 +37,9 @@ const Home: React.FC = () => {
     };
     try {
       const data = await getJobsByFilters(filters, token);
-      setJobs(data.jobs || []);
+      console.log(data);
+
+      setJobs(data || []);
     } catch (error) {
       console.error('Error fetching jobs:', error);
     }

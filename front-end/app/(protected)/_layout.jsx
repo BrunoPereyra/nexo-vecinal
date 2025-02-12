@@ -11,6 +11,7 @@ export default function ProtectedLayout() {
           options={{ title: 'Perfil', tabBarIcon: () => null }}
         />
       </Tabs>
+ 
     </ProtectedRoute>
   );
 }

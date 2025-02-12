@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Platform,
 } from 'react-native';
 import MapView, {
   Marker,
@@ -31,24 +30,21 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // Utilizamos location como objeto de coordenadas
-  const [location, setLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  // La ubicación se guarda como un objeto con propiedades "latitude" y "longitude"
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [tags, setTags] = useState('');
   const [budget, setBudget] = useState('');
 
   const { token } = useAuth();
 
-  // Función para manejar el toque en el mapa
+  // Al tocar el mapa se guarda la coordenada
   const handleMapPress = (e: MapPressEvent) => {
     const { coordinate } = e.nativeEvent;
     console.log("Map pressed at:", coordinate);
     setLocation(coordinate);
   };
 
-  // Función para manejar el final del arrastre del marcador
+  // Permite mover el marcador manualmente
   const handleMarkerDragEnd = (e: MarkerDragStartEndEvent) => {
     const { coordinate } = e.nativeEvent;
     console.log("Marker dragged to:", coordinate);
@@ -102,17 +98,17 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       return;
     }
 
-    // Convertir la ubicación en una cadena o mantenerla como objeto según lo que requiera tu API
-    const locationString = `${location.latitude},${location.longitude}`;
-
+    // Se crea el objeto jobData, enviando la ubicación en formato GeoJSON:
     const jobData = {
       title,
       description,
-      location: locationString,
+      location: {
+        type: "Point",
+        coordinates: [location.longitude, location.latitude],
+      },
       tags: tagsArray,
       budget: budgetNumber,
     };
-
     try {
       const response = await createJob(jobData, token as string);
       if (response && response.success) {
@@ -159,10 +155,10 @@ export const CreateJob: React.FC<CreateJobProps> = ({
           <Text style={styles.label}>Selecciona ubicación en el mapa</Text>
           <MapView
             style={styles.map}
-            provider={PROVIDER_GOOGLE} // Usa Google Maps si lo deseas (opcional)
+            provider={PROVIDER_GOOGLE} // Opcional: usa Google Maps si lo deseas
             initialRegion={{
-              latitude: 37.78825,
-              longitude: -122.4324,
+              latitude: -31.4201,
+              longitude: -64.1811,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
