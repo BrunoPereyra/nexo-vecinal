@@ -25,6 +25,7 @@ func NewjobRepository(redisClient *redis.Client, mongoClient *mongo.Client) *Job
 		mongoClient: mongoClient,
 	}
 }
+
 func (t *JobRepository) CreateJob(Tweet jobdomain.Job) (primitive.ObjectID, error) {
 	banned, err := t.IsUserBanned(Tweet.UserID)
 	if err != nil {
@@ -334,4 +335,156 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	}
 
 	return jobs, nil
+}
+func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
+	// Definir el pipeline de agregación
+	pipeline := mongo.Pipeline{
+		// 1. $match: Filtrar el job por _id y userId
+		{
+			{Key: "$match", Value: bson.D{
+				{Key: "_id", Value: jobID},
+				{Key: "userId", Value: idUser},
+			}},
+		},
+		// 2. $lookup: Obtener los datos de los postulantes (Applicants)
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "User"},             // Nombre de la colección de usuarios
+				{Key: "localField", Value: "applicants"}, // Campo en Job (array de ObjectID)
+				{Key: "foreignField", Value: "_id"},      // Campo en User
+				{Key: "as", Value: "applicants"},         // Se sobreescribe el array con los datos completos
+			}},
+		},
+		// 3. $lookup: Obtener el usuario asignado (AssignedTo)
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "Users"},
+				{Key: "localField", Value: "assignedTo"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "assignedToArr"}, // Resultado como array (con 0 o 1 elemento)
+			}},
+		},
+		// 4. $addFields: Extraer el primer elemento del array de assignedToArr
+		{
+			{Key: "$addFields", Value: bson.D{
+				{Key: "assignedTo", Value: bson.D{
+					{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}},
+				}},
+			}},
+		},
+		// 5. $project: Seleccionar únicamente los campos necesarios
+		{
+			{Key: "$project", Value: bson.D{
+				// Para los postulantes: solo _id, nameUser y avatar
+				{Key: "applicants._id", Value: 1},
+				{Key: "applicants.NameUser", Value: 1},
+				{Key: "applicants.Avatar", Value: 1},
+				// Para el usuario asignado: solo _id, nameUser y avatar
+				{Key: "assignedTo._id", Value: 1},
+				{Key: "assignedTo.NameUser", Value: 1},
+				{Key: "assignedTo.Avatar", Value: 1},
+				// Otros campos del job
+				{Key: "userId", Value: 1},
+				{Key: "title", Value: 1},
+				{Key: "description", Value: 1},
+				{Key: "location", Value: 1},
+				{Key: "tags", Value: 1},
+				{Key: "budget", Value: 1},
+				{Key: "finalCost", Value: 1},
+				{Key: "status", Value: 1},
+				{Key: "createdAt", Value: 1},
+				{Key: "updatedAt", Value: 1},
+				{Key: "paymentStatus", Value: 1},
+				{Key: "paymentAmount", Value: 1},
+				{Key: "paymentIntentId", Value: 1},
+			}},
+		},
+	}
+
+	// Ejecutar la agregación
+	cursor, err := jobColl.Aggregate(context.TODO(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	// Decodificar el resultado en el struct de detalle del job
+	var jobDetails []jobdomain.JobDetailsUsers
+	if err := cursor.All(context.TODO(), &jobDetails); err != nil {
+		return nil, err
+	}
+
+	if len(jobDetails) == 0 {
+		return nil, errors.New("job not found")
+	}
+
+	return &jobDetails[0], nil
+}
+func (j *JobRepository) GetJobByIDForEmployee(jobID primitive.ObjectID) (*jobdomain.GetJobByIDForEmployee, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
+	pipeline := mongo.Pipeline{
+		// 1. Filtrar el job por _id
+		{
+			{Key: "$match", Value: bson.D{
+				{Key: "_id", Value: jobID},
+			}},
+		},
+		// 2. Lookup: unir la información del usuario usando una sub-pipeline para traer solo _id, nameUser y avatar
+		{
+			{Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "Users"},
+				// Definimos una variable "userId" a partir del campo "userId" del job
+				{Key: "let", Value: bson.D{
+					{Key: "userId", Value: "$userId"},
+				}},
+				// Pipeline interno del lookup
+				{Key: "pipeline", Value: bson.A{
+					// Se filtra por el _id del usuario
+					bson.D{
+						{Key: "$match", Value: bson.D{
+							{Key: "$expr", Value: bson.D{
+								{Key: "$eq", Value: bson.A{"$_id", "$$userId"}},
+							}},
+						}},
+					},
+					// Se proyectan únicamente los campos deseados
+					bson.D{
+						{Key: "$project", Value: bson.D{
+							{Key: "_id", Value: 1},
+							{Key: "NameUser", Value: 1},
+							{Key: "Avatar", Value: 1},
+						}},
+					},
+				}},
+				// Se asigna el resultado al campo "user"
+				{Key: "as", Value: "user"},
+			}},
+		},
+		// 3. Convertir el array "user" en un documento (si existe)
+		{
+			{Key: "$unwind", Value: bson.D{
+				{Key: "path", Value: "$user"},
+				{Key: "preserveNullAndEmptyArrays", Value: true},
+			}},
+		},
+	}
+
+	cursor, err := jobColl.Aggregate(context.TODO(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var results []jobdomain.GetJobByIDForEmployee
+	if err := cursor.All(context.TODO(), &results); err != nil {
+		return nil, err
+	}
+	if len(results) == 0 {
+		return nil, errors.New("job not found")
+	}
+
+	return &results[0], nil
 }

@@ -106,8 +106,8 @@ func (js *JobService) RegisterPayment(jobID primitive.ObjectID, amount float64) 
 func (js *JobService) UpdateJobPaymentStatus(jobID primitive.ObjectID, status string, paymentIntentID string) error {
 	return js.JobRepository.UpdateJobPaymentStatus(jobID, status, paymentIntentID)
 }
-func (js *JobService) GetJobByID(jobID primitive.ObjectID) (*jobdomain.Job, error) {
-	return js.JobRepository.GetJobByID(jobID)
+func (js *JobService) GetJobByIDForEmployee(jobID primitive.ObjectID) (*jobdomain.GetJobByIDForEmployee, error) {
+	return js.JobRepository.GetJobByIDForEmployee(jobID)
 
 }
 
@@ -116,4 +116,7 @@ func (js *JobService) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTa
 }
 func (js *JobService) UpdateJobStatusToCompleted(jobId, UserId primitive.ObjectID) (*jobdomain.Job, error) {
 	return js.JobRepository.UpdateJobStatusToCompleted(jobId, UserId)
+}
+func (js *JobService) GetJobTokenAdmin(jobId, UserId primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
+	return js.JobRepository.GetJobDetails(jobId, UserId)
 }

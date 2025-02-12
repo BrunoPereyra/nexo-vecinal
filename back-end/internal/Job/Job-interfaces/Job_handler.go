@@ -260,3 +260,63 @@ func (j *JobHandler) UpdateJobStatusToCompleted(c *fiber.Ctx) error {
 		"job":     jobID,
 	})
 }
+
+// CreateJob maneja la creación de un nuevo job.
+func (j *JobHandler) GetJobTokenAdmin(c *fiber.Ctx) error {
+	var req jobdomain.JobId
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Bad Request",
+		})
+	}
+	idValue := c.Context().UserValue("_id").(string)
+	userID, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
+	}
+	jobID, err := j.JobService.GetJobTokenAdmin(req.JobId, userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "StatusBadRequest",
+			"error":   err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"job":     jobID,
+	})
+}
+
+// CreateJob maneja la creación de un nuevo job.
+func (j *JobHandler) GetJobByIDForEmployee(c *fiber.Ctx) error {
+	// Obtener el jobId desde los parámetros de la URL (query)
+	jobID := c.Query("jobId")
+
+	if jobID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "jobId es requerido",
+		})
+	}
+	jobIDPr, err := primitive.ObjectIDFromHex(jobID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
+	}
+	// Llamamos al servicio con el jobId
+	job, err := j.JobService.GetJobByIDForEmployee(jobIDPr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Error al obtener el job",
+			"error":   err.Error(),
+		})
+	}
+
+	// Devolvemos la respuesta exitosa
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"job":     job,
+	})
+}

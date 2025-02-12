@@ -25,4 +25,7 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	App.Post("/job/worker-feedback", middleware.UseExtractor(), JobHandler.ProvideWorkerFeedback)                    // Feedback del empleado
 	App.Post("/job/get-jobsBy-filters", middleware.UseExtractor(), JobHandler.GetJobsByFilters)                      // GetJobsByFilters
 	App.Post("/job/update-job-statusTo-completed", middleware.UseExtractor(), JobHandler.UpdateJobStatusToCompleted) // CreateJob maneja la creación de un nuevo job.
+	App.Post("/job/get-job-token-admin", middleware.UseExtractor(), JobHandler.GetJobTokenAdmin)                     // obtiene detalles de un trabajo (admin)
+	App.Get("/job/get-jobIdEmploye", middleware.UseExtractor(), JobHandler.GetJobByIDForEmployee)                    // obtiene detalles de un trabajo (admin)
+
 }
