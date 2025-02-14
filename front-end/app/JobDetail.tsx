@@ -60,7 +60,10 @@ const JobDetail: React.FC = () => {
         );
     }
     const handleApply = async () => {
+
         const res = await applyToJob(id as string, token as string)
+        console.log(res);
+
         if (res.message === "Applied to job successfully") {
             Alert.alert('Postulación enviada', 'Has postulado exitosamente a este trabajo.');
         }

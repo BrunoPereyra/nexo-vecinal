@@ -21,6 +21,7 @@ import {
   provideWorkerFeedback
 } from '@/services/JobsService'; // Ajusta la ruta según tu estructura
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import ApplicantsList from '@/components/ApplicantsList';
 
 export default function EmployerJobDetail() {
   const { id: jobId } = useLocalSearchParams<{ id: string }>();
@@ -52,8 +53,10 @@ export default function EmployerJobDetail() {
       setLoading(true);
       try {
         const data = await GetJobTokenAdmin(jobId, token);
+
         if (data.job) {
           console.log(data.job);
+
           setJobDetail(data.job);
         }
       } catch (err) {
@@ -97,13 +100,15 @@ export default function EmployerJobDetail() {
     if (!jobDetail || !token) return;
     setActionLoading(true);
     try {
+      console.log(jobDetail);
+
       const res = await updateJobStatusToCompleted(jobDetail.id, token);
       console.log(res);
       if (res.job) {
         if (res.job === "job already completed") {
           alert('El trabajo ya estaba marcado como completado');
         } else {
-          setJobDetail(res);
+          // setJobDetail(res);
         }
       }
     } catch (error) {
@@ -233,57 +238,8 @@ export default function EmployerJobDetail() {
 
       {/* Sección de postulados */}
       <>
-        {assignedCandidate ? (
-          <>
-            <Text style={darkStyles.sectionTitle}>Usuario Asignado:</Text>
-            <View style={darkStyles.assignedCandidateCard}>
-              <Text style={darkStyles.candidateName}>{assignedCandidate.nameUser}</Text>
-            </View>
-            <Text style={darkStyles.sectionTitle}>Otros Postulados:</Text>
-            {otherApplicants.length > 0 ? (
-              <FlatList
-                data={otherApplicants}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <View style={darkStyles.candidateCard}>
-                    <Text style={darkStyles.candidateName}>{item.nameUser}</Text>
-                    <Button
-                      title="Reasignar"
-                      onPress={() => handleReassign(item.id)}
-                      disabled={actionLoading}
-                      color="#bb86fc"
-                    />
-                  </View>
-                )}
-              />
-            ) : (
-              <Text style={darkStyles.detail}>No hay otros postulantes</Text>
-            )}
-          </>
-        ) : (
-          <>
-            <Text style={darkStyles.sectionTitle}>Postulados:</Text>
-            {applicants.length > 0 ? (
-              <FlatList
-                data={applicants}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                  <View style={darkStyles.candidateCard}>
-                    <Text style={darkStyles.candidateName}>{item.nameUser}</Text>
-                    <Button
-                      title="Asignar"
-                      onPress={() => handleAssign(item.id)}
-                      disabled={actionLoading}
-                      color="#bb86fc"
-                    />
-                  </View>
-                )}
-              />
-            ) : (
-              <Text style={darkStyles.detail}>No hay postulantes</Text>
-            )}
-          </>
-        )}
+        <ApplicantsList job={jobDetail} token={token as string} />
+
 
         <TouchableOpacity
           style={darkStyles.completeButton}
@@ -292,7 +248,6 @@ export default function EmployerJobDetail() {
         >
           <Text style={darkStyles.completeButtonText}>Marcar como completado</Text>
         </TouchableOpacity>
-
         {/* Sección de feedback */}
         <View style={darkStyles.feedbackContainer}>
           <Text style={darkStyles.sectionTitle}>

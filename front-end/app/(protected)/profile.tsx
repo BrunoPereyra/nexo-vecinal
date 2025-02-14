@@ -74,11 +74,6 @@ export default function ProfileScreen() {
             setLoading(true);
             try {
                 const jobsData = await getJobsProfile(1, token);
-                console.log("MIS TRABAJOS");
-                console.log(jobsData.jobs);
-
-                console.log("MIS TRABAJOS");
-
 
                 setEmployerJobs(jobsData?.jobs || []);
                 setCurrentPageEmployer(1);
