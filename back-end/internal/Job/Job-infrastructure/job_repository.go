@@ -360,40 +360,50 @@ func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdom
 				{Key: "userId", Value: idUser},
 			}},
 		},
-		// 2. $lookup: Obtener los datos de los postulantes (Applicants)
+		// 2. $lookup: Traer los datos de los postulantes (Applicants) desde la colección Users
 		{
 			{Key: "$lookup", Value: bson.D{
-				{Key: "from", Value: "Users"},            // Nombre de la colección de usuarios
-				{Key: "localField", Value: "applicants"}, // Campo en Job (array de ObjectID)
-				{Key: "foreignField", Value: "_id"},      // Campo en User
-				{Key: "as", Value: "applicants"},         // Se sobreescribe el array con los datos completos
+				{Key: "from", Value: "Users"},
+				{Key: "localField", Value: "applicants"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "applicants"},
 			}},
 		},
-		// 3. $lookup: Obtener el usuario asignado (AssignedTo)
+		// 3. $lookup: Traer el usuario asignado (AssignedTo) desde la colección Users
 		{
 			{Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "assignedTo"},
 				{Key: "foreignField", Value: "_id"},
-				{Key: "as", Value: "assignedToArr"}, // Resultado como array (con 0 o 1 elemento)
+				{Key: "as", Value: "assignedToArr"},
 			}},
 		},
-		// 4. $addFields: Extraer el primer elemento del array de assignedToArr
+		// 4. $addFields: Extraer el primer elemento de assignedToArr si existe; de lo contrario, devolver un objeto vacío
 		{
 			{Key: "$addFields", Value: bson.D{
 				{Key: "assignedTo", Value: bson.D{
-					{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}},
+					{Key: "$cond", Value: bson.D{
+						{Key: "if", Value: bson.D{
+							{Key: "$gt", Value: bson.A{
+								bson.D{{Key: "$size", Value: "$assignedToArr"}}, 0,
+							}},
+						}},
+						{Key: "then", Value: bson.D{
+							{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}},
+						}},
+						{Key: "else", Value: bson.D{}},
+					}},
 				}},
 			}},
 		},
 		// 5. $project: Seleccionar únicamente los campos necesarios
 		{
 			{Key: "$project", Value: bson.D{
-				// Para los postulantes: solo _id, nameUser y avatar
+				// Para los postulantes: solo _id, NameUser y Avatar
 				{Key: "applicants._id", Value: 1},
 				{Key: "applicants.NameUser", Value: 1},
 				{Key: "applicants.Avatar", Value: 1},
-				// Para el usuario asignado: solo _id, nameUser y avatar
+				// Para el usuario asignado: solo _id, NameUser y Avatar
 				{Key: "assignedTo._id", Value: 1},
 				{Key: "assignedTo.NameUser", Value: 1},
 				{Key: "assignedTo.Avatar", Value: 1},
@@ -424,7 +434,7 @@ func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdom
 	}
 	defer cursor.Close(context.TODO())
 
-	// Decodificar el resultado en el struct de detalle del job
+	// Decodificar el resultado en el struct JobDetailsUsers
 	var jobDetails []jobdomain.JobDetailsUsers
 	if err := cursor.All(context.TODO(), &jobDetails); err != nil {
 		return nil, err
