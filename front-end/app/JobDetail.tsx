@@ -6,12 +6,14 @@ import {
     Image,
     ActivityIndicator,
     ScrollView,
-    Dimensions
+    Dimensions,
+    Button,
+    Alert,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
-import { jobIdEmployee } from '../services/JobsService';
+import { applyToJob, jobIdEmployee } from '../services/JobsService';
 
 const JobDetail: React.FC = () => {
     // Se obtiene el id del job desde la URL y el token desde el contexto de autenticación
@@ -57,7 +59,12 @@ const JobDetail: React.FC = () => {
             </View>
         );
     }
-
+    const handleApply = async () => {
+        const res = await applyToJob(id as string, token as string)
+        if (res.message === "Applied to job successfully") {
+            Alert.alert('Postulación enviada', 'Has postulado exitosamente a este trabajo.');
+        }
+    };
     // Asumimos que job.location.coordinates viene en formato [longitud, latitud]
     const region = {
         latitude: job.location.coordinates[1],
@@ -108,6 +115,9 @@ const JobDetail: React.FC = () => {
                     </MapView>
                 </View>
             )}
+            <View style={styles.applyButtonContainer}>
+                <Button title="Postularme al Trabajo" onPress={handleApply} color="#007BFF" />
+            </View>
         </ScrollView>
     );
 };
@@ -117,23 +127,24 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: '#121212',
         padding: 16,
     },
     centered: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#121212',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: '#E0E0E0',
     },
     description: {
         fontSize: 16,
-        color: '#666',
+        color: '#B0B0B0',
         marginBottom: 20,
     },
     section: {
@@ -143,17 +154,17 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#333',
+        color: '#E0E0E0',
         marginRight: 8,
     },
     value: {
         fontSize: 16,
-        color: '#555',
+        color: '#B0B0B0',
     },
     employerContainer: {
         marginTop: 20,
         padding: 12,
-        backgroundColor: '#f9f9f9',
+        backgroundColor: '#1E1E1E',
         borderRadius: 8,
         elevation: 2,
     },
@@ -161,7 +172,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#333',
+        color: '#BB86FC',
     },
     employerInfo: {
         flexDirection: 'row',
@@ -177,19 +188,19 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#007BFF',
+        backgroundColor: '#BB86FC',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
     },
     avatarText: {
-        color: '#fff',
+        color: '#121212',
         fontSize: 24,
         fontWeight: 'bold',
     },
     employerName: {
         fontSize: 18,
-        color: '#333',
+        color: '#E0E0E0',
     },
     mapContainer: {
         marginTop: 20,
@@ -201,6 +212,9 @@ const styles = StyleSheet.create({
     map: {
         width: '100%',
         height: '100%',
+    },
+    applyButtonContainer: {
+        marginTop: 20,
     },
 });
 

@@ -10,9 +10,11 @@ import {
     FlatList,
     ListRenderItem,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { getUserToken } from '@/services/userService';
+import { getJobsProfile, GetJobsByUserIDForEmploye } from '@/services/JobsService';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { CreateJob } from '@/components/CreateJob';
 
@@ -23,12 +25,16 @@ export default function ProfileScreen() {
     const [userProfile, setUserProfile] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
-    // Simulamos que cada trabajo tiene también un campo "status"
     const [employerJobs, setEmployerJobs] = useState<any[]>([]);
     const [jobFeed, setJobFeed] = useState<any[]>([]);
+    // Sección activa: 'employer' (Mis trabajos) o 'jobFeed' (Trabajos realizados)
     const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('employer');
     const [createJobVisible, setCreateJobVisible] = useState(false);
+    // Paginación para cada sección
+    const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
+    const [currentPageJobFeed, setCurrentPageJobFeed] = useState(1);
 
+    // Al iniciar, cargar la última sección activa desde AsyncStorage y el perfil del usuario
     useEffect(() => {
         const fetchProfile = async () => {
             if (!token) {
@@ -37,23 +43,13 @@ export default function ProfileScreen() {
                 return;
             }
             try {
+                const cachedSection = await AsyncStorage.getItem('activeSection');
+                if (cachedSection === 'jobFeed' || cachedSection === 'employer') {
+                    setActiveSection(cachedSection);
+                }
                 const data = await getUserToken(token);
                 if (data?.data) {
                     setUserProfile(data.data);
-                    // Datos de ejemplo para "Mis trabajos"
-                    setEmployerJobs([
-                        { id: '1', title: 'Reparación de cañerías', status: 'Abierto' },
-                        { id: '2', title: 'Pintura de casa', status: 'Completado' },
-                    ]);
-                    // Datos de ejemplo para "Trabajos realizados"
-                    setJobFeed([
-                        { id: 'a', imageUrl: 'https://via.placeholder.com/150' },
-                        { id: 'b', imageUrl: 'https://via.placeholder.com/150' },
-                        { id: 'c', imageUrl: 'https://via.placeholder.com/150' },
-                        { id: 'd', imageUrl: 'https://via.placeholder.com/150' },
-                        { id: 'e', imageUrl: 'https://via.placeholder.com/150' },
-                        { id: 'f', imageUrl: 'https://via.placeholder.com/150' },
-                    ]);
                 }
             } catch (err: any) {
                 setError('Error al obtener la información del usuario');
@@ -66,45 +62,98 @@ export default function ProfileScreen() {
         fetchProfile();
     }, [token]);
 
+    // Guardar la sección activa en AsyncStorage cada vez que cambie
+    useEffect(() => {
+        AsyncStorage.setItem('activeSection', activeSection);
+    }, [activeSection]);
+
+    // Cuando la sección activa sea "Mis trabajos", se solicita esa información
+    useEffect(() => {
+        if (!token) return;
+        const fetchEmployerJobs = async () => {
+            setLoading(true);
+            try {
+                const jobsData = await getJobsProfile(1, token);
+                console.log("MIS TRABAJOS");
+                console.log(jobsData.jobs);
+
+                console.log("MIS TRABAJOS");
+
+
+                setEmployerJobs(jobsData?.jobs || []);
+                setCurrentPageEmployer(1);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (activeSection === 'employer') {
+            fetchEmployerJobs();
+        }
+    }, [activeSection, token]);
+
+    // Cuando la sección activa sea "Trabajos realizados", se solicita esa información
+    useEffect(() => {
+        if (!token) return;
+        const fetchJobFeed = async () => {
+            setLoading(true);
+            try {
+
+                const feedData = await GetJobsByUserIDForEmploye(1, token);
+                console.log(" TRABAJOS realizados");
+                console.log(feedData.jobs);
+
+                console.log(" TRABAJOS realizados");
+                setJobFeed(feedData?.jobs || []);
+                setCurrentPageJobFeed(1);
+            } catch (error) {
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (activeSection === 'jobFeed') {
+            fetchJobFeed();
+        }
+    }, [activeSection, token]);
+
     const handleLogout = async () => {
         await logout();
         router.replace('/login');
     };
 
-    // Función para cargar 10 trabajos más (sólo para "Mis trabajos")
+    // Función para cargar más trabajos en "Mis trabajos"
     const loadMoreEmployerJobs = async () => {
-        setEmployerJobs((prevJobs) => {
-            const newJobs = [];
-            for (let i = 1; i <= 10; i++) {
-                newJobs.push({
-                    id: `${prevJobs.length + i}`,
-                    title: `Nuevo trabajo ${prevJobs.length + i}`,
-                    status: 'Abierto',
-                });
+        if (!token) return;
+        const nextPage = currentPageEmployer + 1;
+        try {
+            const newData = await getJobsProfile(nextPage, token);
+            if (newData?.jobs) {
+                setEmployerJobs(prev => [...prev, ...newData.jobs]);
+                setCurrentPageEmployer(nextPage);
             }
-            return [...prevJobs, ...newJobs];
-        });
+        } catch (err) {
+            console.error(err);
+        }
     };
 
-    // Si se está cargando o hay error, se retorna un contenido fijo
-    if (loading) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-        );
-    }
+    // Función para cargar más trabajos en "Trabajos realizados"
+    const loadMoreJobFeed = async () => {
+        if (!token) return;
+        const nextPage = currentPageJobFeed + 1;
+        try {
+            const newData = await GetJobsByUserIDForEmploye(nextPage, token);
+            if (newData?.jobs) {
+                setJobFeed(prev => [...prev, ...newData.jobs]);
+                setCurrentPageJobFeed(nextPage);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
-    if (error) {
-        return (
-            <View style={styles.center}>
-                <Text style={styles.errorText}>{error}</Text>
-                <Button title="Cerrar sesión" onPress={handleLogout} />
-            </View>
-        );
-    }
-
-    // Encabezado que se renderizará antes de la lista
+    // Encabezado que se renderiza antes de la lista
     const ListHeader = () => (
         <View>
             {userProfile && <ProfileHeader user={userProfile} />}
@@ -123,7 +172,10 @@ export default function ProfileScreen() {
             {/* Botones para alternar entre secciones */}
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
-                    style={[styles.toggleButton, activeSection === 'employer' && styles.activeToggle]}
+                    style={[
+                        styles.toggleButton,
+                        activeSection === 'employer' && styles.activeToggle,
+                    ]}
                     onPress={() => setActiveSection('employer')}
                 >
                     <Text
@@ -136,7 +188,10 @@ export default function ProfileScreen() {
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.toggleButton, activeSection === 'jobFeed' && styles.activeToggle]}
+                    style={[
+                        styles.toggleButton,
+                        activeSection === 'jobFeed' && styles.activeToggle,
+                    ]}
                     onPress={() => setActiveSection('jobFeed')}
                 >
                     <Text
@@ -154,36 +209,44 @@ export default function ProfileScreen() {
 
     // Renderizamos cada ítem de la lista según la sección activa
     const renderItem: ListRenderItem<any> = ({ item }) => {
-        if (activeSection === 'employer') {
-            return (
-                <TouchableOpacity
-                    style={styles.card}
-                    onPress={() => {
-                        router.push(`/EmployerJobDetail?id=${item.id}`)
-                    }}
-                >
-                    <Text style={styles.title}>{item.title}</Text>
-                    <Text style={styles.status}>Estado: {item.status}</Text>
-                </TouchableOpacity>
-            );
-        } else {
-            // Ejemplo de renderizado para "Trabajos realizados"
-            return (
-                <View style={styles.card}>
-                    <Text>Job Feed Item {item.id}</Text>
-                </View>
-            );
-        }
+        return (
+            <TouchableOpacity
+                style={styles.card}
+                onPress={() => {
+                    router.push(`/EmployerJobDetail?id=${item.id}`);
+                }}
+            >
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.status}>Estado: {item.status}</Text>
+            </TouchableOpacity>
+        );
     };
 
-    // Seleccionamos los datos y la función de carga según la sección activa
     const data = activeSection === 'employer' ? employerJobs : jobFeed;
-    const onEndReached = activeSection === 'employer' ? loadMoreEmployerJobs : undefined;
+    const onEndReached =
+        activeSection === 'employer' ? loadMoreEmployerJobs : loadMoreJobFeed;
+
+    if (loading) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator size="large" color="#0000ff" />
+            </View>
+        );
+    }
+
+    if (error) {
+        return (
+            <View style={styles.center}>
+                <Text style={styles.errorText}>{error}</Text>
+                <Button title="Cerrar sesión" onPress={handleLogout} />
+            </View>
+        );
+    }
 
     return (
         <FlatList
             data={data}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
             ListHeaderComponent={ListHeader}
             onEndReached={onEndReached}
@@ -199,19 +262,9 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 10,
-        backgroundColor: '#fff',
-    },
-    center: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    errorText: {
-        color: 'red',
-        marginBottom: 20,
-    },
+    container: { padding: 10, backgroundColor: '#121212' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' },
+    errorText: { color: '#CF6679', marginBottom: 20 },
     toggleContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -221,32 +274,32 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
-        backgroundColor: '#ddd',
+        backgroundColor: '#333',
     },
     activeToggle: {
-        backgroundColor: '#3498db',
+        backgroundColor: '#BB86FC',
     },
     toggleButtonText: {
         fontSize: 16,
-        color: '#000',
+        color: '#E0E0E0',
     },
     activeToggleText: {
-        color: '#fff',
+        color: '#121212',
     },
     createJobButton: {
-        backgroundColor: '#2ecc71',
+        backgroundColor: '#03DAC5',
         padding: 12,
         borderRadius: 5,
         alignItems: 'center',
         marginVertical: 10,
     },
     createJobButtonText: {
-        color: '#fff',
+        color: '#121212',
         fontWeight: 'bold',
         fontSize: 16,
     },
     card: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1E1E1E',
         padding: 16,
         borderRadius: 8,
         marginVertical: 6,
@@ -255,13 +308,15 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 16,
         fontWeight: 'bold',
+        color: '#E0E0E0',
     },
     status: {
         fontSize: 14,
-        color: '#555',
+        color: '#B0B0B0',
         marginTop: 4,
     },
     footer: {
         marginVertical: 20,
     },
 });
+

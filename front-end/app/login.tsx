@@ -14,10 +14,9 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
-      const token = await loginNameUser(nameUser, password);
-      console.log(token);
+      const data = await loginNameUser(nameUser, password);
 
-      await login(token);
+      await login(data.token, data._id);
       router.replace('/profile' as any);
     } catch (error) {
       if (error instanceof Error) {

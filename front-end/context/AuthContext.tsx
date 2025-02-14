@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface AuthContextProps {
     token: string | null;
     isLoading: boolean;
-    login: (token: string) => Promise<void>;
+    login: (token: string, id: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -40,9 +40,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loadToken();
     }, []);
 
-    const login = async (newToken: string) => {
+    const login = async (newToken: string, id: string) => {
         try {
             await AsyncStorage.setItem('token', newToken);
+            await AsyncStorage.setItem('id', id);
+
             setToken(newToken);
         } catch (error) {
             console.error('Error saving token:', error);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useRouter } from 'expo-router';
 
@@ -21,7 +21,7 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job }) => {
-    const router = useRouter(); // Hook para navegación
+    const router = useRouter();
 
     const renderLocationMap = (location: string | JobLocation) => {
         if (typeof location === 'object' && location.type === 'Point' && Array.isArray(location.coordinates)) {
@@ -35,7 +35,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
 
             return (
                 <MapView
-                    style={styles.map}
+                    style={darkStyles.map}
                     initialRegion={region}
                     scrollEnabled={false}
                     zoomEnabled={false}
@@ -47,28 +47,28 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
                 </MapView>
             );
         } else if (typeof location === 'string') {
-            return <Text style={styles.locationText}>{location}</Text>;
+            return <Text style={darkStyles.locationText}>{location}</Text>;
         }
         return null;
     };
 
     return (
-        <TouchableOpacity style={styles.cardContainer} onPress={() => {
-            router.push(`/JobDetail?id=${job.id}`)
-        }}>
-            <Text style={styles.title}>{job.title}</Text>
-
-            <View style={styles.locationContainer}>
-                <Text style={styles.locationLabel}>Ubicación:</Text>
+        <TouchableOpacity
+            style={darkStyles.cardContainer}
+            onPress={() => {
+                router.push(`/JobDetail?id=${job.id}`);
+            }}
+        >
+            <Text style={darkStyles.title}>{job.title}</Text>
+            <View style={darkStyles.locationContainer}>
+                <Text style={darkStyles.locationLabel}>Ubicación:</Text>
                 {renderLocationMap(job.location)}
             </View>
-
-            <Text style={styles.budget}>Presupuesto: ${job.budget.toFixed(2)}</Text>
-
-            <View style={styles.tagsContainer}>
+            <Text style={darkStyles.budget}>Presupuesto: ${job.budget.toFixed(2)}</Text>
+            <View style={darkStyles.tagsContainer}>
                 {job.tags.map((tag, index) => (
-                    <View key={index} style={styles.tag}>
-                        <Text style={styles.tagText}>{tag}</Text>
+                    <View key={index} style={darkStyles.tag}>
+                        <Text style={darkStyles.tagText}>{tag}</Text>
                     </View>
                 ))}
             </View>
@@ -76,9 +76,9 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
     );
 };
 
-const styles = StyleSheet.create({
+const darkStyles = StyleSheet.create({
     cardContainer: {
-        backgroundColor: '#fff',
+        backgroundColor: '#1E1E1E',
         padding: 16,
         marginVertical: 8,
         borderRadius: 10,
@@ -92,19 +92,19 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 6,
-        color: '#333',
+        color: '#E0E0E0',
     },
     locationContainer: {
         marginVertical: 6,
     },
     locationLabel: {
         fontSize: 14,
-        color: '#555',
+        color: '#B0B0B0',
         marginBottom: 4,
     },
     locationText: {
         fontSize: 14,
-        color: '#555',
+        color: '#B0B0B0',
     },
     map: {
         width: '100%',
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     },
     budget: {
         fontSize: 14,
-        color: '#1e88e5',
+        color: '#03DAC5',
         marginVertical: 6,
     },
     tagsContainer: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     tag: {
-        backgroundColor: '#e0e0e0',
+        backgroundColor: '#333',
         borderRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     },
     tagText: {
         fontSize: 12,
-        color: '#333',
+        color: '#E0E0E0',
     },
 });
 

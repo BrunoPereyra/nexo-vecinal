@@ -25,6 +25,7 @@ export const createJob = async (jobData: any, token: string) => {
     }
 };
 export const GetJobTokenAdmin = async (JobId: any, token: string) => {
+    console.log(JobId);
     try {
         const res = await fetch(`${API}/job/get-job-token-admin`, {
             method: 'POST',
@@ -32,12 +33,72 @@ export const GetJobTokenAdmin = async (JobId: any, token: string) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JobId
+            body: JSON.stringify({ JobId })
         });
         return await res.json();
     } catch (error) {
         console.error("Error en createJob:", error);
         alert('Ocurrió un error al crear el job');
+    }
+};
+/**
+ * Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación.
+ * @param userId - ID del usuario.
+ * @param page - Número de página (1 en adelante).
+ * @param token - Token del usuario para autorización.
+ * @returns La respuesta de la API en formato JSON.
+ */
+export const getJobsProfile = async (page: number, token: string) => {
+    console.log("Page:", page);
+    console.log("Token:", token);
+
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-jobs-profile?page=${page}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Asegúrate de que no haya espacios extras
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile:", error);
+        alert('Ocurrió un error al obtener los trabajos del perfil');
+    }
+};
+/**
+ * Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación.
+ * @param userId - ID del usuario.
+ * @param page - Número de página (1 en adelante).
+ * @param token - Token del usuario para autorización.
+ * @returns La respuesta de la API en formato JSON.
+ */
+export const GetJobsByUserIDForEmploye = async (page: number, token: string) => {
+    console.log("Page:", page);
+    console.log("Token:", token);
+
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-jobs-user-Employe-profile?page=${page}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Asegúrate de que no haya espacios extras
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile:", error);
+        alert('Ocurrió un error al obtener los trabajos del perfil');
     }
 };
 export const jobIdEmployee = async (jobId: string, token: string) => {
@@ -70,22 +131,23 @@ export const jobIdEmployee = async (jobId: string, token: string) => {
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
  */
-export const applyToJob = async (jobId: string, token: string) => {
+export const applyToJob = async (JobId: string, token: string) => {
     try {
-        const res = await fetch(`${API}/job/${jobId}/apply`, {
+        const res = await fetch(`${API}/job/apply`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
-            }
-            // No se requiere body, ya que el token y el jobId en la URL son suficientes.
+            },
+            body: JSON.stringify({ JobId })
         });
         return await res.json();
     } catch (error) {
         console.error("Error en applyToJob:", error);
-        alert('Ocurrió un error al aplicar al job');
+        alert('Ocurrió un error al aplicar al trabajo');
     }
 };
+
 
 /**
  * Realiza una petición PUT para asignar a un trabajador a un job.
@@ -217,14 +279,16 @@ export const getJobsByFilters = async (filters: {
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
  */
-export const updateJobStatusToCompleted = async (jobId: string, token: string) => {
+export const updateJobStatusToCompleted = async (JobId: string, token: string) => {
     try {
-        const res = await fetch(`${API}/job/${jobId}/update-job-statusTo-completed`, {
+        const res = await fetch(`${API}/job/update-job-statusTo-completed`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
-            }
+            },
+            body: JSON.stringify({ JobId })
+
             // Asumimos que el endpoint utiliza el jobId desde la URL; si es necesario, se puede enviar más información en el body.
         });
         return await res.json();

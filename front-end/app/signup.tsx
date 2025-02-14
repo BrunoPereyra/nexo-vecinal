@@ -19,7 +19,7 @@ export default function SignupScreen() {
     try {
       // Enviamos el código ya convertido a número
       const resConfirm = await SaveUserCodeConfirm(code);
-      login(resConfirm.data);
+      login(resConfirm.data, resConfirm._id);
       router.replace('(protected)/view1' as any);
     } catch (error) {
       console.error(error);
@@ -34,10 +34,6 @@ export default function SignupScreen() {
         console.log(data);
         if (data.message === "email to confirm") {
           setShowCodeInput(true);
-        } else {
-          // En caso de que no se requiera confirmación, realiza el login o redirige al usuario.
-          // login(data);
-          // router.replace('(protected)/view1' as any);
         }
       } else {
         alert('Error en el signup');
