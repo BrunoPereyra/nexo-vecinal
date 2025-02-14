@@ -4,6 +4,7 @@ import (
 	Jobapplication "back-end/internal/Job/Job-application"
 	jobdomain "back-end/internal/Job/Job-domain"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -61,11 +62,10 @@ func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 // ApplyToJob permite que el trabajador se postule a un job.
 // Se espera que la ruta tenga un parámetro "jobId".
 func (j *JobHandler) ApplyToJob(c *fiber.Ctx) error {
-	jobIDParam := c.Params("jobId")
-	jobID, err := primitive.ObjectIDFromHex(jobIDParam)
-	if err != nil {
+	var reqJon jobdomain.JobId
+	if err := c.BodyParser(&reqJon); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "Invalid job ID",
+			"message": "Bad Request",
 		})
 	}
 	// Se obtiene el ID del postulante desde el token
@@ -76,7 +76,7 @@ func (j *JobHandler) ApplyToJob(c *fiber.Ctx) error {
 			"message": "Invalid applicant ID",
 		})
 	}
-	if err = j.JobService.ApplyToJob(jobID, applicantID); err != nil {
+	if err = j.JobService.ApplyToJob(reqJon.JobId, applicantID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Could not apply to job",
 			"error":   err.Error(),
@@ -248,13 +248,21 @@ func (j *JobHandler) UpdateJobStatusToCompleted(c *fiber.Ctx) error {
 			"message": "Invalid user ID",
 		})
 	}
+
 	jobID, err := j.JobService.UpdateJobStatusToCompleted(req.JobId, userID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "StatusBadRequest",
+		if err.Error() == "job already completed" {
+			return c.Status(fiber.StatusOK).JSON(fiber.Map{
+				"message": "StatusOK",
+				"job":     err.Error(),
+			})
+		}
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"message": "StatusConflict",
 			"error":   err.Error(),
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "UpdateJobStatusToCompleted",
 		"job":     jobID,
@@ -269,6 +277,7 @@ func (j *JobHandler) GetJobTokenAdmin(c *fiber.Ctx) error {
 			"message": "Bad Request",
 		})
 	}
+
 	idValue := c.Context().UserValue("_id").(string)
 	userID, err := primitive.ObjectIDFromHex(idValue)
 	if err != nil {
@@ -305,7 +314,6 @@ func (j *JobHandler) GetJobByIDForEmployee(c *fiber.Ctx) error {
 			"message": "Invalid user ID",
 		})
 	}
-	// Llamamos al servicio con el jobId
 	job, err := j.JobService.GetJobByIDForEmployee(jobIDPr)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -314,9 +322,62 @@ func (j *JobHandler) GetJobByIDForEmployee(c *fiber.Ctx) error {
 		})
 	}
 
-	// Devolvemos la respuesta exitosa
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "ok",
 		"job":     job,
+	})
+}
+
+// Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación
+func (j *JobHandler) GetJobsProfile(c *fiber.Ctx) error {
+	idValue := c.Context().UserValue("_id").(string)
+	userID, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
+	}
+	pageStr := c.Query("page", "1")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	jobs, err := j.JobService.GetJobsProfile(userID, page)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "StatusBadRequest",
+			"error":   err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"jobs":    jobs,
+	})
+}
+
+// Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación
+func (j *JobHandler) GetJobsUserIDForEmployeProfile(c *fiber.Ctx) error {
+	idValue := c.Context().UserValue("_id").(string)
+	userID, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
+	}
+	pageStr := c.Query("page", "1")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	jobs, err := j.JobService.GetJobsByUserIDForEmploye(userID, page)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "StatusBadRequest",
+			"error":   err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"jobs":    jobs,
 	})
 }

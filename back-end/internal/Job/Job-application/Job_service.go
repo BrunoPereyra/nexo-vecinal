@@ -120,3 +120,13 @@ func (js *JobService) UpdateJobStatusToCompleted(jobId, UserId primitive.ObjectI
 func (js *JobService) GetJobTokenAdmin(jobId, UserId primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.GetJobDetails(jobId, UserId)
 }
+
+// Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación
+func (js *JobService) GetJobsProfile(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	return js.JobRepository.GetJobsByUserID(jobID, page)
+
+}
+func (js *JobService) GetJobsByUserIDForEmploye(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	return js.JobRepository.GetJobsByUserIDForEmploye(jobID, page)
+
+}

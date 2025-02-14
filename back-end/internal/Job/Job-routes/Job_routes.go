@@ -17,15 +17,20 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	JobService := jobapplication.NewJobService(JobRepository)
 	JobHandler := Jobinterfaces.NewJobHandler(JobService)
 
-	App.Post("/job/create", middleware.UseExtractor(), JobHandler.CreateJob)                                         // Crear un nuevo trabajo
-	App.Post("/job/apply", middleware.UseExtractor(), JobHandler.ApplyToJob)                                         // Postularse a un trabajo
-	App.Put("/job/assign", middleware.UseExtractor(), JobHandler.AssignJob)                                          // Asignar un trabajador a un trabajo
-	App.Put("/job/reassign", middleware.UseExtractor(), JobHandler.ReassignJob)                                      // Reasignar un trabajador a un trabajo
-	App.Post("/job/employer-feedback", middleware.UseExtractor(), JobHandler.ProvideEmployerFeedback)                // Feedback del empleador
-	App.Post("/job/worker-feedback", middleware.UseExtractor(), JobHandler.ProvideWorkerFeedback)                    // Feedback del empleado
+	App.Post("/job/create", middleware.UseExtractor(), JobHandler.CreateJob)                                 // Crear un nuevo trabajo
+	App.Post("/job/apply", middleware.UseExtractor(), JobHandler.ApplyToJob)                                 // Postularse a un trabajo
+	App.Put("/job/assign", middleware.UseExtractor(), JobHandler.AssignJob)                                  // Asignar un trabajador a un trabajo
+	App.Put("/job/reassign", middleware.UseExtractor(), JobHandler.ReassignJob)                              // Reasignar un trabajador a un trabajo
+	App.Post("/job/:jobId/worker-feedback", middleware.UseExtractor(), JobHandler.ProvideWorkerFeedback)     // Feedback del empleado
+	App.Post("/job/:jobId/employer-feedback", middleware.UseExtractor(), JobHandler.ProvideEmployerFeedback) // Feedback del empleador
+
 	App.Post("/job/get-jobsBy-filters", middleware.UseExtractor(), JobHandler.GetJobsByFilters)                      // GetJobsByFilters
 	App.Post("/job/update-job-statusTo-completed", middleware.UseExtractor(), JobHandler.UpdateJobStatusToCompleted) // CreateJob maneja la creación de un nuevo job.
-	App.Post("/job/get-job-token-admin", middleware.UseExtractor(), JobHandler.GetJobTokenAdmin)                     // obtiene detalles de un trabajo (admin)
-	App.Get("/job/get-jobIdEmploye", middleware.UseExtractor(), JobHandler.GetJobByIDForEmployee)                    // obtiene detalles de un trabajo (admin)
+
+	App.Post("/job/get-job-token-admin", middleware.UseExtractor(), JobHandler.GetJobTokenAdmin)  // obtiene detalles de un trabajo (admin)
+	App.Get("/job/get-jobIdEmploye", middleware.UseExtractor(), JobHandler.GetJobByIDForEmployee) // obtiene detalles para trabajadores
+	//Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación
+	App.Get("/job/get-jobs-profile", middleware.UseExtractor(), JobHandler.GetJobsProfile)
+	App.Get("/job/get-jobs-user-Employe-profile", middleware.UseExtractor(), JobHandler.GetJobsUserIDForEmployeProfile)
 
 }

@@ -232,7 +232,6 @@ type ReqCodeInRedisSignup struct {
 // login
 func (h *UserHandler) Login(c *fiber.Ctx) error {
 	var DataForLogin domain.LoginValidatorStruct
-	fmt.Println("AAA")
 	if err := c.BodyParser(&DataForLogin); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",

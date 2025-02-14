@@ -12,6 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type JobRepository struct {
@@ -304,22 +305,32 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	// Convertir el radio de metros a radianes (radio terrestre ≈ 6,378,100 metros)
 	radiusInRadians := jobFilter.RadiusInMeters / 6378100.0
 
-	// Crear el filtro:
-	// - Se filtran los trabajos que tengan al menos una etiqueta dentro del slice "tags".
-	// - Se filtran aquellos trabajos cuya ubicación se encuentre dentro de un círculo definido
-	//   por el centro [lon, lat] y el radio en radianes.
-	filter := bson.M{
-		"tags": bson.M{
+	// Se inicia el filtro vacío
+	filter := bson.M{}
+
+	// Si se proporcionan etiquetas, se filtra que al menos una esté presente
+	if len(jobFilter.Tags) > 0 {
+		filter["tags"] = bson.M{
 			"$in": jobFilter.Tags,
-		},
-		"location": bson.M{
-			"$geoWithin": bson.M{
-				"$centerSphere": []interface{}{
-					[]float64{jobFilter.Longitude, jobFilter.Latitude},
-					radiusInRadians,
-				},
+		}
+	}
+
+	// Filtro por ubicación: trabajos cuyo campo "location" se encuentre dentro del círculo definido
+	filter["location"] = bson.M{
+		"$geoWithin": bson.M{
+			"$centerSphere": []interface{}{
+				[]float64{jobFilter.Longitude, jobFilter.Latitude},
+				radiusInRadians,
 			},
 		},
+	}
+
+	// Si se proporcionó un título, se agrega un filtro por título (búsqueda por expresión regular, case-insensitive)
+	if jobFilter.Title != "" {
+		filter["title"] = bson.M{
+			"$regex":   jobFilter.Title,
+			"$options": "i",
+		}
 	}
 
 	// Ejecutar la consulta
@@ -336,6 +347,7 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 
 	return jobs, nil
 }
+
 func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
@@ -351,7 +363,7 @@ func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdom
 		// 2. $lookup: Obtener los datos de los postulantes (Applicants)
 		{
 			{Key: "$lookup", Value: bson.D{
-				{Key: "from", Value: "User"},             // Nombre de la colección de usuarios
+				{Key: "from", Value: "Users"},            // Nombre de la colección de usuarios
 				{Key: "localField", Value: "applicants"}, // Campo en Job (array de ObjectID)
 				{Key: "foreignField", Value: "_id"},      // Campo en User
 				{Key: "as", Value: "applicants"},         // Se sobreescribe el array con los datos completos
@@ -399,6 +411,8 @@ func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdom
 				{Key: "paymentStatus", Value: 1},
 				{Key: "paymentAmount", Value: 1},
 				{Key: "paymentIntentId", Value: 1},
+				{Key: "employerFeedback", Value: 1},
+				{Key: "workerFeedback", Value: 1},
 			}},
 		},
 	}
@@ -422,6 +436,8 @@ func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdom
 
 	return &jobDetails[0], nil
 }
+
+// obtiene detalles para trabajadores
 func (j *JobRepository) GetJobByIDForEmployee(jobID primitive.ObjectID) (*jobdomain.GetJobByIDForEmployee, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
@@ -487,4 +503,101 @@ func (j *JobRepository) GetJobByIDForEmployee(jobID primitive.ObjectID) (*jobdom
 	}
 
 	return &results[0], nil
+}
+
+// Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación
+func (j *JobRepository) GetJobsByUserID(userID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+	var jobs []jobdomain.Job
+
+	// Filtrar por el userId
+	filter := bson.M{"userId": userID}
+
+	// Configurar la paginación y el orden: 10 trabajos por página, ordenados de más recientes a más viejos
+	opts := options.Find().
+		SetLimit(10).
+		SetSkip(int64((page - 1) * 10)).
+		SetSort(bson.D{{"createdAt", -1}})
+
+	cursor, err := jobColl.Find(context.Background(), filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	if err := cursor.All(context.Background(), &jobs); err != nil {
+		return nil, err
+	}
+
+	return jobs, nil
+}
+
+func (j *JobRepository) GetJobsByUserIDForEmploye(userID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+	limit := int64(10)
+	skip := int64((page - 1) * 10)
+
+	pipeline := mongo.Pipeline{
+		// 1. Filtrar los trabajos cuyo campo "userId" coincida con el usuario
+		{{Key: "$match", Value: bson.D{
+			{Key: "userId", Value: userID},
+		}}},
+		// 2. Lookup: unir la información del usuario (el creador del job) usando la variable "userId"
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "Users"},
+			{Key: "let", Value: bson.D{
+				{Key: "userId", Value: "$userId"},
+			}},
+			{Key: "pipeline", Value: bson.A{
+				bson.D{
+					{Key: "$match", Value: bson.D{
+						{Key: "$expr", Value: bson.D{
+							{Key: "$eq", Value: bson.A{"$_id", "$$userId"}},
+						}},
+					}},
+				},
+				bson.D{
+					{Key: "$project", Value: bson.D{
+						{Key: "_id", Value: 1},
+						{Key: "nameUser", Value: 1},
+						{Key: "avatar", Value: 1},
+					}},
+				},
+			}},
+			{Key: "as", Value: "user"},
+		}}},
+		// 3. Convertir el array "user" en un documento
+		{{Key: "$unwind", Value: bson.D{
+			{Key: "path", Value: "$user"},
+			{Key: "preserveNullAndEmptyArrays", Value: true},
+		}}},
+		// 4. Proyectar para omitir el campo "Applicants"
+		{{Key: "$project", Value: bson.D{
+			{Key: "Applicants", Value: 0},
+		}}},
+		// 5. Ordenar por "createdAt" de forma descendente (más recientes primero)
+		{{Key: "$sort", Value: bson.D{
+			{Key: "createdAt", Value: -1},
+		}}},
+		// 6. Paginación: saltar y limitar los resultados
+		{{Key: "$skip", Value: skip}},
+		{{Key: "$limit", Value: limit}},
+	}
+
+	cursor, err := jobColl.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var jobs []jobdomain.Job
+	if err := cursor.All(context.Background(), &jobs); err != nil {
+		return nil, err
+	}
+
+	if len(jobs) == 0 {
+		return nil, errors.New("no jobs found")
+	}
+
+	return jobs, nil
 }
