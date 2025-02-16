@@ -7,7 +7,8 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  TextInput
+  TextInput,
+  ScrollView
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -19,11 +20,12 @@ import {
   updateJobStatusToCompleted,
   provideEmployerFeedback,
   provideWorkerFeedback
-} from '@/services/JobsService'; // Ajusta la ruta según tu estructura
+} from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApplicantsList from '@/components/ApplicantsList';
 
 export default function EmployerJobDetail() {
+  // Obtenemos el parámetro "id" de la URL
   const { id: jobId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { token } = useAuth();
@@ -37,11 +39,10 @@ export default function EmployerJobDetail() {
   const [feedback, setFeedback] = useState<string>('');
   const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
   const [rating, setRating] = useState<number>(0);
-  // Estado para el ID del usuario actual
+  // Estado para el ID del usuario actual, obtenido de AsyncStorage
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Recuperamos el id del usuario actual
     AsyncStorage.getItem('id').then((id) => {
       setCurrentUserId(id);
     });
@@ -53,10 +54,7 @@ export default function EmployerJobDetail() {
       setLoading(true);
       try {
         const data = await GetJobTokenAdmin(jobId, token);
-
         if (data.job) {
-          console.log(data.job);
-
           setJobDetail(data.job);
         }
       } catch (err) {
@@ -100,15 +98,13 @@ export default function EmployerJobDetail() {
     if (!jobDetail || !token) return;
     setActionLoading(true);
     try {
-      console.log(jobDetail);
-
       const res = await updateJobStatusToCompleted(jobDetail.id, token);
-      console.log(res);
       if (res.job) {
         if (res.job === "job already completed") {
           alert('El trabajo ya estaba marcado como completado');
         } else {
-          // setJobDetail(res);
+          // Puedes actualizar el estado si el backend devuelve información actualizada
+          setJobDetail(res);
         }
       }
     } catch (error) {
@@ -118,7 +114,7 @@ export default function EmployerJobDetail() {
     }
   };
 
-  // Función para enviar o actualizar feedback
+  // Función para enviar o actualizar feedback, eligiendo la función adecuada según el usuario actual
   const handleLeaveFeedback = async () => {
     if (!feedback.trim() || rating === 0 || !jobDetail || !token) {
       alert('El feedback y la calificación no pueden estar vacíos');
@@ -127,20 +123,20 @@ export default function EmployerJobDetail() {
     setActionLoading(true);
     try {
       let res = null;
-      // Crear el objeto de feedback a enviar
+      // Creamos el objeto de feedback
       const feedbackData = { comment: feedback.trim(), rating };
-
+      // Comparamos el id del usuario actual con el userId del job
       if (currentUserId === jobDetail.userId) {
-        // Si el usuario es el empleador, deja feedback sobre el trabajador.
+        // Si coinciden, el usuario es el empleador y deja feedback sobre el trabajador
         res = await provideEmployerFeedback(jobDetail.id, feedbackData, token);
       } else {
-        // Si es trabajador, deja feedback sobre el empleador.
+        // De lo contrario, el usuario es el trabajador y deja feedback sobre el empleador
         res = await provideWorkerFeedback(jobDetail.id, feedbackData, token);
       }
+
       if (res && res.success) {
         alert('Feedback enviado exitosamente');
-        // Actualizamos el jobDetail para reflejar el feedback recibido.
-        // Se asume que el backend devuelve la propiedad feedback en el objeto.
+        // Actualizamos el jobDetail para reflejar el feedback recibido
         if (currentUserId === jobDetail.userId) {
           setJobDetail({ ...jobDetail, employerFeedback: res.feedback });
         } else {
@@ -189,18 +185,16 @@ export default function EmployerJobDetail() {
   let feedbackType = "";
   if (currentUserId && jobDetail) {
     if (currentUserId === jobDetail.userId) {
-      // El usuario es el empleador
       existingFeedback = jobDetail.employerFeedback;
       feedbackType = "Feedback del Empleador";
     } else {
-      // El usuario es el trabajador
       existingFeedback = jobDetail.workerFeedback;
       feedbackType = "Feedback del Trabajador";
     }
   }
 
   return (
-    <View style={darkStyles.container}>
+    <ScrollView style={darkStyles.container} contentContainerStyle={{ paddingBottom: 20 }}>
       {/* Información principal del trabajo */}
       <Text style={darkStyles.title}>{jobDetail.title}</Text>
       <Text style={darkStyles.description}>{jobDetail.description}</Text>
@@ -237,67 +231,65 @@ export default function EmployerJobDetail() {
       )}
 
       {/* Sección de postulados */}
-      <>
-        <ApplicantsList job={jobDetail} token={token as string} />
+      <ApplicantsList job={jobDetail} token={token as string} />
 
+      <TouchableOpacity
+        style={darkStyles.completeButton}
+        onPress={handleComplete}
+        disabled={actionLoading}
+      >
+        <Text style={darkStyles.completeButtonText}>Marcar como completado</Text>
+      </TouchableOpacity>
 
+      {/* Sección de feedback */}
+      <View style={darkStyles.feedbackContainer}>
+        <Text style={darkStyles.sectionTitle}>
+          {existingFeedback ? `${feedbackType} Recibido:` : "Dejar Opinión:"}
+        </Text>
+        {existingFeedback && (
+          <View style={darkStyles.existingFeedbackContainer}>
+            <Text style={darkStyles.feedbackText}>
+              Comentario: {existingFeedback.comment}
+            </Text>
+            <Text style={darkStyles.feedbackText}>
+              Calificación: {existingFeedback.rating} {existingFeedback.rating === 1 ? "estrella" : "estrellas"}
+            </Text>
+            <Text style={darkStyles.feedbackText}>
+              Fecha: {new Date(existingFeedback.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+        )}
+        <View style={darkStyles.ratingContainer}>
+          <Text style={darkStyles.ratingLabel}>Calificación:</Text>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <TouchableOpacity key={star} onPress={() => setRating(star)}>
+              <Text style={[darkStyles.star, star <= rating ? darkStyles.selectedStar : darkStyles.unselectedStar]}>
+                ★
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <TextInput
+          style={darkStyles.feedbackInput}
+          placeholder="Escribe tu feedback..."
+          placeholderTextColor="#888"
+          value={feedback}
+          onChangeText={setFeedback}
+          multiline
+        />
         <TouchableOpacity
-          style={darkStyles.completeButton}
-          onPress={handleComplete}
+          style={darkStyles.feedbackButton}
+          onPress={handleLeaveFeedback}
           disabled={actionLoading}
         >
-          <Text style={darkStyles.completeButtonText}>Marcar como completado</Text>
-        </TouchableOpacity>
-        {/* Sección de feedback */}
-        <View style={darkStyles.feedbackContainer}>
-          <Text style={darkStyles.sectionTitle}>
-            {existingFeedback ? `${feedbackType} Recibido:` : "Dejar Opinión:"}
+          <Text style={darkStyles.feedbackButtonText}>
+            {existingFeedback ? "Actualizar Feedback" : "Enviar Feedback"}
           </Text>
-          {existingFeedback && (
-            <View style={darkStyles.existingFeedbackContainer}>
-              <Text style={darkStyles.feedbackText}>
-                Comentario: {existingFeedback.comment}
-              </Text>
-              <Text style={darkStyles.feedbackText}>
-                Calificación: {existingFeedback.rating} {existingFeedback.rating === 1 ? "estrella" : "estrellas"}
-              </Text>
-              <Text style={darkStyles.feedbackText}>
-                Fecha: {new Date(existingFeedback.createdAt).toLocaleDateString()}
-              </Text>
-            </View>
-          )}
-          <View style={darkStyles.ratingContainer}>
-            <Text style={darkStyles.ratingLabel}>Calificación:</Text>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                <Text style={[darkStyles.star, star <= rating ? darkStyles.selectedStar : darkStyles.unselectedStar]}>
-                  ★
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <TextInput
-            style={darkStyles.feedbackInput}
-            placeholder="Escribe tu feedback..."
-            placeholderTextColor="#888"
-            value={feedback}
-            onChangeText={setFeedback}
-            multiline
-          />
-          <TouchableOpacity
-            style={darkStyles.feedbackButton}
-            onPress={handleLeaveFeedback}
-            disabled={actionLoading}
-          >
-            <Text style={darkStyles.feedbackButtonText}>
-              {existingFeedback ? "Actualizar Feedback" : "Enviar Feedback"}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </>
+        </TouchableOpacity>
+      </View>
 
       <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -305,12 +297,6 @@ const darkStyles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#121212'
-  },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: '#121212'
   },
   title: {
@@ -344,6 +330,66 @@ const darkStyles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 8,
     color: '#BB86FC'
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10
+  },
+  ratingLabel: {
+    fontSize: 16,
+    marginRight: 8,
+    color: '#E0E0E0'
+  },
+  star: {
+    fontSize: 24,
+    marginHorizontal: 2
+  },
+  selectedStar: {
+    color: '#F1C40F'
+  },
+  unselectedStar: {
+    color: '#444'
+  },
+  feedbackContainer: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 8
+  },
+  feedbackInput: {
+    borderWidth: 1,
+    borderColor: '#444',
+    borderRadius: 5,
+    padding: 8,
+    minHeight: 60,
+    marginBottom: 10,
+    backgroundColor: '#121212',
+    color: '#E0E0E0'
+  },
+  feedbackButton: {
+    backgroundColor: '#03DAC5',
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center'
+  },
+  feedbackButtonText: {
+    color: '#121212',
+    fontWeight: 'bold',
+    fontSize: 16
+  },
+  existingFeedbackContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#121212',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#BB86FC'
+  },
+  feedbackText: {
+    fontSize: 16,
+    marginBottom: 4,
+    color: '#E0E0E0'
   },
   candidateCard: {
     padding: 8,
@@ -380,74 +426,15 @@ const darkStyles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16
   },
-  feedbackContainer: {
-    marginTop: 16,
-    padding: 12,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 8
-  },
-  feedbackInput: {
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 5,
-    padding: 8,
-    minHeight: 60,
-    marginBottom: 10,
-    backgroundColor: '#121212',
-    color: '#E0E0E0'
-  },
-  feedbackButton: {
-    backgroundColor: '#03DAC5',
-    paddingVertical: 10,
-    borderRadius: 5,
-    alignItems: 'center'
-  },
-  feedbackButtonText: {
-    color: '#121212',
-    fontWeight: 'bold',
-    fontSize: 16
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10
-  },
-  ratingLabel: {
-    fontSize: 16,
-    marginRight: 8,
-    color: '#E0E0E0'
-  },
-  star: {
-    fontSize: 24,
-    marginHorizontal: 2
-  },
-  selectedStar: {
-    color: '#F1C40F'
-  },
-  unselectedStar: {
-    color: '#444'
-  },
-  existingFeedbackContainer: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#121212',
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#BB86FC'
-  },
-  feedbackTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: '#BB86FC'
-  },
-  feedbackText: {
-    fontSize: 16,
-    marginBottom: 4,
-    color: '#E0E0E0'
-  },
   errorText: {
     color: '#CF6679',
     marginBottom: 16
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#121212'
   }
 });
+

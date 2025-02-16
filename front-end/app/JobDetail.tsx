@@ -9,9 +9,10 @@ import {
     Dimensions,
     Button,
     Alert,
+    TouchableOpacity,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { applyToJob, jobIdEmployee } from '../services/JobsService';
 
@@ -93,19 +94,26 @@ const JobDetail: React.FC = () => {
 
             {/* Perfil del Empleador */}
             {job.user && (
-                <View style={styles.employerContainer}>
+                <View
+
+                    style={styles.employerContainer}>
                     <Text style={styles.sectionTitle}>Perfil del Empleador</Text>
                     <View style={styles.employerInfo}>
-                        {job.user.avatar ? (
-                            <Image source={{ uri: job.user.avatar }} style={styles.avatar} />
-                        ) : (
-                            <View style={styles.avatarPlaceholder}>
+                        <TouchableOpacity
+                            onPress={() => router.push(`/ProfileVisited?id=${job.user.id}`)}
+                            style={styles.avatarPlaceholder}
+                            activeOpacity={0.7}
+                        >
+                            {job.user.avatar ? (
+                                <Image source={{ uri: job.user.avatar }} style={styles.avatar} />
+                            ) : (
                                 <Text style={styles.avatarText}>
                                     {job.user.nameUser.charAt(0).toUpperCase()}
                                 </Text>
-                            </View>
-                        )}
-                        <Text style={styles.employerName}>{job.user.nameUser}</Text>
+                            )}
+                        </TouchableOpacity>
+                        <Text style={styles.employerName}>{job.user.nameUser} </Text>
+
                     </View>
                 </View>
             )}

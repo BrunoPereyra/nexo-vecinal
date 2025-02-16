@@ -21,7 +21,6 @@ export const createJob = async (jobData: any, token: string) => {
         return await res.json();
     } catch (error) {
         console.error("Error en createJob:", error);
-        alert('Ocurrió un error al crear el job');
     }
 };
 export const GetJobTokenAdmin = async (JobId: any, token: string) => {
@@ -38,7 +37,6 @@ export const GetJobTokenAdmin = async (JobId: any, token: string) => {
         return await res.json();
     } catch (error) {
         console.error("Error en createJob:", error);
-        alert('Ocurrió un error al crear el job');
     }
 };
 /**
@@ -67,10 +65,10 @@ export const getJobsProfile = async (page: number, token: string) => {
         }
         return await res.json();
     } catch (error) {
-        console.error("Error en getJobsProfile:", error);
-        alert('Ocurrió un error al obtener los trabajos del perfil');
+        console.error("Error en getJobsProfile 2:", error);
     }
 };
+
 /**
  * Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación.
  * @param userId - ID del usuario.
@@ -97,8 +95,7 @@ export const GetJobsByUserIDForEmploye = async (page: number, token: string) => 
         }
         return await res.json();
     } catch (error) {
-        console.error("Error en getJobsProfile:", error);
-        alert('Ocurrió un error al obtener los trabajos del perfil');
+        console.error("Error en GetJobsByUserIDForEmploye:", error);
     }
 };
 export const jobIdEmployee = async (jobId: string, token: string) => {
@@ -119,8 +116,7 @@ export const jobIdEmployee = async (jobId: string, token: string) => {
 
         return await res.json();
     } catch (error) {
-        console.error("Error al obtener el job:", error);
-        alert('Ocurrió un error al obtener el job');
+        console.error("Error al obtener el jobIdEmployee:", error);
     }
 };
 
@@ -144,7 +140,6 @@ export const applyToJob = async (JobId: string, token: string) => {
         return await res.json();
     } catch (error) {
         console.error("Error en applyToJob:", error);
-        alert('Ocurrió un error al aplicar al trabajo');
     }
 };
 
@@ -169,7 +164,6 @@ export const assignJob = async (jobId: string, workerId: string, token: string) 
         return await res.json();
     } catch (error) {
         console.error("Error en assignJob:", error);
-        alert('Ocurrió un error al asignar el job');
     }
 };
 
@@ -193,7 +187,6 @@ export const reassignJob = async (jobId: string, newWorkerId: string, token: str
         return await res.json();
     } catch (error) {
         console.error("Error en reassignJob:", error);
-        alert('Ocurrió un error al reasignar el job');
     }
 };
 
@@ -217,7 +210,6 @@ export const provideEmployerFeedback = async (jobId: string, feedback: any, toke
         return await res.json();
     } catch (error) {
         console.error("Error en provideEmployerFeedback:", error);
-        alert('Ocurrió un error al enviar el feedback del empleador');
     }
 };
 
@@ -241,7 +233,6 @@ export const provideWorkerFeedback = async (jobId: string, feedback: any, token:
         return await res.json();
     } catch (error) {
         console.error("Error en provideWorkerFeedback:", error);
-        alert('Ocurrió un error al enviar el feedback del trabajador');
     }
 };
 
@@ -269,7 +260,6 @@ export const getJobsByFilters = async (filters: {
         return await res.json();
     } catch (error) {
         console.error("Error en getJobsByFilters:", error);
-        alert('Ocurrió un error al obtener los trabajos');
     }
 };
 
@@ -294,6 +284,128 @@ export const updateJobStatusToCompleted = async (JobId: string, token: string) =
         return await res.json();
     } catch (error) {
         console.error("Error en updateJobStatusToCompleted:", error);
-        alert('Ocurrió un error al actualizar el estado del job');
     }
 };
+/*
+* Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación.
+* @param userId - ID del usuario.
+* @param page - Número de página (1 en adelante).
+* @param token - Token del usuario para autorización.
+* @returns La respuesta de la API en formato JSON.
+*/
+export const getJobsProfileVist = async (page: number, id: string) => {
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-jobs-profile-vist?page=${page}&id=${id}`;
+        console.log(url);
+
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile 1:", error);
+    }
+};
+export const GetJobsUserIDForEmployeProfilevist = async (page: number, id: string) => {
+    console.log("Page:", page);
+
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-jobs-user-Employe-profile-vist?page=${page}&id=${id}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile 3:", error);
+    }
+};
+export const GetLatestJobsForWorker = async (token: string) => {
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-latest-jobs-worker`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Asegúrate de que no haya espacios extras
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile 2:", error);
+    }
+}; export const GetLatestJobsForEmployer = async (token: string) => {
+
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-latest-jobs-employe`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // Asegúrate de que no haya espacios extras
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile 2:", error);
+    }
+};
+export const GetLatestJobsForWorkervist = async (id: string) => {
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-latest-jobs-worker-vist?id=${id}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile 2:", error);
+    }
+};
+export const GetLatestJobsForEmployervist = async (id: string) => {
+
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-latest-jobs-employe-vist?id=${id}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile 2:", error);
+    }
+};
+
+
+

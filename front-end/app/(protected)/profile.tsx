@@ -1,4 +1,3 @@
-// /screens/ProfileScreen.tsx (o en app/ si usas Expo Router)
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -9,12 +8,20 @@ import {
     TouchableOpacity,
     FlatList,
     ListRenderItem,
+    Alert,
+    Modal,
+    TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
-import { getUserToken } from '@/services/userService';
-import { getJobsProfile, GetJobsByUserIDForEmploye } from '@/services/JobsService';
+import { Editbiografia, getUserToken } from '@/services/userService';
+import {
+    getJobsProfile,
+    GetJobsByUserIDForEmploye,
+    GetLatestJobsForEmployer,
+    GetLatestJobsForWorker,
+} from '@/services/JobsService';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { CreateJob } from '@/components/CreateJob';
 
@@ -33,6 +40,30 @@ export default function ProfileScreen() {
     // Paginación para cada sección
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
     const [currentPageJobFeed, setCurrentPageJobFeed] = useState(1);
+    // Estado para guardar la calificación (rating) más reciente
+    const [latestRating, setLatestRating] = useState<number | null>(null);
+    // Estado para mostrar/ocultar el menú de opciones en la esquina superior derecha
+    const [showDropdown, setShowDropdown] = useState(false);
+    // Estados para editar la biografía
+    const [editBioVisible, setEditBioVisible] = useState(false);
+    const [biografia, setBiografia] = useState('');
+
+    useEffect(() => {
+        const fetchRating = async () => {
+            if (!token) return;
+            let res;
+            if (activeSection === 'employer') {
+                res = await GetLatestJobsForEmployer(token as string);
+            } else {
+                res = await GetLatestJobsForWorker(token as string);
+            }
+            console.log(res);
+            if (res && res.Rating !== undefined) {
+                setLatestRating(res.Rating);
+            }
+        };
+        fetchRating();
+    }, [activeSection, token]);
 
     // Al iniciar, cargar la última sección activa desde AsyncStorage y el perfil del usuario
     useEffect(() => {
@@ -50,6 +81,8 @@ export default function ProfileScreen() {
                 const data = await getUserToken(token);
                 if (data?.data) {
                     setUserProfile(data.data);
+                    // Opcional: cargar la biografía actual desde el perfil
+                    setBiografia(data.data.Biography || '');
                 }
             } catch (err: any) {
                 setError('Error al obtener la información del usuario');
@@ -58,7 +91,6 @@ export default function ProfileScreen() {
                 setLoading(false);
             }
         };
-
         fetchProfile();
     }, [token]);
 
@@ -74,7 +106,6 @@ export default function ProfileScreen() {
             setLoading(true);
             try {
                 const jobsData = await getJobsProfile(1, token);
-
                 setEmployerJobs(jobsData?.jobs || []);
                 setCurrentPageEmployer(1);
             } catch (error) {
@@ -94,12 +125,7 @@ export default function ProfileScreen() {
         const fetchJobFeed = async () => {
             setLoading(true);
             try {
-
                 const feedData = await GetJobsByUserIDForEmploye(1, token);
-                console.log(" TRABAJOS realizados");
-                console.log(feedData.jobs);
-
-                console.log(" TRABAJOS realizados");
                 setJobFeed(feedData?.jobs || []);
                 setCurrentPageJobFeed(1);
             } catch (error) {
@@ -116,6 +142,37 @@ export default function ProfileScreen() {
     const handleLogout = async () => {
         await logout();
         router.replace('/login');
+    };
+
+    // Función para abrir el modal de edición de biografía
+    const HandleEditbiografia = () => {
+        setEditBioVisible(true);
+        setShowDropdown(false);
+    };
+
+    // Función para guardar la biografía tras la validación
+    const handleSaveBiografia = async () => {
+        if (biografia.length < 10 || biografia.length > 100) {
+            Alert.alert('Error', 'La biografía debe tener entre 10 y 100 caracteres.');
+            return;
+        }
+        // Aquí podrías llamar a una API para actualizar la biografía del usuario.
+        const resEdit = await Editbiografia(biografia, token as string)
+        console.log(resEdit);
+
+        setEditBioVisible(false);
+    };
+
+    // Función para el botón "Subscribirse"
+    const handleSubscribe = () => {
+        Alert.alert('Subscribirse', 'Función no implementada.');
+        setShowDropdown(false);
+    };
+
+    // Función para cerrar sesión desde el menú
+    const handleLogoutOption = () => {
+        setShowDropdown(false);
+        handleLogout();
     };
 
     // Función para cargar más trabajos en "Mis trabajos"
@@ -152,6 +209,11 @@ export default function ProfileScreen() {
     const ListHeader = () => (
         <View>
             {userProfile && <ProfileHeader user={userProfile} />}
+            {latestRating !== null && (
+                <Text style={styles.ratingText}>
+                    Calificación: {latestRating} {latestRating === 1 ? 'estrella' : 'estrellas'}
+                </Text>
+            )}
             {/* Botón para abrir el formulario de creación de trabajo */}
             <TouchableOpacity
                 style={styles.createJobButton}
@@ -160,41 +222,22 @@ export default function ProfileScreen() {
                 <Text style={styles.createJobButtonText}>Crear Trabajo</Text>
             </TouchableOpacity>
             {/* Modal de creación de trabajo */}
-            <CreateJob
-                visible={createJobVisible}
-                onClose={() => setCreateJobVisible(false)}
-            />
+            <CreateJob visible={createJobVisible} onClose={() => setCreateJobVisible(false)} />
             {/* Botones para alternar entre secciones */}
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
-                    style={[
-                        styles.toggleButton,
-                        activeSection === 'employer' && styles.activeToggle,
-                    ]}
+                    style={[styles.toggleButton, activeSection === 'employer' && styles.activeToggle]}
                     onPress={() => setActiveSection('employer')}
                 >
-                    <Text
-                        style={[
-                            styles.toggleButtonText,
-                            activeSection === 'employer' && styles.activeToggleText,
-                        ]}
-                    >
+                    <Text style={[styles.toggleButtonText, activeSection === 'employer' && styles.activeToggleText]}>
                         Mis trabajos
                     </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[
-                        styles.toggleButton,
-                        activeSection === 'jobFeed' && styles.activeToggle,
-                    ]}
+                    style={[styles.toggleButton, activeSection === 'jobFeed' && styles.activeToggle]}
                     onPress={() => setActiveSection('jobFeed')}
                 >
-                    <Text
-                        style={[
-                            styles.toggleButtonText,
-                            activeSection === 'jobFeed' && styles.activeToggleText,
-                        ]}
-                    >
+                    <Text style={[styles.toggleButtonText, activeSection === 'jobFeed' && styles.activeToggleText]}>
                         Trabajos realizados
                     </Text>
                 </TouchableOpacity>
@@ -233,26 +276,71 @@ export default function ProfileScreen() {
         return (
             <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
-                <Button title="Cerrar sesión" onPress={handleLogout} />
+                <Button title="Cerrar sesión" onPress={handleLogout} color="#bb86fc" />
             </View>
         );
     }
 
     return (
-        <FlatList
-            data={data}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={renderItem}
-            ListHeaderComponent={ListHeader}
-            onEndReached={onEndReached}
-            onEndReachedThreshold={0.5}
-            contentContainerStyle={styles.container}
-            ListFooterComponent={
-                <View style={styles.footer}>
-                    <Button title="Cerrar sesión" onPress={handleLogout} />
+        <View style={{ flex: 1 }}>
+            <FlatList
+                data={data}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderItem}
+                ListHeaderComponent={ListHeader}
+                onEndReached={onEndReached}
+                onEndReachedThreshold={0.5}
+                contentContainerStyle={styles.container}
+                ListFooterComponent={
+                    <View style={styles.footer}>
+                        <Button title="Cerrar sesión" onPress={handleLogout} />
+                    </View>
+                }
+            />
+            {/* Botón de opciones en la esquina superior derecha */}
+            <TouchableOpacity
+                style={styles.optionsButton}
+                onPress={() => setShowDropdown(!showDropdown)}
+            >
+                <Text style={styles.optionsButtonText}>⋮</Text>
+            </TouchableOpacity>
+            {showDropdown && (
+                <View style={styles.dropdown}>
+                    <TouchableOpacity onPress={HandleEditbiografia} style={styles.dropdownButton}>
+                        <Text style={styles.dropdownButtonText}>Cambiar descripción</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={handleSubscribe} style={styles.dropdownButton}>
+                        <Text style={styles.dropdownButtonText}>Subscribirse</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={handleLogoutOption}
+                        style={[styles.dropdownButton, styles.dropdownLogout]}
+                    >
+                        <Text style={styles.dropdownButtonText}>Cerrar sesión</Text>
+                    </TouchableOpacity>
                 </View>
-            }
-        />
+            )}
+            {/* Modal para editar la biografía */}
+            <Modal visible={editBioVisible} transparent animationType="slide">
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Editar Biografía</Text>
+                        <TextInput
+                            style={styles.modalTextInput}
+                            placeholder="Ingresa tu biografía (10-100 caracteres)"
+                            placeholderTextColor="#888"
+                            value={biografia}
+                            onChangeText={setBiografia}
+                            multiline
+                        />
+                        <View style={styles.modalButtons}>
+                            <Button title="Cancelar" onPress={() => setEditBioVisible(false)} color="#CF6679" />
+                            <Button title="Guardar" onPress={handleSaveBiografia} color="#03DAC5" />
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </View>
     );
 }
 
@@ -313,5 +401,80 @@ const styles = StyleSheet.create({
     footer: {
         marginVertical: 20,
     },
+    ratingText: {
+        fontSize: 16,
+        color: '#03DAC5',
+        textAlign: 'center',
+        marginBottom: 10,
+    },
+    // Estilos para el botón de opciones y menú desplegable
+    optionsButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        padding: 10,
+        backgroundColor: '#333',
+        borderRadius: 5,
+        zIndex: 100,
+    },
+    optionsButtonText: {
+        color: '#E0E0E0',
+        fontSize: 18,
+    },
+    dropdown: {
+        position: 'absolute',
+        top: 50,
+        right: 10,
+        backgroundColor: '#1E1E1E',
+        borderRadius: 5,
+        paddingVertical: 5,
+        zIndex: 99,
+    },
+    dropdownButton: {
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+    },
+    dropdownButtonText: {
+        color: '#E0E0E0',
+        fontSize: 16,
+    },
+    dropdownLogout: {
+        borderTopWidth: 1,
+        borderColor: '#444',
+        marginTop: 5,
+    },
+    // Estilos para el modal de edición de biografía
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        backgroundColor: '#121212',
+        borderRadius: 8,
+        padding: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#E0E0E0',
+        marginBottom: 10,
+    },
+    modalTextInput: {
+        height: 100,
+        borderColor: '#333',
+        borderWidth: 1,
+        borderRadius: 5,
+        padding: 10,
+        color: '#E0E0E0',
+        backgroundColor: '#1E1E1E',
+        textAlignVertical: 'top',
+        marginBottom: 20,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
 });
-

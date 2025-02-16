@@ -12,6 +12,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
             <Image source={{ uri: user.Avatar }} style={styles.avatar} />
             <Text style={styles.fullName}>{user.FullName}</Text>
             <Text style={styles.username}>@{user.NameUser}</Text>
+            <Text style={styles.username}>{user.biography}</Text>
+
         </View>
     );
 };

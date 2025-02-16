@@ -16,6 +16,36 @@ export const getUserToken = async (token: string) => {
         return await res.json();
     } catch (error) {
         console.error(error);
-        alert('Ocurrió un error');
+    }
+};
+export const getUserByid = async (id: string) => {
+    try {
+        const res = await fetch(`${API}/user/get-user-by-id?id=${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        // Se asume que la respuesta es JSON
+        return await res.json();
+    } catch (error) {
+        console.error(error);
+    }
+};
+export const Editbiografia = async (Biography: string, token: string) => {
+    try {
+
+        const res = await fetch(`${API}/user/edit-biografia`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ Biography })
+        });
+        return await res.json();
+    } catch (error) {
+
+        console.error("Error en createJob:", error);
     }
 };

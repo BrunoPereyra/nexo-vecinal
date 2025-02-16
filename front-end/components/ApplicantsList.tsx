@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Button } from 'react-native';
 import { assignJob, reassignJob } from '../services/JobsService';
+import { useRouter } from 'expo-router';
 
 // Interfaces para tipar la información
 interface User {
@@ -22,19 +23,15 @@ interface ApplicantsListProps {
 }
 
 const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
+    const router = useRouter();
     const handleAssign = async (workerId: string) => {
         try {
-            console.log(job);
-
             if (job.assignedTo) {
                 // Si ya hay un trabajador asignado, se reasigna el job
-                console.log(job.id, workerId, token);
                 const res = await reassignJob(job.id, workerId, token);
-                console.log('Job reasignado:', res);
             } else {
                 // Si no hay asignado, se asigna al postulante seleccionado
                 const res = await assignJob(job.id, workerId, token);
-                console.log(res);
             }
             // Aquí podrías refrescar los datos o actualizar el estado local si es necesario
         } catch (error) {
@@ -47,10 +44,11 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
             <Text style={styles.title}>Postulantes</Text>
             {job.applicants.map((applicant: User) => (
                 <View key={applicant.id} style={styles.applicantContainer}>
-                    <Image
-                        source={{ uri: applicant.avatar }}
-                        style={styles.avatar}
-                    />
+                    <TouchableOpacity
+                    >
+                        <Image source={{ uri: applicant.avatar }} style={styles.avatar} />
+
+                    </TouchableOpacity>
                     <Text style={styles.applicantName}>{applicant.nameUser}</Text>
                     {job.status !== 'completed' && (
                         <TouchableOpacity
@@ -68,10 +66,7 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                 <View style={styles.assignedContainer}>
                     <Text style={styles.assignedTitle}>Trabajador asignado</Text>
                     <View style={styles.applicantContainer}>
-                        <Image
-                            source={{ uri: job.assignedTo.avatar }}
-                            style={styles.avatar}
-                        />
+                        <Image source={{ uri: job.assignedTo.avatar }} style={styles.avatar} />
                         <Text style={styles.applicantName}>{job.assignedTo.nameUser}</Text>
                     </View>
                 </View>
@@ -88,13 +83,14 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         marginBottom: 8,
+        color: '#BB86FC', // Color personalizado para el título
     },
     applicantContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 8,
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
+        borderBottomColor: '#444', // Color de la línea inferior
     },
     avatar: {
         width: 50,
@@ -104,12 +100,13 @@ const styles = StyleSheet.create({
     },
     applicantName: {
         fontSize: 16,
+        color: '#03DAC5', // Color personalizado para el nombre del postulante
     },
     button: {
         marginLeft: 'auto',
         paddingHorizontal: 12,
         paddingVertical: 6,
-        backgroundColor: '#007AFF',
+        backgroundColor: '#1E88E5',
         borderRadius: 4,
     },
     buttonText: {
@@ -123,6 +120,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 8,
+        color: '#CF6679', // Color personalizado para el título de la sección asignada
     },
 });
 
