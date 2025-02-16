@@ -491,3 +491,57 @@ func (h *UserHandler) GetUserByIdTheToken(c *fiber.Ctx) error {
 		"data":    user,
 	})
 }
+func (h *UserHandler) GetUserById(c *fiber.Ctx) error {
+
+	userIdStr := c.Query("id", "")
+	if userIdStr == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "User id is required in query",
+		})
+	}
+	userID, err := primitive.ObjectIDFromHex(userIdStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
+	}
+	user, err := h.userService.FindUserById(userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"data":    user,
+	})
+}
+func (h *UserHandler) UpdateUserBiography(c *fiber.Ctx) error {
+	IdUserToken := c.Context().UserValue("_id").(string)
+
+	IdUserTokenP, errinObjectID := primitive.ObjectIDFromHex(IdUserToken)
+	if errinObjectID != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+		})
+	}
+	var req domain.EditBiography
+	fmt.Println(req.Biography)
+	if err := c.BodyParser(&req); err != nil {
+		fmt.Println(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "StatusBadRequest",
+		})
+	}
+
+	err := h.userService.UpdateUserBiography(IdUserTokenP, req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+			"data":    err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "StatusOK",
+	})
+}

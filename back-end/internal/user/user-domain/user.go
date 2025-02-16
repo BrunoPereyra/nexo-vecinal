@@ -22,7 +22,7 @@ type User struct {
 	Pais         string                 `json:"Pais" bson:"Pais"`
 	Ciudad       string                 `json:"Ciudad" bson:"Ciudad"`
 	Email        string                 `json:"Email" bson:"Email"`
-	Biography    string                 `json:"biography" default:"Bienvenido a pinkker! actualiza tu biografía en ajustes de cuenta." bson:"Biography"`
+	Biography    string                 `json:"biography" default:"Bienvenido a nexo-vecinal! actualiza tu biografía en ajustes de cuenta." bson:"Biography"`
 	Look         string                 `json:"look" default:"h_std_cc_3032_7_0-undefined-undefined.ch-215-62-78.hd-180-10.lg-270-110" bson:"Look"`
 	LookImage    string                 `json:"lookImage" default:"https://res.cloudinary.com/pinkker/image/upload/v1680478837/foto_default_obyind.png" bson:"LookImage"`
 	Banner       string                 `json:"Banner"  bson:"Banner"`
@@ -45,23 +45,23 @@ type User struct {
 		Tiktok    string `json:"tiktok,omitempty" bson:"tiktok"`
 		Website   string `json:"website,omitempty" bson:"Website"`
 	} `json:"socialnetwork,omitempty" bson:"socialnetwork"`
-	Verified          bool                              `json:"verified,omitempty" bson:"Verified"`
-	Phone             string                            `json:"phone,omitempty" bson:"Phone"`
-	Sex               string                            `json:"sex,omitempty" bson:"Sex"`
-	Situation         string                            `json:"situation,omitempty" bson:"Situation"`
-	Following         map[primitive.ObjectID]FollowInfo `json:"Following" bson:"Following"`
-	Followers         map[primitive.ObjectID]FollowInfo `json:"Followers" bson:"Followers"`
-	Timestamp         time.Time                         `json:"Timestamp" bson:"Timestamp"`
-	Banned            bool                              `json:"Banned" bson:"Banned"`
-	TOTPSecret        string                            `json:"TOTPSecret" bson:"TOTPSecret"`
-	LastConnection    time.Time                         `json:"LastConnection" bson:"LastConnection"`
-	Prime             Prime                             `json:"Prime" bson:"Prime"`
-	PanelAdminPinkker struct {
+	Verified              bool                              `json:"verified,omitempty" bson:"Verified"`
+	Phone                 string                            `json:"phone,omitempty" bson:"Phone"`
+	Sex                   string                            `json:"sex,omitempty" bson:"Sex"`
+	Situation             string                            `json:"situation,omitempty" bson:"Situation"`
+	Following             map[primitive.ObjectID]FollowInfo `json:"Following" bson:"Following"`
+	Followers             map[primitive.ObjectID]FollowInfo `json:"Followers" bson:"Followers"`
+	Timestamp             time.Time                         `json:"Timestamp" bson:"Timestamp"`
+	Banned                bool                              `json:"Banned" bson:"Banned"`
+	TOTPSecret            string                            `json:"TOTPSecret" bson:"TOTPSecret"`
+	LastConnection        time.Time                         `json:"LastConnection" bson:"LastConnection"`
+	Prime                 Prime                             `json:"Prime" bson:"Prime"`
+	PanelAdminNexoVecinal struct {
 		Level int       `json:"Level,omitempty" bson:"Level" default:"0"`
 		Asset bool      `json:"Asset,omitempty" bson:"Asset,omitempty" default:"false"`
 		Code  string    `json:"Code,omitempty" bson:"Code"`
 		Date  time.Time `json:"date,omitempty" bson:"Date,omitempty"`
-	} `json:"PanelAdminPinkker,omitempty" bson:"PanelAdminPinkker"`
+	} `json:"PanelAdminNexoVecinal,omitempty" bson:"PanelAdminNexoVecinal"`
 	CompletedJobs int      `json:"completedJobs" bson:"completedJobs"`
 	Location      GeoPoint `json:"location" bson:"location"`
 }
@@ -347,19 +347,12 @@ type InfoUser struct {
 	Rooms    []map[string]interface{} `bson:"Rooms"`
 }
 
-// Rooms tiene esto como interface
-//
-//	newRoom := map[string]interface{}{
-//		"Room":                 roomID,// primitive.ObjectID
-//		"Vip":                  false,
-//		"Color":                randomColor, //string
-//		"Moderator":            false,
-//		"Verified":             verified,// bool
-//		"Subscription":         primitive.ObjectID{},
-//		"Baneado":              false,
-//		"TimeOut":              time.Now(),
-//		"EmblemasChat":         userInfo.EmblemasChat,
-//		"Following":            domain.FollowInfo{},
-//		"StreamerChannelOwner": userInfo.StreamerChannelOwner,  //bool
-//		"LastMessage":          time.Now(),
-//	}
+type EditBiography struct {
+	Biography string `json:"Biography" validate:"required,min=10,max=100"`
+}
+
+func (u *UserModelValidator) Validate() error {
+	validate := validator.New()
+
+	return validate.Struct(u)
+}

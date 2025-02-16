@@ -1,7 +1,6 @@
 package userinfrastructure
 
 import (
-	streamdomain "back-end/internal/stream"
 	domain "back-end/internal/user/user-domain"
 	userdomain "back-end/internal/user/user-domain"
 	"back-end/pkg/authGoogleAuthenticator"
@@ -425,7 +424,7 @@ func (u *UserRepository) AutCode(id primitive.ObjectID, code string) error {
 		return err
 	}
 
-	if User.PanelAdminPinkker.Level != 1 || !User.PanelAdminPinkker.Asset || User.PanelAdminPinkker.Code != code {
+	if User.PanelAdminNexoVecinal.Level != 1 || !User.PanelAdminNexoVecinal.Asset || User.PanelAdminNexoVecinal.Code != code {
 		return fmt.Errorf("usuario no autorizado")
 	}
 	return nil
@@ -832,198 +831,6 @@ func (u *UserRepository) GetRecentFollowsBeforeFirstConnection(IdUserTokenP prim
 	return follows, nil
 }
 
-// follow
-func (u *UserRepository) FollowUser(IdUserTokenP, followedUserID primitive.ObjectID) (string, error) {
-	db := u.mongoClient.Database("NEXO-VECINAL")
-	GoMongoDBCollUsers := db.Collection("Users")
-
-	// Buscar al usuario seguido (followedUserID)
-	filterFollowe := bson.M{"_id": followedUserID}
-
-	var userFolloer domain.GetUser
-	err := GoMongoDBCollUsers.FindOne(context.Background(), filterFollowe).Decode(&userFolloer)
-	if err != nil {
-		return "", err
-	}
-
-	// Buscar al usuario que sigue (IdUserTokenP)
-	filterToken := bson.M{"_id": IdUserTokenP}
-	var usertoken domain.GetUser
-	err = GoMongoDBCollUsers.FindOne(context.Background(), filterToken).Decode(&usertoken)
-	if err != nil {
-		return "", err
-	}
-	// Obtener el Avatar del usuario seguido
-	avatar := usertoken.Avatar
-
-	Followingadd := domain.FollowInfo{
-		Since:         time.Now(),
-		Notifications: true,
-		Email:         userFolloer.Email,
-	}
-
-	// Agregar followedUserID al mapa Following de IdUserTokenP
-	filter := bson.M{"_id": IdUserTokenP}
-	update := bson.M{"$set": bson.M{"Following." + followedUserID.Hex(): Followingadd}}
-
-	_, err = GoMongoDBCollUsers.UpdateOne(context.Background(), filter, update)
-	if err != nil {
-		return "", err
-	}
-
-	// Agregar IdUserTokenP al mapa Followers de followedUserID
-	Followersadd := domain.FollowInfo{
-		Since:         time.Now(),
-		Notifications: true,
-		Email:         usertoken.Email,
-	}
-
-	filter = bson.M{"_id": followedUserID}
-	update = bson.M{"$set": bson.M{"Followers." + IdUserTokenP.Hex(): Followersadd}}
-
-	_, err = GoMongoDBCollUsers.UpdateOne(context.Background(), filter, update)
-	if err != nil {
-		return "", err
-	}
-
-	GoMongoDBCollInformationInAllRooms := db.Collection("UserInformationInAllRooms")
-
-	var StreamInfo streamdomain.Stream
-	filter = bson.M{"Streamer": userFolloer.NameUser}
-	GoMongoDBCollStreams := db.Collection("Streams")
-	err = GoMongoDBCollStreams.FindOne(context.Background(), filter).Decode(&StreamInfo)
-	if err != nil {
-		return "", err
-	}
-
-	filter = bson.M{"NameUser": usertoken.NameUser}
-	var userInfo domain.InfoUser
-	err = GoMongoDBCollInformationInAllRooms.FindOne(context.Background(), filter).Decode(&userInfo)
-	if err == mongo.ErrNoDocuments {
-		defaultUserFields := map[string]interface{}{
-			"Room":         StreamInfo.ID,
-			"Color":        "#00ccb3",
-			"Vip":          false,
-			"Verified":     false,
-			"Moderator":    false,
-			"Subscription": primitive.ObjectID{},
-			"Baneado":      false,
-			"TimeOut":      time.Now(),
-			"EmblemasChat": map[string]string{
-				"Vip":       "",
-				"Moderator": "",
-				"Verified":  "",
-			},
-		}
-		userInfo = domain.InfoUser{
-			Nameuser: usertoken.NameUser,
-			Color:    "#00ccb3",
-			Rooms:    []map[string]interface{}{defaultUserFields},
-		}
-		_, err := GoMongoDBCollInformationInAllRooms.InsertOne(context.Background(), userInfo)
-		if err != nil {
-			return "", err
-		}
-	} else if err != nil {
-		return "", err
-	}
-
-	roomExists := false
-	for _, room := range userInfo.Rooms {
-		if room["Room"] == StreamInfo.ID {
-			roomExists = true
-			room["Following"] = Followingadd
-			break
-		}
-	}
-
-	if !roomExists {
-		newRoom := map[string]interface{}{
-			"Room":         StreamInfo.ID,
-			"Vip":          false,
-			"Color":        "#00ccb3",
-			"Moderator":    false,
-			"Verified":     false,
-			"Subscription": primitive.ObjectID{},
-			"Baneado":      false,
-			"TimeOut":      time.Now(),
-			"EmblemasChat": map[string]string{
-				"Vip":       "",
-				"Moderator": "",
-				"Verified":  "",
-			},
-			"Following": Followingadd,
-		}
-
-		userInfo.Rooms = append(userInfo.Rooms, newRoom)
-	}
-
-	_, err = GoMongoDBCollInformationInAllRooms.UpdateOne(context.Background(), filter, bson.M{"$set": userInfo})
-	if err != nil {
-		return "", err
-	}
-
-	// Devolver el Avatar del usuario seguido
-	return avatar, nil
-}
-
-func (u *UserRepository) UnfollowUser(userID, unfollowedUserID primitive.ObjectID) error {
-	db := u.mongoClient.Database("NEXO-VECINAL")
-
-	GoMongoDBCollUsers := db.Collection("Users")
-
-	var userToken domain.User
-	err := GoMongoDBCollUsers.FindOne(context.Background(), bson.M{"_id": userID}).Decode(&userToken)
-	if err != nil {
-		return err
-	}
-
-	// Eliminar unfollowedUserID del mapa Following
-	delete(userToken.Following, unfollowedUserID)
-
-	_, err = GoMongoDBCollUsers.ReplaceOne(context.Background(), bson.M{"_id": userID}, userToken)
-	if err != nil {
-		return err
-	}
-
-	// Eliminar userID del mapa Followers del usuario que está siendo seguido
-	var userUnf domain.User
-	err = GoMongoDBCollUsers.FindOne(context.Background(), bson.M{"_id": unfollowedUserID}).Decode(&userUnf)
-	if err != nil {
-		return err
-	}
-
-	delete(userUnf.Followers, userID)
-
-	_, err = GoMongoDBCollUsers.ReplaceOne(context.Background(), bson.M{"_id": unfollowedUserID}, userUnf)
-	if err != nil {
-		return err
-	}
-
-	var StreamInfo streamdomain.Stream
-	filter := bson.M{"Streamer": userUnf.NameUser}
-	GoMongoDBCollStreams := db.Collection("Streams")
-	err = GoMongoDBCollStreams.FindOne(context.Background(), filter).Decode(&StreamInfo)
-	if err != nil {
-		return err
-	}
-	GoMongoDBCollInformationInAllRooms := db.Collection("UserInformationInAllRooms")
-
-	filter = bson.M{"NameUser": userToken.NameUser}
-	update := bson.M{"$set": bson.M{"Rooms.$[elem].Following": domain.FollowInfo{}}}
-	arrayFilters := options.ArrayFilters{
-		Filters: []interface{}{bson.M{"elem.Room": StreamInfo.ID}},
-	}
-	opts := options.UpdateOptions{
-		ArrayFilters: &arrayFilters,
-	}
-	_, err = GoMongoDBCollInformationInAllRooms.UpdateOne(context.Background(), filter, update, &opts)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
 func (u *UserRepository) IsFollowing(IdUserTokenP, followedUserID primitive.ObjectID) (bool, error) {
 	db := u.mongoClient.Database("NEXO-VECINAL")
 	GoMongoDBCollUsers := db.Collection("Users")
@@ -1041,29 +848,6 @@ func (u *UserRepository) IsFollowing(IdUserTokenP, followedUserID primitive.Obje
 
 	// Si se encontró al menos un documento, significa que lo sigue
 	return count > 0, nil
-}
-
-func (u *UserRepository) DeleteRedisUserChatInOneRoom(userToDelete, IdRoom primitive.ObjectID) error {
-	GoMongoDBColl := u.mongoClient.Database("NEXO-VECINAL")
-	GoMongoDBCollStreams := GoMongoDBColl.Collection("Streams")
-	filter := bson.M{"StreamerID": IdRoom}
-	var stream streamdomain.Stream
-	err := GoMongoDBCollStreams.FindOne(context.Background(), filter).Decode(&stream)
-	if err != nil {
-		return err
-	}
-	GoMongoDBCollUsers := GoMongoDBColl.Collection("Users")
-
-	filter = bson.M{"_id": userToDelete}
-
-	var userFolloer domain.User
-	err = GoMongoDBCollUsers.FindOne(context.Background(), filter).Decode(&userFolloer)
-	if err != nil {
-		return err
-	}
-	userHashKey := "userInformation:" + userFolloer.NameUser + ":inTheRoom:" + stream.ID.Hex()
-	_, err = u.redisClient.Del(context.Background(), userHashKey).Result()
-	return err
 }
 
 func (u *UserRepository) FindEmailForOauth2Updata(user *domain.Google_callback_Complete_Profile_And_Username) (*domain.User, error) {
@@ -1736,43 +1520,6 @@ func (u *UserRepository) getUserAndCheckFollow(filter bson.D, id primitive.Objec
 	return &user, nil
 }
 
-func (r *UserRepository) GetStreamByNameUser(nameUser string) (*streamdomain.Stream, error) {
-	ctx := context.Background()
-	cacheKey := "stream:" + nameUser
-
-	// Intentar buscar en Redis primero
-	cachedStream, err := r.redisClient.Get(ctx, cacheKey).Result()
-	if err == nil {
-		// Si encontramos el stream en la caché, lo deserializamos y lo devolvemos
-		var stream streamdomain.Stream
-		if err := json.Unmarshal([]byte(cachedStream), &stream); err == nil {
-			return &stream, nil
-		}
-	}
-
-	// Si no está en la caché o hay un error, consultamos en la base de datos
-	GoMongoDBCollStreams := r.mongoClient.Database("NEXO-VECINAL").Collection("Streams")
-	FindStreamInDb := bson.D{
-		{Key: "Streamer", Value: nameUser},
-	}
-	var FindStreamsByStreamer streamdomain.Stream
-	errCollStreams := GoMongoDBCollStreams.FindOne(ctx, FindStreamInDb).Decode(&FindStreamsByStreamer)
-	if errCollStreams != nil {
-		return nil, errCollStreams
-	}
-
-	// Serializamos el resultado y lo almacenamos en Redis
-	streamData, err := json.Marshal(FindStreamsByStreamer)
-	if err == nil {
-		err = r.redisClient.Set(ctx, cacheKey, streamData, 5*time.Minute).Err()
-		if err != nil {
-			return &FindStreamsByStreamer, errors.New("user not found")
-		}
-	}
-
-	return &FindStreamsByStreamer, nil
-}
-
 func (u *UserRepository) SaveUserRedis(User *domain.User) (string, error) {
 
 	code := helpers.GenerateRandomCode()
@@ -1843,5 +1590,35 @@ func (u *UserRepository) SaveUserRedis(User *domain.User) (string, error) {
 // 		return err
 // 	}
 
-// 	return nil
-// }
+//		return nil
+//	}
+func (u *UserRepository) UpdateUserBiography(ctx context.Context, id primitive.ObjectID, newBiography string) error {
+	// Validar la longitud de la biografía
+	if len(newBiography) < 10 || len(newBiography) > 100 {
+		return fmt.Errorf("la biografía debe tener entre 10 y 100 caracteres")
+	}
+
+	user := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Crear el filtro y la actualización a aplicar
+	filter := bson.M{"_id": id}
+	update := bson.M{
+		"$set": bson.M{
+			"Biography":              newBiography,
+			"EditProfiile.Biography": time.Now(),
+		},
+	}
+
+	// Ejecutar la actualización
+	result, err := user.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("error al actualizar la biografía: %v", err)
+	}
+
+	// Si no se encontró ningún documento, se retorna un error
+	if result.MatchedCount == 0 {
+		return errors.New("usuario no encontrado")
+	}
+
+	return nil
+}

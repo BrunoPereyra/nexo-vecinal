@@ -110,7 +110,7 @@ func (j *JobRepository) canUserApply(userID primitive.ObjectID) (bool, error) {
 	now := time.Now()
 	isPrimeActive := user.Prime.SubscriptionStart.Before(now) && user.Prime.SubscriptionEnd.After(now)
 
-	if user.CompletedJobs >= 2 && !isPrimeActive {
+	if user.CompletedJobs >= 20 && !isPrimeActive {
 		return false, nil
 	}
 
@@ -233,9 +233,14 @@ func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error
 }
 
 // ProvideEmployerFeedback permite que el empleador deje feedback sobre el trabajador.
-func (j *JobRepository) ProvideEmployerFeedback(jobID primitive.ObjectID, feedback jobdomain.Feedback) error {
+// Se agrega el parámetro employerID y se verifica que el documento tenga paymentStatus "completed".
+func (j *JobRepository) ProvideEmployerFeedback(jobID, employerID primitive.ObjectID, feedback jobdomain.Feedback) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-	filter := bson.M{"_id": jobID}
+	filter := bson.M{
+		"_id":           jobID,
+		"UserId":        employerID,  // Verifica que el campo UserId coincida con employerID
+		"paymentStatus": "completed", // Y que el paymentStatus sea "completed"
+	}
 	update := bson.M{
 		"$set": bson.M{
 			"employerFeedback": feedback,
@@ -247,15 +252,21 @@ func (j *JobRepository) ProvideEmployerFeedback(jobID primitive.ObjectID, feedba
 		return err
 	}
 	if result.MatchedCount == 0 {
-		return errors.New("job not found")
+		return errors.New("job not found or conditions not met")
 	}
 	return nil
 }
 
 // ProvideWorkerFeedback permite que el trabajador deje feedback sobre el empleador.
-func (j *JobRepository) ProvideWorkerFeedback(jobID primitive.ObjectID, feedback jobdomain.Feedback) error {
+// Se agrega el parámetro workerID y se verifica que el documento tenga paymentStatus "completed"
+// y que el campo assignedTo coincida con workerID.
+func (j *JobRepository) ProvideWorkerFeedback(jobID, workerID primitive.ObjectID, feedback jobdomain.Feedback) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-	filter := bson.M{"_id": jobID}
+	filter := bson.M{
+		"_id":           jobID,
+		"assignedTo":    workerID,    // Verifica que el campo assignedTo coincida con workerID
+		"paymentStatus": "completed", // Y que el paymentStatus sea "completed"
+	}
 	update := bson.M{
 		"$set": bson.M{
 			"workerFeedback": feedback,
@@ -267,10 +278,11 @@ func (j *JobRepository) ProvideWorkerFeedback(jobID primitive.ObjectID, feedback
 		return err
 	}
 	if result.MatchedCount == 0 {
-		return errors.New("job not found")
+		return errors.New("job not found or conditions not met")
 	}
 	return nil
 }
+
 func (j *JobRepository) UpdateJob(jobID primitive.ObjectID, update bson.M) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{"_id": jobID}
@@ -610,4 +622,90 @@ func (j *JobRepository) GetJobsByUserIDForEmploye(userID primitive.ObjectID, pag
 	}
 
 	return jobs, nil
+}
+
+// GetAverageRatingForWorker calcula el promedio de calificaciones que un trabajador ha recibido
+// en los últimos 10 trabajos completados.
+func (j *JobRepository) GetAverageRatingForWorker(workerID primitive.ObjectID) (float64, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
+	// Filtramos por trabajos asignados al trabajador y que estén completados.
+	filter := bson.M{
+		"assignedTo":    workerID,
+		"paymentStatus": "completed",
+	}
+
+	// Opciones: orden descendente por createdAt y límite de 10 documentos.
+	opts := options.Find().SetSort(bson.D{{"createdAt", -1}}).SetLimit(10)
+
+	cursor, err := jobColl.Find(context.Background(), filter, opts)
+	if err != nil {
+		return 0, err
+	}
+	defer cursor.Close(context.Background())
+
+	var jobs []jobdomain.Job
+	if err := cursor.All(context.Background(), &jobs); err != nil {
+		return 0, err
+	}
+
+	// Calculamos el promedio de estrellas a partir del feedback del empleador.
+	var totalRating float64
+	var count int
+	for _, job := range jobs {
+		if job.EmployerFeedback != nil {
+			totalRating += float64(job.EmployerFeedback.Rating)
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0, nil // No hay calificaciones disponibles.
+	}
+
+	avgRating := totalRating / float64(count)
+	return avgRating, nil
+}
+
+// GetAverageRatingForEmployer calcula el promedio de calificaciones que un empleador ha recibido
+// en los últimos 10 trabajos completados.
+func (j *JobRepository) GetAverageRatingForEmployer(employerID primitive.ObjectID) (float64, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
+	// Filtramos por trabajos creados por el empleador y que estén completados.
+	filter := bson.M{
+		"userId":        employerID,
+		"paymentStatus": "completed",
+	}
+
+	// Opciones: orden descendente por createdAt y límite de 10 documentos.
+	opts := options.Find().SetSort(bson.D{{"createdAt", -1}}).SetLimit(10)
+
+	cursor, err := jobColl.Find(context.Background(), filter, opts)
+	if err != nil {
+		return 0, err
+	}
+	defer cursor.Close(context.Background())
+
+	var jobs []jobdomain.Job
+	if err := cursor.All(context.Background(), &jobs); err != nil {
+		return 0, err
+	}
+
+	// Calculamos el promedio de estrellas a partir del feedback del trabajador.
+	var totalRating float64
+	var count int
+	for _, job := range jobs {
+		if job.WorkerFeedback != nil {
+			totalRating += float64(job.WorkerFeedback.Rating)
+			count++
+		}
+	}
+
+	if count == 0 {
+		return 0, nil // No hay calificaciones disponibles.
+	}
+
+	avgRating := totalRating / float64(count)
+	return avgRating, nil
 }

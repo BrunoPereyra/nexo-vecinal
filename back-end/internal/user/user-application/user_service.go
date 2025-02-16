@@ -59,10 +59,10 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	modelNewUser.Following = make(map[primitive.ObjectID]domain.FollowInfo)
 	modelNewUser.Verified = false
 	modelNewUser.BirthDate = newUser.BirthDateTime
-	modelNewUser.PanelAdminPinkker.Level = 0
-	modelNewUser.PanelAdminPinkker.Asset = false
-	modelNewUser.PanelAdminPinkker.Date = time.Now()
-	modelNewUser.PanelAdminPinkker.Code = ""
+	modelNewUser.PanelAdminNexoVecinal.Level = 0
+	modelNewUser.PanelAdminNexoVecinal.Asset = false
+	modelNewUser.PanelAdminNexoVecinal.Date = time.Now()
+	modelNewUser.PanelAdminNexoVecinal.Code = ""
 	modelNewUser.Banned = false
 	fifteenDaysAgo := time.Now().AddDate(0, 0, -15)
 	modelNewUser.EditProfiile.Biography = fifteenDaysAgo
@@ -148,4 +148,8 @@ func (u *UserService) RedisSaveChangeGoogleAuthenticatorCode(code string, user d
 func (u *UserService) FindUserById(id primitive.ObjectID) (*domain.User, error) {
 	user, err := u.roomRepository.FindUserById(id)
 	return user, err
+}
+func (u *UserService) UpdateUserBiography(id primitive.ObjectID, req domain.EditBiography) error {
+	context := context.Background()
+	return u.roomRepository.UpdateUserBiography(context, id, req.Biography)
 }

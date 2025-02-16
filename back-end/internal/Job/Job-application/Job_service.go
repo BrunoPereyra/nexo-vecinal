@@ -65,13 +65,13 @@ func (js *JobService) ReassignJob(jobID, newWorkerID primitive.ObjectID) error {
 }
 
 // ProvideEmployerFeedback permite que el empleador deje feedback sobre el trabajador.
-func (js *JobService) ProvideEmployerFeedback(jobID primitive.ObjectID, feedback jobdomain.Feedback) error {
-	return js.JobRepository.ProvideEmployerFeedback(jobID, feedback)
+func (js *JobService) ProvideEmployerFeedback(jobID, userid primitive.ObjectID, feedback jobdomain.Feedback) error {
+	return js.JobRepository.ProvideEmployerFeedback(jobID, userid, feedback)
 }
 
 // ProvideWorkerFeedback permite que el trabajador deje feedback sobre el empleador.
-func (js *JobService) ProvideWorkerFeedback(jobID primitive.ObjectID, feedback jobdomain.Feedback) error {
-	return js.JobRepository.ProvideWorkerFeedback(jobID, feedback)
+func (js *JobService) ProvideWorkerFeedback(jobID, userid primitive.ObjectID, feedback jobdomain.Feedback) error {
+	return js.JobRepository.ProvideWorkerFeedback(jobID, userid, feedback)
 }
 func (js *JobService) RegisterPayment(jobID primitive.ObjectID, amount float64) error {
 	job, err := js.JobRepository.GetJobByID(jobID)
@@ -128,5 +128,13 @@ func (js *JobService) GetJobsProfile(jobID primitive.ObjectID, page int) ([]jobd
 }
 func (js *JobService) GetJobsByUserIDForEmploye(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
 	return js.JobRepository.GetJobsByUserIDForEmploye(jobID, page)
+
+}
+func (js *JobService) GetLatestJobsForWorker(jobID primitive.ObjectID) (float64, error) {
+	return js.JobRepository.GetAverageRatingForWorker(jobID)
+
+}
+func (js *JobService) GetLatestJobsForEmployer(jobID primitive.ObjectID) (float64, error) {
+	return js.JobRepository.GetAverageRatingForEmployer(jobID)
 
 }
