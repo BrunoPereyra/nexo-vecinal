@@ -1,8 +1,4 @@
-import { useAuth } from "@/context/AuthContext";
-import { router } from "expo-router";
-import { Float } from "react-native/Libraries/Types/CodegenTypes";
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.22:8084"
-const { login } = useAuth();
+const API = process.env.EXPO_URL_API ?? "http://192.168.0.11:8084"
 
 
 export const loginNameUser = async (NameUser: string, password: string) => {

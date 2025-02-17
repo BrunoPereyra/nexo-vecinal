@@ -16,7 +16,7 @@ export default function LoginScreen() {
     try {
       const data = await loginNameUser(nameUser, password);
 
-      await login(data.token, data._id);
+      await login(data.token, data._id, data.avatar, data.nameUser);
       router.replace('/profile' as any);
     } catch (error) {
       if (error instanceof Error) {

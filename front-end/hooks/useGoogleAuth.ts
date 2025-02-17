@@ -17,7 +17,7 @@ export const useGoogleAuth = () => {
         if (response?.type === 'success') {
             const { authentication } = response;
             if (authentication?.accessToken) {
-                login(authentication.accessToken);
+                // login(authentication.accessToken);
                 router.replace('(protected)/view1' as any);
             }
         }

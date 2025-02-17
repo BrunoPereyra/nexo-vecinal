@@ -19,7 +19,7 @@ export default function SignupScreen() {
     try {
       // Enviamos el código ya convertido a número
       const resConfirm = await SaveUserCodeConfirm(code);
-      login(resConfirm.data, resConfirm._id);
+      await login(resConfirm.token, resConfirm._id, resConfirm.avatar, resConfirm.nameUser);
       router.replace('(protected)/view1' as any);
     } catch (error) {
       console.error(error);

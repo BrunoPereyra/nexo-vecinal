@@ -1,5 +1,3 @@
-// todos pueden verlo
-
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -14,35 +12,28 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { applyToJob, jobIdEmployee } from '../services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const JobDetail: React.FC = () => {
-    // Se obtiene el id del job desde la URL y el token desde el contexto de autenticación
+    // Obtenemos el id del job desde la URL y el token desde el contexto de autenticación
     const { id } = useLocalSearchParams();
     const { token } = useAuth();
-
+    const router = useRouter()
     // Usamos any para manejar la información que llega directamente de la API
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-    useEffect(() => {
-        AsyncStorage.getItem('id').then((id) => {
-            setCurrentUserId(id);
-        });
-    }, []);
     useEffect(() => {
         const fetchJobDetails = async () => {
             try {
-                // Se consulta la API y se espera que el resultado tenga la propiedad "job"
                 const result = await jobIdEmployee(id as string, token as string);
-                console.log(result);
-
                 if (result && result.job) {
                     setJob(result.job);
+                    if (result.job.user) {
+                        AsyncStorage.setItem('employerProfile', JSON.stringify(result.job.user));
+                    }
                 }
             } catch (error) {
                 console.error('Error al obtener los detalles del job:', error);
@@ -69,15 +60,14 @@ const JobDetail: React.FC = () => {
             </View>
         );
     }
+
     const handleApply = async () => {
-
-        const res = await applyToJob(id as string, token as string)
-        console.log(res);
-
+        const res = await applyToJob(id as string, token as string);
         if (res.message === "Applied to job successfully") {
             Alert.alert('Postulación enviada', 'Has postulado exitosamente a este trabajo.');
         }
     };
+
     // Asumimos que job.location.coordinates viene en formato [longitud, latitud]
     const region = {
         latitude: job.location.coordinates[1],
@@ -90,31 +80,30 @@ const JobDetail: React.FC = () => {
         <ScrollView style={styles.container}>
             <Text style={styles.title}>{job.title}</Text>
             <Text style={styles.description}>{job.description}</Text>
-
             <View style={styles.section}>
                 <Text style={styles.label}>Presupuesto:</Text>
                 <Text style={styles.value}>${job.budget}</Text>
             </View>
-
             <View style={styles.section}>
                 <Text style={styles.label}>Estado:</Text>
                 <Text style={styles.value}>{job.status}</Text>
             </View>
-            {job.assignedTo === currentUserId && (
 
+            {/* Botón de Chat visible para todos, pasando el id del empleador */}
+            {job.user && (
                 <TouchableOpacity
                     style={styles.chatButton}
-                    onPress={() => router.push(`/ChatJobs?jobId=${job.id}` as any)}
+                    onPress={() => router.push(`/ChatJobs?jobId=${id}`)
+                    }
+
                 >
                     <Text style={styles.chatButtonText}>Abrir Chat</Text>
                 </TouchableOpacity>
-
             )}
+
             {/* Perfil del Empleador */}
             {job.user && (
-                <View
-
-                    style={styles.employerContainer}>
+                <View style={styles.employerContainer}>
                     <Text style={styles.sectionTitle}>Perfil del Empleador</Text>
                     <View style={styles.employerInfo}>
                         <TouchableOpacity
@@ -130,8 +119,7 @@ const JobDetail: React.FC = () => {
                                 </Text>
                             )}
                         </TouchableOpacity>
-                        <Text style={styles.employerName}>{job.user.nameUser} </Text>
-
+                        <Text style={styles.employerName}>{job.user.nameUser}</Text>
                     </View>
                 </View>
             )}
@@ -250,13 +238,13 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 5,
         marginVertical: 16,
-        alignItems: 'center'
+        alignItems: 'center',
     },
     chatButtonText: {
         color: '#121212',
         fontWeight: 'bold',
-        fontSize: 16
-    }
+        fontSize: 16,
+    },
 });
 
 export default JobDetail;

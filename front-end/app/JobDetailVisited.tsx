@@ -24,16 +24,6 @@ export default function JobDetailVisited() {
     const [jobDetail, setJobDetail] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
-    const [rating, setRating] = useState<number>(0);
-    // Estado para el ID del usuario actual, obtenido de AsyncStorage
-    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
-    useEffect(() => {
-        AsyncStorage.getItem('id').then((id) => {
-            setCurrentUserId(id);
-        });
-    }, []);
-
     useEffect(() => {
         const fetchJobDetail = async () => {
             if (!jobId || !token) return;

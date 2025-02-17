@@ -1,7 +1,6 @@
 import { router } from "expo-router";
 
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.22:8084"
-
+const API = process.env.EXPO_URL_API ?? "http://192.168.0.11:8084"
 /**
  * Realiza una petición POST para crear un nuevo trabajo.
  * @param jobData - Objeto con la información del job a crear.
