@@ -237,9 +237,9 @@ func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error
 func (j *JobRepository) ProvideEmployerFeedback(jobID, employerID primitive.ObjectID, feedback jobdomain.Feedback) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{
-		"_id":           jobID,
-		"UserId":        employerID,  // Verifica que el campo UserId coincida con employerID
-		"paymentStatus": "completed", // Y que el paymentStatus sea "completed"
+		"_id":    jobID,
+		"UserId": employerID,                   // Verifica que el campo UserId coincida con employerID
+		"status": jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
 	}
 	update := bson.M{
 		"$set": bson.M{
@@ -263,9 +263,9 @@ func (j *JobRepository) ProvideEmployerFeedback(jobID, employerID primitive.Obje
 func (j *JobRepository) ProvideWorkerFeedback(jobID, workerID primitive.ObjectID, feedback jobdomain.Feedback) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{
-		"_id":           jobID,
-		"assignedTo":    workerID,    // Verifica que el campo assignedTo coincida con workerID
-		"paymentStatus": "completed", // Y que el paymentStatus sea "completed"
+		"_id":        jobID,
+		"assignedTo": workerID,                     // Verifica que el campo assignedTo coincida con workerID
+		"status":     jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
 	}
 	update := bson.M{
 		"$set": bson.M{
@@ -631,8 +631,9 @@ func (j *JobRepository) GetAverageRatingForWorker(workerID primitive.ObjectID) (
 
 	// Filtramos por trabajos asignados al trabajador y que estén completados.
 	filter := bson.M{
-		"assignedTo":    workerID,
-		"paymentStatus": "completed",
+		"assignedTo": workerID,
+		"status":     jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
+
 	}
 
 	// Opciones: orden descendente por createdAt y límite de 10 documentos.
@@ -674,8 +675,8 @@ func (j *JobRepository) GetAverageRatingForEmployer(employerID primitive.ObjectI
 
 	// Filtramos por trabajos creados por el empleador y que estén completados.
 	filter := bson.M{
-		"userId":        employerID,
-		"paymentStatus": "completed",
+		"userId": employerID,
+		"status": jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
 	}
 
 	// Opciones: orden descendente por createdAt y límite de 10 documentos.
@@ -708,4 +709,29 @@ func (j *JobRepository) GetAverageRatingForEmployer(employerID primitive.ObjectI
 
 	avgRating := totalRating / float64(count)
 	return avgRating, nil
+}
+func (j *JobRepository) GetJobsAssignedNoCompleted(employerID primitive.ObjectID) ([]jobdomain.Job, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
+	// Filtramos por jobs asignados cuyo paymentStatus esté en ["open", "in_progress"]
+	filter := bson.M{
+		"assignedTo": employerID,
+		"status":     bson.M{"$in": []string{string(jobdomain.JobStatusOpen), string(jobdomain.JobStatusInProgress)}},
+	}
+
+	// Opciones: orden descendente por createdAt y límite de 10 documentos.
+	opts := options.Find().SetSort(bson.D{{"createdAt", -1}}).SetLimit(10)
+
+	cursor, err := jobColl.Find(context.Background(), filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var jobs []jobdomain.Job
+	if err := cursor.All(context.Background(), &jobs); err != nil {
+		return nil, err
+	}
+
+	return jobs, nil
 }

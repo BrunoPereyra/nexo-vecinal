@@ -141,21 +141,22 @@ type JobDetailsUsers struct {
 }
 
 type GetJobByIDForEmployee struct {
-	ID               primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID           primitive.ObjectID `json:"userId" bson:"userId"`
-	Title            string             `json:"title" bson:"title"`
-	Description      string             `json:"description" bson:"description"`
-	Location         GeoPoint           `json:"location" bson:"location"`
-	Tags             []string           `json:"tags" bson:"tags"`
-	Budget           float64            `json:"budget" bson:"budget"`
-	FinalCost        float64            `json:"finalCost" bson:"finalCost"`
-	Status           JobStatus          `json:"status" bson:"status"`
-	User             User               `json:"user" bson:"user"`
-	EmployerFeedback *Feedback          `json:"employerFeedback,omitempty" bson:"employerFeedback,omitempty"`
-	WorkerFeedback   *Feedback          `json:"workerFeedback,omitempty" bson:"workerFeedback,omitempty"`
-	CreatedAt        time.Time          `json:"createdAt" bson:"createdAt"`
-	UpdatedAt        time.Time          `json:"updatedAt" bson:"updatedAt"`
-	PaymentStatus    string             `json:"paymentStatus" bson:"paymentStatus"`
-	PaymentAmount    float64            `json:"paymentAmount" bson:"paymentAmount"`
-	PaymentIntentID  string             `json:"paymentIntentId" bson:"paymentIntentId"`
+	ID               primitive.ObjectID  `json:"id" bson:"_id,omitempty"`
+	UserID           primitive.ObjectID  `json:"userId" bson:"userId"`
+	Title            string              `json:"title" bson:"title"`
+	Description      string              `json:"description" bson:"description"`
+	Location         GeoPoint            `json:"location" bson:"location"`
+	Tags             []string            `json:"tags" bson:"tags"`
+	Budget           float64             `json:"budget" bson:"budget"`
+	FinalCost        float64             `json:"finalCost" bson:"finalCost"`
+	Status           JobStatus           `json:"status" bson:"status"`
+	User             User                `json:"user" bson:"user"`
+	EmployerFeedback *Feedback           `json:"employerFeedback,omitempty" bson:"employerFeedback,omitempty"`
+	WorkerFeedback   *Feedback           `json:"workerFeedback,omitempty" bson:"workerFeedback,omitempty"`
+	CreatedAt        time.Time           `json:"createdAt" bson:"createdAt"`
+	UpdatedAt        time.Time           `json:"updatedAt" bson:"updatedAt"`
+	PaymentStatus    string              `json:"paymentStatus" bson:"paymentStatus"`
+	PaymentAmount    float64             `json:"paymentAmount" bson:"paymentAmount"`
+	PaymentIntentID  string              `json:"paymentIntentId" bson:"paymentIntentId"`
+	AssignedTo       *primitive.ObjectID `json:"assignedTo,omitempty" bson:"assignedTo,omitempty"`
 }

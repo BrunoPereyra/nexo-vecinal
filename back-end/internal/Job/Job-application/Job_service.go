@@ -138,3 +138,7 @@ func (js *JobService) GetLatestJobsForEmployer(jobID primitive.ObjectID) (float6
 	return js.JobRepository.GetAverageRatingForEmployer(jobID)
 
 }
+func (js *JobService) GetJobsAssignedNoCompleted(jobID primitive.ObjectID) ([]jobdomain.Job, error) {
+	return js.JobRepository.GetJobsAssignedNoCompleted(jobID)
+
+}

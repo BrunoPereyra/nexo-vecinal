@@ -572,3 +572,24 @@ func (j *JobHandler) GetLatestJobsForWorkervist(c *fiber.Ctx) error {
 		"Rating":  Rating,
 	})
 }
+
+func (j *JobHandler) GetJobsAssignedNoCompleted(c *fiber.Ctx) error {
+	idValue := c.Context().UserValue("_id").(string)
+	userid, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid applicant ID",
+		})
+	}
+	jobs, err := j.JobService.GetJobsAssignedNoCompleted(userid)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerErrorb",
+			"error":   err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"data":    jobs,
+	})
+}

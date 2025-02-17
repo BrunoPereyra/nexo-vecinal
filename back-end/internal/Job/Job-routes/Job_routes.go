@@ -43,4 +43,7 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	// visited
 	App.Get("/job/get-latest-jobs-worker-vist", JobHandler.GetLatestJobsForWorkervist)
 	App.Get("/job/get-latest-jobs-employe-vist", JobHandler.GetLatestJobsForEmployervist)
+	//
+	App.Get("/job/get-jobs-assigned-nocompleted", middleware.UseExtractor(), JobHandler.GetJobsAssignedNoCompleted)
+
 }
