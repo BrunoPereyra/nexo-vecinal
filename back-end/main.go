@@ -4,6 +4,7 @@ import (
 	"back-end/config"
 	jobroutes "back-end/internal/Job/Job-routes"
 	"back-end/internal/admin/adminroutes"
+	"back-end/internal/chat/chatroutes"
 	userroutes "back-end/internal/user/user-routes"
 	"time"
 
@@ -47,6 +48,7 @@ func main() {
 	userroutes.UserRoutes(app, redisClient, newMongoDB)
 	jobroutes.JobRoutes(app, redisClient, newMongoDB)
 	adminroutes.AdminReportRoutes(app, redisClient, newMongoDB)
+	chatroutes.ChatRoutes(app, redisClient, newMongoDB)
 
 	PORT := config.PORT()
 	if PORT == "" {

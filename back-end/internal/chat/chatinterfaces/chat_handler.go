@@ -7,6 +7,7 @@ import (
 	"context"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -59,12 +60,17 @@ func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
 		}
 		msg.JobID = jobID
 	}
-
-	err := h.ChatService.SendMessage(context.Background(), msg)
+	msjsave, err := h.ChatService.SendMessage(context.Background(), msg)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+			"data":    err.Error(),
+		})
 	}
-	return c.Status(fiber.StatusCreated).JSON(msg)
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "StatusCreated",
+		"data":    msjsave,
+	})
 }
 
 // GetMessagesBetween endpoint para obtener mensajes entre dos usuarios (GET /chat/messages?user1=...&user2=...).
@@ -92,4 +98,30 @@ func (h *ChatHandler) MarkMessageAsRead(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "mensaje marcado como leído"})
+}
+
+// SubscribeMessages endpoint para recibir mensajes en tiempo real vía WebSocket.
+// Los clientes se conectan a /chat/subscribe/:jobID y se suscriben al canal de Redis.
+func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
+	jobID := c.Params("jobID")
+	if jobID == "" {
+		c.WriteMessage(websocket.TextMessage, []byte("jobID es requerido"))
+		return
+	}
+
+	ctx := context.Background()
+	pubsub := h.ChatService.ChatRepo.SubscribeMessages(ctx, jobID)
+	defer pubsub.Close()
+
+	for {
+		msg, err := pubsub.ReceiveMessage(ctx)
+		if err != nil {
+			// Si hay error (por ejemplo, conexión cerrada), salimos del loop
+			break
+		}
+		// Enviar el mensaje recibido al cliente WebSocket
+		if err := c.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
+			break
+		}
+	}
 }

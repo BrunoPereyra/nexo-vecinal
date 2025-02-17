@@ -1,4 +1,3 @@
-// internal/chat/chatroutes/chat_routes.go
 package chatroutes
 
 import (
@@ -8,13 +7,15 @@ import (
 	"back-end/internal/chat/chatinterfaces"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func ChatRoutes(app *fiber.App, mongoClient *mongo.Client) {
-	chatRepo := chatinfrastructure.NewChatRepository(mongoClient)
+func ChatRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *mongo.Client) {
+	chatRepo := chatinfrastructure.NewChatRepository(mongoClient, redisClient)
 	// Se inyecta el repositorio de trabajos para validar condiciones en el chat.
-	jobRepo := jobinfrastructure.NewjobRepository(nil, mongoClient)
+	jobRepo := jobinfrastructure.NewjobRepository(redisClient, mongoClient)
 	chatService := chatapplication.NewChatService(chatRepo, jobRepo)
 	chatHandler := chatinterfaces.NewChatHandler(chatService)
 
@@ -22,4 +23,6 @@ func ChatRoutes(app *fiber.App, mongoClient *mongo.Client) {
 	chatGroup.Post("/messages", chatHandler.SendMessage)
 	chatGroup.Get("/messages", chatHandler.GetMessagesBetween)
 	chatGroup.Post("/messages/:id/read", chatHandler.MarkMessageAsRead)
+	// Nueva ruta para suscripción vía WebSocket
+	chatGroup.Get("/subscribe/:jobID", websocket.New(chatHandler.SubscribeMessages))
 }

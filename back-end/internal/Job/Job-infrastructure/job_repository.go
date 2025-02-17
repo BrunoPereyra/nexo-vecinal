@@ -4,6 +4,7 @@ import (
 	jobdomain "back-end/internal/Job/Job-domain"
 	userdomain "back-end/internal/user/user-domain"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -291,17 +292,35 @@ func (j *JobRepository) UpdateJob(jobID primitive.ObjectID, update bson.M) error
 	return err
 }
 func (j *JobRepository) GetJobByID(jobID primitive.ObjectID) (*jobdomain.Job, error) {
-	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("job:%s", jobID.Hex())
 	var job jobdomain.Job
 
+	// Intentar obtener de Redis
+	cachedJob, err := j.redisClient.Get(ctx, cacheKey).Result()
+	if err == nil {
+		// Si se encuentra en cache, decodificar el JSON y devolverlo.
+		if err := json.Unmarshal([]byte(cachedJob), &job); err == nil {
+			return &job, nil
+		}
+		// Si falla el Unmarshal, se sigue consultando en MongoDB.
+	}
+
+	// Consultar MongoDB
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{"_id": jobID}
-	err := jobColl.FindOne(context.Background(), filter).Decode(&job)
-	if err != nil {
+	if err := jobColl.FindOne(ctx, filter).Decode(&job); err != nil {
 		return nil, err
+	}
+
+	// Serializar y guardar en Redis con expiración de 2 minutos
+	if jobBytes, err := json.Marshal(job); err == nil {
+		j.redisClient.Set(ctx, cacheKey, jobBytes, 2*time.Minute)
 	}
 
 	return &job, nil
 }
+
 func (j *JobRepository) UpdateJobPaymentStatus(jobID primitive.ObjectID, status string, paymentIntentID string) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 

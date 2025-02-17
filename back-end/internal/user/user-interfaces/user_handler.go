@@ -74,10 +74,11 @@ func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx
 	// }
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "token",
-		"data":    tokenRequest,
-		"_id":     user.ID,
-		"avatar":  user.Avatar,
+		"message":  "token",
+		"data":     tokenRequest,
+		"_id":      user.ID,
+		"avatar":   user.Avatar,
+		"nameUser": user.NameUser,
 	})
 
 }
@@ -142,10 +143,11 @@ func (h *UserHandler) Google_callback(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "token",
-		"data":    tokenRequest,
-		"_id":     user.ID,
-		"avatar":  user.Avatar,
+		"message":  "token",
+		"data":     tokenRequest,
+		"_id":      user.ID,
+		"avatar":   user.Avatar,
+		"nameUser": user.NameUser,
 	})
 }
 func (h *UserHandler) LoginTOTPSecret(c *fiber.Ctx) error {
@@ -206,10 +208,11 @@ func (h *UserHandler) LoginTOTPSecret(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "token",
-		"data":    token,
-		"_id":     user.ID,
-		"avatar":  user.Avatar,
+		"message":  "token",
+		"data":     token,
+		"_id":      user.ID,
+		"avatar":   user.Avatar,
+		"nameUser": user.NameUser,
 	})
 }
 
@@ -287,10 +290,11 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "token",
-		"token":   token,
-		"_id":     user.ID,
-		"avatar":  user.Avatar,
+		"message":  "token",
+		"token":    token,
+		"_id":      user.ID,
+		"avatar":   user.Avatar,
+		"nameUser": user.NameUser,
 	})
 }
 func (h *UserHandler) SaveUserCodeConfirm(c *fiber.Ctx) error {
@@ -332,10 +336,11 @@ func (h *UserHandler) SaveUserCodeConfirm(c *fiber.Ctx) error {
 	// }
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "token",
-		"data":    tokenRequest,
-		"_id":     user.ID,
-		"avatar":  user.Avatar,
+		"message":  "token",
+		"data":     tokenRequest,
+		"_id":      user.ID,
+		"avatar":   user.Avatar,
+		"nameUser": user.NameUser,
 	})
 
 }
