@@ -1,3 +1,5 @@
+// solo el empleador puede acceder a esta ruta y los empleados asignados
+
 import React, { useEffect, useState } from 'react';
 import {
   View,
@@ -103,8 +105,7 @@ export default function EmployerJobDetail() {
         if (res.job === "job already completed") {
           alert('El trabajo ya estaba marcado como completado');
         } else {
-          // Puedes actualizar el estado si el backend devuelve información actualizada
-          setJobDetail(res);
+          alert(' trabajo completado');
         }
       }
     } catch (error) {
@@ -206,6 +207,16 @@ export default function EmployerJobDetail() {
         </Text>
       )}
 
+      {jobDetail.assignedTo.id === currentUserId && (
+
+        <TouchableOpacity
+          style={darkStyles.chatButton}
+          onPress={() => router.push(`/ChatJobs?jobId=${jobDetail.id}` as any)}
+        >
+          <Text style={darkStyles.chatButtonText}>Abrir Chat</Text>
+        </TouchableOpacity>
+
+      )}
       {/* Mapa para mostrar la ubicación */}
       {jobDetail.location && jobDetail.location.coordinates && (
         <View style={darkStyles.mapContainer}>
@@ -435,6 +446,18 @@ const darkStyles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#121212'
+  },
+  chatButton: {
+    backgroundColor: '#03DAC5',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginVertical: 16,
+    alignItems: 'center'
+  },
+  chatButtonText: {
+    color: '#121212',
+    fontWeight: 'bold',
+    fontSize: 16
   }
 });
 

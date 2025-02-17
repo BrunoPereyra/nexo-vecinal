@@ -409,3 +409,23 @@ export const GetLatestJobsForEmployervist = async (id: string) => {
 
 
 
+export const GetJobsAssignedNoCompleted = async (token: string) => {
+
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-jobs-assigned-nocompleted`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en getJobsProfile 2:", error);
+    }
+};

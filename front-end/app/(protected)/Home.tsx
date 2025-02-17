@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { getJobsByFilters } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
-import JobCard from '@/components/JobCard';
+import JobCard from '@/components/JobCardHome';
 import Navbar from '@/components/Navbar';
 import JobSearchFilters from '@/components/JobSearchFilters';
 

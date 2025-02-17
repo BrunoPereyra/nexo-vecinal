@@ -31,6 +31,10 @@ export default function ProtectedLayout() {
           name="home"
           options={{ title: 'Home', tabBarIcon: () => null }}
         />
+          <Tabs.Screen
+          name="jobsStatus"
+          options={{ title: 'jobs Status', tabBarIcon: () => null }}
+        />
       </Tabs>
     </ProtectedRoute>
   );

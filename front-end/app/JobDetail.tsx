@@ -1,3 +1,5 @@
+// todos pueden verlo
+
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -15,6 +17,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { applyToJob, jobIdEmployee } from '../services/JobsService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const JobDetail: React.FC = () => {
     // Se obtiene el id del job desde la URL y el token desde el contexto de autenticación
@@ -24,7 +27,13 @@ const JobDetail: React.FC = () => {
     // Usamos any para manejar la información que llega directamente de la API
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+    useEffect(() => {
+        AsyncStorage.getItem('id').then((id) => {
+            setCurrentUserId(id);
+        });
+    }, []);
     useEffect(() => {
         const fetchJobDetails = async () => {
             try {
@@ -91,7 +100,16 @@ const JobDetail: React.FC = () => {
                 <Text style={styles.label}>Estado:</Text>
                 <Text style={styles.value}>{job.status}</Text>
             </View>
+            {job.assignedTo === currentUserId && (
 
+                <TouchableOpacity
+                    style={styles.chatButton}
+                    onPress={() => router.push(`/ChatJobs?jobId=${job.id}` as any)}
+                >
+                    <Text style={styles.chatButtonText}>Abrir Chat</Text>
+                </TouchableOpacity>
+
+            )}
             {/* Perfil del Empleador */}
             {job.user && (
                 <View
@@ -227,6 +245,18 @@ const styles = StyleSheet.create({
     applyButtonContainer: {
         marginTop: 20,
     },
+    chatButton: {
+        backgroundColor: '#03DAC5',
+        paddingVertical: 10,
+        borderRadius: 5,
+        marginVertical: 16,
+        alignItems: 'center'
+    },
+    chatButtonText: {
+        color: '#121212',
+        fontWeight: 'bold',
+        fontSize: 16
+    }
 });
 
 export default JobDetail;
