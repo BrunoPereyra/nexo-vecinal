@@ -9,27 +9,34 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { GetJobsAssignedNoCompleted } from '@/services/JobsService';
+import { useRouter } from 'expo-router';
+import { GetJobsAssignedNoCompleted, GetJobsAssignedCompleted } from '@/services/JobsService';
 
 const JobsStatusScreen: React.FC = () => {
+
   const { token } = useAuth();
   const router = useRouter();
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobsNotCompleted, setJobsNotCompleted] = useState<any[]>([]);
+  const [jobsCompleted, setJobsCompleted] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  const [selectedTab, setSelectedTab] = useState<'assigned' | 'completed'>('assigned');
 
   useEffect(() => {
     const fetchJobs = async () => {
       if (!token) return;
       setLoading(true);
+      setError('');
+
       try {
-        // Se asume que el servicio retorna un objeto con la propiedad "data" que es un arreglo de jobs
-        const data = await GetJobsAssignedNoCompleted(token);
-        console.log(data);
-        setJobs(data?.data || []);
+        const [responseNotCompleted, responseCompleted] = await Promise.all([
+          GetJobsAssignedNoCompleted(token),
+          GetJobsAssignedCompleted(token)
+        ]);
+        setJobsNotCompleted(responseNotCompleted?.data || []);
+        setJobsCompleted(responseCompleted?.data || []);
       } catch (err: any) {
-        setError('Error al obtener los trabajos asignados sin completar');
+        setError('Error al obtener los trabajos');
         console.error(err);
       } finally {
         setLoading(false);
@@ -38,19 +45,36 @@ const JobsStatusScreen: React.FC = () => {
     fetchJobs();
   }, [token]);
 
-  const renderItem = ({ item }: { item: any }) => {
-    return (
+  const renderItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/JobDetailWorker?id=${item.id}`)}
+    >
+      <Text style={styles.title}>{item.title}</Text>
+      <Text style={styles.status}>Estado: {item.status}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderTabs = () => (
+    <View style={styles.tabsContainer}>
       <TouchableOpacity
-        style={styles.card}
-        onPress={() => {
-          router.push(`/JobDetail?id=${item.id}`);
-        }}
+        style={[styles.tabButton, selectedTab === 'assigned' && styles.activeTab]}
+        onPress={() => setSelectedTab('assigned')}
       >
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.status}>Estado: {item.status}</Text>
+        <Text style={[styles.tabText, selectedTab === 'assigned' && styles.activeTabText]}>
+          Asignados
+        </Text>
       </TouchableOpacity>
-    );
-  };
+      <TouchableOpacity
+        style={[styles.tabButton, selectedTab === 'completed' && styles.activeTab]}
+        onPress={() => setSelectedTab('completed')}
+      >
+        <Text style={[styles.tabText, selectedTab === 'completed' && styles.activeTabText]}>
+          Completados
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   if (loading) {
     return (
@@ -68,16 +92,21 @@ const JobsStatusScreen: React.FC = () => {
     );
   }
 
+  const jobsToShow = selectedTab === 'assigned' ? jobsNotCompleted : jobsCompleted;
+
   return (
     <View style={styles.container}>
+      {renderTabs()}
       <FlatList
-        data={jobs}
+        data={jobsToShow}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
           <Text style={styles.emptyText}>
-            No se encontraron trabajos asignados sin completar
+            {selectedTab === 'assigned'
+              ? 'No se encontraron trabajos asignados sin completar'
+              : 'No se encontraron trabajos completados'}
           </Text>
         }
       />
@@ -89,6 +118,29 @@ const { width } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#121212' },
+  tabsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  tabButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: '#1E1E1E',
+    marginHorizontal: 5,
+  },
+  activeTab: {
+    backgroundColor: '#03DAC5',
+  },
+  tabText: {
+    color: '#E0E0E0',
+    fontSize: 16,
+  },
+  activeTabText: {
+    fontWeight: 'bold',
+    color: '#121212',
+  },
   listContainer: {
     paddingHorizontal: 16,
     paddingBottom: 16,

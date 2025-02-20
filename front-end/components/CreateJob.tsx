@@ -40,14 +40,14 @@ export const CreateJob: React.FC<CreateJobProps> = ({
   // Al tocar el mapa se guarda la coordenada
   const handleMapPress = (e: MapPressEvent) => {
     const { coordinate } = e.nativeEvent;
-    console.log("Map pressed at:", coordinate);
+    console.log('Map pressed at:', coordinate);
     setLocation(coordinate);
   };
 
   // Permite mover el marcador manualmente
   const handleMarkerDragEnd = (e: MarkerDragStartEndEvent) => {
     const { coordinate } = e.nativeEvent;
-    console.log("Marker dragged to:", coordinate);
+    console.log('Marker dragged to:', coordinate);
     setLocation(coordinate);
   };
 
@@ -103,7 +103,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       title,
       description,
       location: {
-        type: "Point",
+        type: 'Point',
         coordinates: [location.longitude, location.latitude],
       },
       tags: tagsArray,
@@ -142,6 +142,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             value={title}
             onChangeText={setTitle}
             style={styles.input}
+            placeholderTextColor="#888"
           />
           <TextInput
             placeholder="Descripción"
@@ -149,13 +150,14 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             onChangeText={setDescription}
             style={[styles.input, styles.multilineInput]}
             multiline
+            placeholderTextColor="#888"
           />
 
           {/* Sección para seleccionar la ubicación en el mapa */}
           <Text style={styles.label}>Selecciona ubicación en el mapa</Text>
           <MapView
             style={styles.map}
-            provider={PROVIDER_GOOGLE} // Opcional: usa Google Maps si lo deseas
+            provider={PROVIDER_GOOGLE}
             initialRegion={{
               latitude: -31.4201,
               longitude: -64.1811,
@@ -178,6 +180,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             value={tags}
             onChangeText={setTags}
             style={styles.input}
+            placeholderTextColor="#888"
           />
           <TextInput
             placeholder="Presupuesto"
@@ -185,16 +188,14 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             onChangeText={setBudget}
             style={styles.input}
             keyboardType="numeric"
+            placeholderTextColor="#888"
           />
 
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Crear</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
               <Text style={styles.buttonText}>Cancelar</Text>
             </TouchableOpacity>
           </View>
@@ -207,12 +208,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.7)', // Overlay semitransparente
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#1E1E1E', // Fondo oscuro para el modal
     padding: 20,
     borderRadius: 10,
     width: '90%',
@@ -222,13 +223,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     textAlign: 'center',
+    color: '#03DAC5',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#03DAC5', // Borde con color de acento
     borderRadius: 5,
     marginBottom: 10,
     padding: 10,
+    backgroundColor: '#121212',
+    color: '#E0E0E0',
   },
   multilineInput: {
     height: 80,
@@ -237,6 +241,7 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: 'bold',
     marginBottom: 5,
+    color: '#E0E0E0',
   },
   map: {
     width: '100%',
@@ -249,17 +254,19 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   button: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#03DAC5',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     margin: 5,
   },
   cancelButton: {
-    backgroundColor: '#aaa',
+    backgroundColor: '#BB86FC',
   },
   buttonText: {
-    color: '#fff',
+    color: '#121212',
     fontWeight: 'bold',
   },
 });
+
+export default CreateJob;

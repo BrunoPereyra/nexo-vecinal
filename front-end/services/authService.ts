@@ -1,4 +1,4 @@
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.11:8084"
+const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084"
 
 
 export const loginNameUser = async (NameUser: string, password: string) => {
@@ -21,8 +21,9 @@ export const SignupService = async (email: string, password: string, nameUser: s
         const res = await fetch(API + "/user/signupNotConfirmed", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, nameUser, fullName: "bruno pereyra" })
+            body: JSON.stringify({ email, password, nameUser, fullName: nameUser })
         });
+        console.log(res);
 
         if (!res.ok) {
             throw new Error(`Error ${res.status}: ${res.statusText}`);

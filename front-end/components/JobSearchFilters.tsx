@@ -98,40 +98,62 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     const [radius, setRadius] = useState<number>(5000);
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
 
-    // Cargar filtros guardados en caché o usar defaults
     useEffect(() => {
         const loadCachedFilters = async () => {
             try {
                 const cachedTitle = await AsyncStorage.getItem('searchTitle');
                 const cachedTags = await AsyncStorage.getItem('selectedTags');
                 const cachedTriangle = await AsyncStorage.getItem('trianglePoints');
-                if (cachedTitle) setSearchTitle(cachedTitle);
-                if (cachedTags) setSelectedTags(JSON.parse(cachedTags));
+
+                // Valores por defecto o cargados de caché
+                const loadedTitle = cachedTitle || '';
+                const loadedTags = cachedTags ? JSON.parse(cachedTags) : [];
+                let loadedPoints: { latitude: number; longitude: number }[] = [];
+                let loadedLocation: { latitude: number; longitude: number } | null = null;
+                let loadedRadius = 5000;
+
                 if (cachedTriangle) {
-                    const points = JSON.parse(cachedTriangle);
-                    setTrianglePoints(points);
-                    if (points.length === 3) {
-                        const data = computeTriangleData(points);
+                    loadedPoints = JSON.parse(cachedTriangle);
+                    if (loadedPoints.length === 3) {
+                        const data = computeTriangleData(loadedPoints);
                         if (data) {
-                            setLocation(data.centroid);
-                            setRadius(data.radius);
+                            loadedLocation = data.centroid;
+                            loadedRadius = data.radius;
                         }
                     }
                 } else {
                     // Si no hay filtros en caché, usamos los puntos por defecto
-                    setTrianglePoints(defaultTrianglePoints);
+                    loadedPoints = defaultTrianglePoints;
                     const data = computeTriangleData(defaultTrianglePoints);
                     if (data) {
-                        setLocation(data.centroid);
-                        setRadius(data.radius);
+                        loadedLocation = data.centroid;
+                        loadedRadius = data.radius;
                     }
                 }
+
+                // Actualizamos los estados locales
+                setSearchTitle(loadedTitle);
+                setSelectedTags(loadedTags);
+                setTrianglePoints(loadedPoints);
+                setLocation(loadedLocation);
+                setRadius(loadedRadius);
+
+                // Ejecutamos la búsqueda automáticamente con los filtros cargados
+                onSearch({
+                    searchTitle: loadedTitle,
+                    selectedTags: loadedTags,
+                    trianglePoints: loadedPoints,
+                    location: loadedLocation,
+                    radius: loadedRadius,
+                });
             } catch (error) {
                 console.error('Error loading cached filters:', error);
             }
         };
+
         loadCachedFilters();
     }, []);
+
 
     // Alternar selección de etiqueta
     const toggleTag = (tag: string) => {

@@ -11,7 +11,7 @@ import {
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
-import { GetJobTokenAdmin } from '@/services/JobsService';
+import { GetJobDetailvisited, GetJobTokenAdmin } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApplicantsList from '@/components/ApplicantsList';
 
@@ -29,7 +29,9 @@ export default function JobDetailVisited() {
             if (!jobId || !token) return;
             setLoading(true);
             try {
-                const data = await GetJobTokenAdmin(jobId, token);
+                const data = await GetJobDetailvisited(jobId);
+                console.log(data);
+
                 if (data.job) {
                     setJobDetail(data.job);
                 }
@@ -51,23 +53,26 @@ export default function JobDetailVisited() {
     }
 
     if (error) {
-        return (
-            <View style={darkStyles.center}>
-                <Text style={darkStyles.errorText}>{error}</Text>
-                <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
-            </View>
-        );
+        if (!jobDetail) {
+            return (
+                <View style={darkStyles.center}>
+                    <Text style={darkStyles.errorText}>No se encontró el detalle del trabajo</Text>
+                    <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
+                </View>
+            );
+        }
+
     }
 
     // Aseguramos que applicants sea un array
-    const applicants = jobDetail.applicants || [];
-    const assignedCandidate = jobDetail.assignedCandidate || null;
+    const applicants = jobDetail?.applicants || [];
+    const assignedCandidate = jobDetail?.assignedCandidate || null;
     const otherApplicants = assignedCandidate
-        ? applicants.filter((applicant: any) => applicant.id !== assignedCandidate.id)
+        ? applicants.filter((applicant: any) => applicant.id !== assignedCandidate?.id)
         : applicants;
 
-    return (
-        <ScrollView style={darkStyles.container} contentContainerStyle={{ paddingBottom: 20 }}>
+    if (jobDetail) {
+        return (<ScrollView style={darkStyles.container} contentContainerStyle={{ paddingBottom: 20 }}>
             {/* Información principal del trabajo */}
             <Text style={darkStyles.title}>{jobDetail.title}</Text>
             <Text style={darkStyles.description}>{jobDetail.biography}</Text>
@@ -164,8 +169,8 @@ export default function JobDetailVisited() {
             </View>
 
             <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
-        </ScrollView>
-    );
+        </ScrollView>)
+    }
 }
 
 const darkStyles = StyleSheet.create({

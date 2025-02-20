@@ -1,6 +1,5 @@
 import { router } from "expo-router";
-
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.11:8084"
+const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084"
 /**
  * Realiza una petición POST para crear un nuevo trabajo.
  * @param jobData - Objeto con la información del job a crear.
@@ -69,8 +68,7 @@ export const getJobsProfile = async (page: number, token: string) => {
 };
 
 /**
- * Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación.
- * @param userId - ID del usuario.
+ * Realiza una petición GET para obtener los trabajos Creador por el usuario con paginación.
  * @param page - Número de página (1 en adelante).
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
@@ -312,6 +310,7 @@ export const getJobsProfileVist = async (page: number, id: string) => {
         console.error("Error en getJobsProfile 1:", error);
     }
 };
+// obtiene los trabajos creados del perfil visitado
 export const GetJobsUserIDForEmployeProfilevist = async (page: number, id: string) => {
     console.log("Page:", page);
 
@@ -408,11 +407,10 @@ export const GetLatestJobsForEmployervist = async (id: string) => {
 
 
 
-export const GetJobsAssignedNoCompleted = async (token: string) => {
-
+export const GetJobsAssignedNoCompleted = async (token: string, page: number = 1) => {
     try {
         // Construimos la URL usando el parámetro page
-        const url = `${API}/job/get-jobs-assigned-nocompleted`;
+        const url = `${API}/job/get-jobs-assigned-nocompleted?page=${page}`;
         const res = await fetch(url, {
             method: 'GET',
             headers: {
@@ -425,6 +423,66 @@ export const GetJobsAssignedNoCompleted = async (token: string) => {
         }
         return await res.json();
     } catch (error) {
-        console.error("Error en getJobsProfile 2:", error);
+        console.error("Error en GetJobsAssignedNoCompleted:", error);
+    }
+};
+
+export const GetJobsAssignedCompleted = async (token: string, page: number = 1) => {
+    try {
+        // Construimos la URL usando el parámetro page
+        const url = `${API}/job/get-jobs-assigned-completed?page=${page}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en GetJobsAssignedCompleted:", error);
+    }
+};
+export const GetJobsUserCompleted = async (id: string, page: number = 1) => {
+    try {
+        const url = `${API}/job/get-jobs-user-completedvisited?id=${id}&page=${page}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+
+        return await res.json();
+    } catch (error) {
+        console.error('Error en GetJobsUserCompleted:', error);
+    }
+};
+export const GetJobDetailvisited = async (id: string) => {
+    try {
+        const url = `${API}/job/get-job-detaild-user-visited?id=${id}`;
+        console.log(url);
+
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log(res);
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+
+        return await res.json();
+    } catch (error) {
+        console.error('Error en GetJobDetailvisited:', error);
     }
 };

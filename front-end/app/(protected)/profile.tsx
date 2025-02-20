@@ -35,7 +35,7 @@ export default function ProfileScreen() {
     const [employerJobs, setEmployerJobs] = useState<any[]>([]);
     const [jobFeed, setJobFeed] = useState<any[]>([]);
     // Sección activa: 'employer' (Mis trabajos) o 'jobFeed' (Trabajos realizados)
-    const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('employer');
+    const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('jobFeed');
     const [createJobVisible, setCreateJobVisible] = useState(false);
     // Paginación para cada sección
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
@@ -99,25 +99,6 @@ export default function ProfileScreen() {
         AsyncStorage.setItem('activeSection', activeSection);
     }, [activeSection]);
 
-    // Cuando la sección activa sea "Mis trabajos", se solicita esa información
-    useEffect(() => {
-        if (!token) return;
-        const fetchEmployerJobs = async () => {
-            setLoading(true);
-            try {
-                const jobsData = await getJobsProfile(1, token);
-                setEmployerJobs(jobsData?.jobs || []);
-                setCurrentPageEmployer(1);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        };
-        if (activeSection === 'employer') {
-            fetchEmployerJobs();
-        }
-    }, [activeSection, token]);
 
     // Cuando la sección activa sea "Trabajos realizados", se solicita esa información
     useEffect(() => {
@@ -157,9 +138,8 @@ export default function ProfileScreen() {
             return;
         }
         // Aquí podrías llamar a una API para actualizar la biografía del usuario.
-        const resEdit = await Editbiografia(biografia, token as string)
+        const resEdit = await Editbiografia(biografia, token as string);
         console.log(resEdit);
-
         setEditBioVisible(false);
     };
 
@@ -226,14 +206,6 @@ export default function ProfileScreen() {
             {/* Botones para alternar entre secciones */}
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
-                    style={[styles.toggleButton, activeSection === 'employer' && styles.activeToggle]}
-                    onPress={() => setActiveSection('employer')}
-                >
-                    <Text style={[styles.toggleButtonText, activeSection === 'employer' && styles.activeToggleText]}>
-                        Mis trabajos
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
                     style={[styles.toggleButton, activeSection === 'jobFeed' && styles.activeToggle]}
                     onPress={() => setActiveSection('jobFeed')}
                 >
@@ -267,7 +239,7 @@ export default function ProfileScreen() {
     if (loading) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color="#03DAC5" />
             </View>
         );
     }
@@ -276,7 +248,7 @@ export default function ProfileScreen() {
         return (
             <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
-                <Button title="Cerrar sesión" onPress={handleLogout} color="#bb86fc" />
+                <Button title="Cerrar sesión" onPress={handleLogout} color="#03DAC5" />
             </View>
         );
     }
@@ -293,7 +265,7 @@ export default function ProfileScreen() {
                 contentContainerStyle={styles.container}
                 ListFooterComponent={
                     <View style={styles.footer}>
-                        <Button title="Cerrar sesión" onPress={handleLogout} />
+                        <Button title="Cerrar sesión" onPress={handleLogout} color="#03DAC5" />
                     </View>
                 }
             />
@@ -345,9 +317,20 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { padding: 10, backgroundColor: '#121212' },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' },
-    errorText: { color: '#CF6679', marginBottom: 20 },
+    container: {
+        padding: 10,
+        backgroundColor: '#121212'
+    },
+    center: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#121212'
+    },
+    errorText: {
+        color: '#CF6679',
+        marginBottom: 20
+    },
     toggleContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -357,10 +340,10 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
-        backgroundColor: '#333',
+        backgroundColor: '#1E1E1E',
     },
     activeToggle: {
-        backgroundColor: '#BB86FC',
+        backgroundColor: '#03DAC5',
     },
     toggleButtonText: {
         fontSize: 16,
@@ -407,13 +390,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 10,
     },
-    // Estilos para el botón de opciones y menú desplegable
     optionsButton: {
         position: 'absolute',
         top: 10,
         right: 10,
         padding: 10,
-        backgroundColor: '#333',
+        backgroundColor: '#1E1E1E',
         borderRadius: 5,
         zIndex: 100,
     },
@@ -443,7 +425,6 @@ const styles = StyleSheet.create({
         borderColor: '#444',
         marginTop: 5,
     },
-    // Estilos para el modal de edición de biografía
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -464,7 +445,7 @@ const styles = StyleSheet.create({
     },
     modalTextInput: {
         height: 100,
-        borderColor: '#333',
+        borderColor: '#1E1E1E',
         borderWidth: 1,
         borderRadius: 5,
         padding: 10,
@@ -478,3 +459,4 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
 });
+

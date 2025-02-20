@@ -1,16 +1,13 @@
-// solo el empleador puede acceder a esta ruta y los empleados asignados
-
 import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   ActivityIndicator,
   Button,
-  FlatList,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
-  ScrollView
+  TextInput
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -37,17 +34,14 @@ export default function EmployerJobDetail() {
   const [error, setError] = useState<string>('');
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
-  // Estados para feedback y rating
+  // Estados para feedback y rating (para el feedback del empleador)
   const [feedback, setFeedback] = useState<string>('');
-  const [feedbackSent, setFeedbackSent] = useState<boolean>(false);
   const [rating, setRating] = useState<number>(0);
-  // Estado para el ID del usuario actual, obtenido de AsyncStorage
+  // Estado para el ID del usuario actual (empleador)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem('id').then((id) => {
-      setCurrentUserId(id);
-    });
+    AsyncStorage.getItem('id').then((id) => setCurrentUserId(id));
   }, []);
 
   useEffect(() => {
@@ -58,6 +52,8 @@ export default function EmployerJobDetail() {
         const data = await GetJobTokenAdmin(jobId, token);
         if (data.job) {
           setJobDetail(data.job);
+        } else {
+          setError('No se encontró el detalle del trabajo');
         }
       } catch (err) {
         setError('Error al obtener el detalle del trabajo');
@@ -105,7 +101,7 @@ export default function EmployerJobDetail() {
         if (res.job === "job already completed") {
           alert('El trabajo ya estaba marcado como completado');
         } else {
-          alert(' trabajo completado');
+          alert('Trabajo completado');
         }
       }
     } catch (error) {
@@ -115,7 +111,7 @@ export default function EmployerJobDetail() {
     }
   };
 
-  // Función para enviar o actualizar feedback, eligiendo la función adecuada según el usuario actual
+  // Solo el empleador (currentUserId === jobDetail.userId) puede dejar o actualizar su feedback.
   const handleLeaveFeedback = async () => {
     if (!feedback.trim() || rating === 0 || !jobDetail || !token) {
       alert('El feedback y la calificación no pueden estar vacíos');
@@ -123,34 +119,20 @@ export default function EmployerJobDetail() {
     }
     setActionLoading(true);
     try {
-      let res = null;
-      // Creamos el objeto de feedback
       const feedbackData = { comment: feedback.trim(), rating };
-      // Comparamos el id del usuario actual con el userId del job
-      if (currentUserId === jobDetail.userId) {
-        // Si coinciden, el usuario es el empleador y deja feedback sobre el trabajador
-        res = await provideEmployerFeedback(jobDetail.id, feedbackData, token);
-      } else {
-        // De lo contrario, el usuario es el trabajador y deja feedback sobre el empleador
-        res = await provideWorkerFeedback(jobDetail.id, feedbackData, token);
-      }
-
-      if (res && res.success) {
+      // Como es el empleador, usamos provideEmployerFeedback
+      const res = await provideEmployerFeedback(jobDetail.id, feedbackData, token);
+      console.log(res);
+      if (res && res.message === "Employer feedback provided successfully") {
         alert('Feedback enviado exitosamente');
-        // Actualizamos el jobDetail para reflejar el feedback recibido
-        if (currentUserId === jobDetail.userId) {
-          setJobDetail({ ...jobDetail, employerFeedback: res.feedback });
-        } else {
-          setJobDetail({ ...jobDetail, workerFeedback: res.feedback });
-        }
-        setFeedbackSent(true);
+        setJobDetail({ ...jobDetail, employerFeedback: res.feedback });
         setFeedback('');
         setRating(0);
       } else {
         alert('No se pudo enviar el feedback');
       }
     } catch (error) {
-      console.error('Error en enviar feedback:', error);
+      console.error('Error al enviar feedback:', error);
       alert('Ocurrió un error al enviar el feedback');
     } finally {
       setActionLoading(false);
@@ -160,63 +142,45 @@ export default function EmployerJobDetail() {
   if (loading) {
     return (
       <View style={darkStyles.center}>
-        <ActivityIndicator size="large" color="#ffffff" />
+        <ActivityIndicator size="large" color="#03DAC5" />
       </View>
     );
   }
 
-  if (error) {
+  if (error || !jobDetail) {
     return (
       <View style={darkStyles.center}>
-        <Text style={darkStyles.errorText}>{error}</Text>
-        <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
+        <Text style={darkStyles.errorText}>{error || 'No se encontró el detalle del trabajo'}</Text>
+        <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
       </View>
     );
   }
 
-  // Aseguramos que applicants sea un array
+  // Aseguramos que applicants sea un array y obtenemos el candidato asignado
   const applicants = jobDetail.applicants || [];
   const assignedCandidate = jobDetail.assignedCandidate || null;
   const otherApplicants = assignedCandidate
     ? applicants.filter((applicant: any) => applicant.id !== assignedCandidate.id)
     : applicants;
 
-  // Determinamos qué feedback mostrar y de quién es
-  let existingFeedback = null;
-  let feedbackType = "";
-  if (currentUserId && jobDetail) {
-    if (currentUserId === jobDetail.userId) {
-      existingFeedback = jobDetail.employerFeedback;
-      feedbackType = "Feedback del Empleador";
-    } else {
-      existingFeedback = jobDetail.workerFeedback;
-      feedbackType = "Feedback del Trabajador";
-    }
-  }
-
   return (
     <ScrollView style={darkStyles.container} contentContainerStyle={{ paddingBottom: 20 }}>
       {/* Información principal del trabajo */}
       <Text style={darkStyles.title}>{jobDetail.title}</Text>
       <Text style={darkStyles.description}>{jobDetail.description}</Text>
-      <Text style={darkStyles.detail}>Precio: ${jobDetail.price}</Text>
+      <Text style={darkStyles.detail}>Precio: ${jobDetail.price || jobDetail.budget}</Text>
       <Text style={darkStyles.detail}>Estado: {jobDetail.status}</Text>
       {assignedCandidate && (
-        <Text style={darkStyles.detail}>
-          Asignado a: {assignedCandidate.nameUser}
-        </Text>
+        <Text style={darkStyles.detail}>Asignado a: {assignedCandidate.nameUser}</Text>
       )}
 
-      {jobDetail.assignedTo.id === currentUserId && (
+      <TouchableOpacity
+        style={darkStyles.chatButton}
+        onPress={() => router.push(`/ChatJobs?jobId=${jobDetail.id}`)}
+      >
+        <Text style={darkStyles.chatButtonText}>Abrir Chat</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity
-          style={darkStyles.chatButton}
-          onPress={() => router.push(`/ChatJobs?jobId=${jobDetail.id}` as any)}
-        >
-          <Text style={darkStyles.chatButtonText}>Abrir Chat</Text>
-        </TouchableOpacity>
-
-      )}
       {/* Mapa para mostrar la ubicación */}
       {jobDetail.location && jobDetail.location.coordinates && (
         <View style={darkStyles.mapContainer}>
@@ -252,54 +216,82 @@ export default function EmployerJobDetail() {
         <Text style={darkStyles.completeButtonText}>Marcar como completado</Text>
       </TouchableOpacity>
 
-      {/* Sección de feedback */}
+      {/* Sección de feedback: mostramos ambos feedbacks */}
       <View style={darkStyles.feedbackContainer}>
-        <Text style={darkStyles.sectionTitle}>
-          {existingFeedback ? `${feedbackType} Recibido:` : "Dejar Opinión:"}
-        </Text>
-        {existingFeedback && (
+        {/* Feedback del Empleador */}
+        <Text style={darkStyles.sectionTitle}>Feedback del Empleador:</Text>
+        {jobDetail.employerFeedback ? (
           <View style={darkStyles.existingFeedbackContainer}>
             <Text style={darkStyles.feedbackText}>
-              Comentario: {existingFeedback.comment}
+              Comentario: {jobDetail.employerFeedback.comment}
             </Text>
             <Text style={darkStyles.feedbackText}>
-              Calificación: {existingFeedback.rating} {existingFeedback.rating === 1 ? "estrella" : "estrellas"}
+              Calificación: {jobDetail.employerFeedback.rating} {jobDetail.employerFeedback.rating === 1 ? "estrella" : "estrellas"}
             </Text>
             <Text style={darkStyles.feedbackText}>
-              Fecha: {new Date(existingFeedback.createdAt).toLocaleDateString()}
+              Fecha: {new Date(jobDetail.employerFeedback.createdAt).toLocaleDateString()}
             </Text>
           </View>
+        ) : (
+          <Text style={darkStyles.feedbackText}>Aún no se ha dejado feedback del empleador.</Text>
         )}
-        <View style={darkStyles.ratingContainer}>
-          <Text style={darkStyles.ratingLabel}>Calificación:</Text>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <TouchableOpacity key={star} onPress={() => setRating(star)}>
-              <Text style={[darkStyles.star, star <= rating ? darkStyles.selectedStar : darkStyles.unselectedStar]}>
-                ★
+
+        {/* Feedback del Trabajador */}
+        <Text style={darkStyles.sectionTitle}>Feedback del Trabajador:</Text>
+        {jobDetail.workerFeedback ? (
+          <View style={darkStyles.existingFeedbackContainer}>
+            <Text style={darkStyles.feedbackText}>
+              Comentario: {jobDetail.workerFeedback.comment}
+            </Text>
+            <Text style={darkStyles.feedbackText}>
+              Calificación: {jobDetail.workerFeedback.rating} {jobDetail.workerFeedback.rating === 1 ? "estrella" : "estrellas"}
+            </Text>
+            <Text style={darkStyles.feedbackText}>
+              Fecha: {new Date(jobDetail.workerFeedback.createdAt).toLocaleDateString()}
+            </Text>
+          </View>
+        ) : (
+          <Text style={darkStyles.feedbackText}>Aún no se ha dejado feedback del trabajador.</Text>
+        )}
+
+        {/* Formulario para que el empleador deje o actualice su feedback */}
+        {currentUserId === jobDetail.userId && (
+          <>
+            <Text style={darkStyles.sectionTitle}>
+              {jobDetail.employerFeedback ? "Actualizar tu Feedback:" : "Dejar tu Feedback:"}
+            </Text>
+            <View style={darkStyles.ratingContainer}>
+              <Text style={darkStyles.ratingLabel}>Calificación:</Text>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                  <Text style={[darkStyles.star, star <= rating ? darkStyles.selectedStar : darkStyles.unselectedStar]}>
+                    ★
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TextInput
+              style={darkStyles.feedbackInput}
+              placeholder="Escribe tu feedback..."
+              placeholderTextColor="#888"
+              value={feedback}
+              onChangeText={setFeedback}
+              multiline
+            />
+            <TouchableOpacity
+              style={darkStyles.feedbackButton}
+              onPress={handleLeaveFeedback}
+              disabled={actionLoading}
+            >
+              <Text style={darkStyles.feedbackButtonText}>
+                {jobDetail.employerFeedback ? "Actualizar Feedback" : "Enviar Feedback"}
               </Text>
             </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          style={darkStyles.feedbackInput}
-          placeholder="Escribe tu feedback..."
-          placeholderTextColor="#888"
-          value={feedback}
-          onChangeText={setFeedback}
-          multiline
-        />
-        <TouchableOpacity
-          style={darkStyles.feedbackButton}
-          onPress={handleLeaveFeedback}
-          disabled={actionLoading}
-        >
-          <Text style={darkStyles.feedbackButtonText}>
-            {existingFeedback ? "Actualizar Feedback" : "Enviar Feedback"}
-          </Text>
-        </TouchableOpacity>
+          </>
+        )}
       </View>
 
-      <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
+      <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
     </ScrollView>
   );
 }
@@ -340,7 +332,7 @@ const darkStyles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     marginVertical: 8,
-    color: '#BB86FC'
+    color: '#03DAC5'
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -357,7 +349,7 @@ const darkStyles = StyleSheet.create({
     marginHorizontal: 2
   },
   selectedStar: {
-    color: '#F1C40F'
+    color: '#03DAC5'
   },
   unselectedStar: {
     color: '#444'
@@ -395,38 +387,15 @@ const darkStyles = StyleSheet.create({
     backgroundColor: '#121212',
     borderRadius: 5,
     borderWidth: 1,
-    borderColor: '#BB86FC'
+    borderColor: '#03DAC5'
   },
   feedbackText: {
     fontSize: 16,
     marginBottom: 4,
     color: '#E0E0E0'
   },
-  candidateCard: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 4,
-    marginBottom: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#1E1E1E'
-  },
-  candidateName: {
-    fontSize: 16,
-    color: '#E0E0E0'
-  },
-  assignedCandidateCard: {
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#BB86FC',
-    borderRadius: 4,
-    marginBottom: 8,
-    backgroundColor: '#1E1E1E'
-  },
   completeButton: {
-    backgroundColor: '#BB86FC',
+    backgroundColor: '#03DAC5',
     paddingVertical: 10,
     borderRadius: 5,
     marginTop: 16,
@@ -458,6 +427,20 @@ const darkStyles = StyleSheet.create({
     color: '#121212',
     fontWeight: 'bold',
     fontSize: 16
+  },
+  reportButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: '#03DAC5',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 5,
+    zIndex: 10
+  },
+  reportButtonText: {
+    color: '#121212',
+    fontWeight: 'bold',
+    fontSize: 14
   }
 });
-

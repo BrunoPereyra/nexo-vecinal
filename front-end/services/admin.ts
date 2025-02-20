@@ -1,4 +1,4 @@
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.11:8084"
+const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084"
 
 /**
  * Realiza una petición POST para crear un nuevo reporte.

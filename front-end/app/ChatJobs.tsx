@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { sendChatMessage, getMessagesBetween } from '@/services/chatService';
 import { useLocalSearchParams } from 'expo-router';
-
+const API = process.env.EXPO_URL_APIWS || "ws://192.168.0.28:8084";
 export default function ChatJobs() {
   const { token } = useAuth(); // Se asume que el contexto Auth provee el token
   const [chatPartner, setChatPartner] = useState<any>(null);
@@ -62,6 +62,8 @@ export default function ChatJobs() {
     setLoading(true);
     try {
       const data = await getMessagesBetween(currentUser.id, chatPartner.id, token);
+      console.log(data);
+
       setMessages(data || []);
     } catch (err) {
       console.error('Error al cargar mensajes:', err);
@@ -80,7 +82,9 @@ export default function ChatJobs() {
     const subscribeWebSocket = async () => {
       if (!currentUser || !chatPartner) return;
       // Suponemos que se guarda el jobId en AsyncStorage para la conversación (o usa un valor por defecto)
-      ws.current = new WebSocket(`ws://192.168.0.11:8084/chat/subscribe/${jobId}`);
+      console.log(API);
+
+      ws.current = new WebSocket(`${API}/chat/subscribe/${jobId}`);
 
       ws.current.onopen = () => {
         console.log('WebSocket conectado');
@@ -96,7 +100,7 @@ export default function ChatJobs() {
           ) {
             console.log('Mensaje recibido:', message);
 
-            setMessages(prevMessages => [...prevMessages, message]);
+            setMessages(prevMessages => [...prevMessages, message] as any);
           }
         } catch (error) {
           console.error('Error al parsear mensaje de WebSocket:', error);
@@ -131,6 +135,8 @@ export default function ChatJobs() {
         jobId,
         text: newMessage.trim(),
       };
+      console.log('Enviando mensaje:', messageData);
+
       const res = await sendChatMessage(messageData, token);
       if (res) {
         console.log(res);
@@ -160,7 +166,7 @@ export default function ChatJobs() {
           {messages.map((item) => (
             <View key={item.id} style={styles.messageContainer}>
               <Text style={styles.messageSender}>
-                {item.senderId === currentUser.id ? 'Yo' : chatPartner.nameUser}
+                {item.senderId !== currentUser.id ? 'Yo' : chatPartner.nameUser}
               </Text>
               <Text style={styles.messageText}>{item.text}</Text>
               <Text style={styles.messageDate}>

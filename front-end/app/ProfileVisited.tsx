@@ -1,32 +1,32 @@
-// /screens/ProfileScreen.tsx (o en app/ si usas Expo Router)
 import React, { useEffect, useState } from 'react';
 import {
     View,
-    Button,
-    ActivityIndicator,
+    FlatList,
     StyleSheet,
     Text,
+    Dimensions,
+    ActivityIndicator,
     TouchableOpacity,
-    FlatList,
-    ListRenderItem,
     Modal,
     TextInput,
-    ScrollView,
+    Button,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getUserByid } from '@/services/userService';
 import {
-    getJobsProfileVist,
     GetJobsUserIDForEmployeProfilevist,
-    GetLatestJobsForWorkervist,
-    GetLatestJobsForEmployervist,
-    // Función de reporte en el servicio
+    GetJobsUserCompleted,
 } from '@/services/JobsService';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { CreateJob } from '@/components/CreateJob';
 import { createReports } from '@/services/admin';
+type Job = {
+    id: string;
+    title: string;
+    status: string;
+};
 
 export default function ProfileScreen() {
     const { token, logout } = useAuth();
@@ -36,18 +36,20 @@ export default function ProfileScreen() {
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalLoading, setGlobalLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
+    // "Trabajos" usará los datos de GetJobsUserCompleted
+    const [workerJobs, setWorkerJobs] = useState<any[]>([]);
+    // "Trabajos creados" usará los datos de GetJobsUserIDForEmployeProfilevist
     const [employerJobs, setEmployerJobs] = useState<any[]>([]);
-    const [jobFeed, setJobFeed] = useState<any[]>([]);
-    // Sección activa: 'employer' (Mis trabajos) o 'jobFeed' (Trabajos realizados)
-    const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('employer');
+    // Sección activa: 'employer' para "Trabajos creados" o 'jobFeed' para "Trabajos"
+    const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('jobFeed');
     const [createJobVisible, setCreateJobVisible] = useState(false);
-    // Paginación para cada sección
+    // Paginación
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
-    const [currentPageJobFeed, setCurrentPageJobFeed] = useState(1);
+    const [currentPageWorker, setCurrentPageWorker] = useState(1);
     // Estados de carga específicos para cada sección
     const [loadingEmployer, setLoadingEmployer] = useState(false);
-    const [loadingJobFeed, setLoadingJobFeed] = useState(false);
-    // Estado para guardar la calificación (rating) más reciente
+    const [loadingWorker, setLoadingWorker] = useState(false);
+    // Estado para guardar la calificación más reciente
     const [latestRating, setLatestRating] = useState<number | null>(null);
     // Estado para la descripción expandida
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
@@ -55,7 +57,7 @@ export default function ProfileScreen() {
     const [reportModalVisible, setReportModalVisible] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
 
-    // Al iniciar, cargar la última sección activa y el perfil del usuario
+    // Cargar el perfil del usuario
     useEffect(() => {
         const fetchProfile = async () => {
             if (!token) {
@@ -66,7 +68,7 @@ export default function ProfileScreen() {
             try {
                 const cachedSection = await AsyncStorage.getItem('activeSection');
                 if (cachedSection === 'jobFeed' || cachedSection === 'employer') {
-                    setActiveSection(cachedSection);
+                    setActiveSection(cachedSection as 'jobFeed' | 'employer');
                 }
                 const data = await getUserByid(id as string);
                 if (data?.data) {
@@ -87,45 +89,51 @@ export default function ProfileScreen() {
         AsyncStorage.setItem('activeSection', activeSection);
     }, [activeSection]);
 
-    // Cargar "Mis trabajos" si está activa y aún no se han cargado
+    // Cargar "Trabajos" (trabajos asignados al trabajador) con GetJobsUserCompleted
+    useEffect(() => {
+        if (!token) return;
+        if (activeSection === 'jobFeed' && workerJobs.length === 0) {
+            setLoadingWorker(true);
+
+            GetJobsUserCompleted(id as string)
+                .then((jobsData) => {
+                    console.log("AA");
+
+                    console.log(jobsData);
+
+                    setWorkerJobs(jobsData?.data || []);
+                    setCurrentPageWorker(1);
+                })
+                .catch((error) => console.error(error))
+                .finally(() => setLoadingWorker(false));
+        }
+    }, [activeSection, token, id]);
+
+    // Cargar "Trabajos creados" (trabajos publicados por el usuario) con GetJobsUserIDForEmployeProfilevist
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'employer' && employerJobs.length === 0) {
             setLoadingEmployer(true);
-            getJobsProfileVist(1, id as string)
-                .then((jobsData) => {
-                    setEmployerJobs(jobsData?.jobs || []);
+            GetJobsUserIDForEmployeProfilevist(1, id as string)
+                .then((feedData) => {
+                    setEmployerJobs(feedData?.jobs || []);
                     setCurrentPageEmployer(1);
                 })
                 .catch((error) => console.error(error))
                 .finally(() => setLoadingEmployer(false));
         }
-    }, [activeSection, token, employerJobs.length, id]);
+    }, [activeSection, token, id]);
 
-    // Cargar "Trabajos realizados" si está activa y aún no se han cargado
-    useEffect(() => {
-        if (!token) return;
-        if (activeSection === 'jobFeed' && jobFeed.length === 0) {
-            setLoadingJobFeed(true);
-            GetJobsUserIDForEmployeProfilevist(1, id as string)
-                .then((feedData) => {
-                    setJobFeed(feedData?.jobs || []);
-                    setCurrentPageJobFeed(1);
-                })
-                .catch((error) => console.error(error))
-                .finally(() => setLoadingJobFeed(false));
-        }
-    }, [activeSection, token, jobFeed.length, id]);
-
-    // Cada vez que cambie la sección activa o el id, solicitar el rating
+    // Solicitar el rating según la sección activa (no se modifica acá)
     useEffect(() => {
         const fetchRating = async () => {
             if (!id) return;
             let res;
+            // Puedes ajustar la lógica del rating si corresponde a cada sección
             if (activeSection === 'employer') {
-                res = await GetLatestJobsForEmployervist(id);
+                res = await GetJobsUserCompleted(id);
             } else {
-                res = await GetLatestJobsForWorkervist(id);
+                res = await GetJobsUserIDForEmployeProfilevist(1, id);
             }
             if (res && res.Rating !== undefined) {
                 setLatestRating(res.Rating);
@@ -139,14 +147,14 @@ export default function ProfileScreen() {
         router.replace('/login');
     };
 
-    // Función para cargar más trabajos en "Mis trabajos"
+    // Función para cargar más trabajos en "Trabajos creados"
     const loadMoreEmployerJobs = async () => {
         if (!token) return;
         const nextPage = currentPageEmployer + 1;
         try {
-            const newData = await getJobsProfileVist(nextPage, id as string);
+            const newData = await GetJobsUserIDForEmployeProfilevist(nextPage, id as string);
             if (newData?.jobs) {
-                setEmployerJobs(prev => [...prev, ...newData.jobs]);
+                setEmployerJobs((prev) => [...prev, ...newData.jobs]);
                 setCurrentPageEmployer(nextPage);
             }
         } catch (err) {
@@ -154,15 +162,15 @@ export default function ProfileScreen() {
         }
     };
 
-    // Función para cargar más trabajos en "Trabajos realizados"
-    const loadMoreJobFeed = async () => {
+    // Función para cargar más trabajos en "Trabajos"
+    const loadMoreWorkerJobs = async () => {
         if (!token) return;
-        const nextPage = currentPageJobFeed + 1;
+        const nextPage = currentPageWorker + 1;
         try {
-            const newData = await GetJobsUserIDForEmployeProfilevist(nextPage, id as string);
+            const newData = await GetJobsUserCompleted(id as string,);
             if (newData?.jobs) {
-                setJobFeed(prev => [...prev, ...newData.jobs]);
-                setCurrentPageJobFeed(nextPage);
+                setWorkerJobs((prev) => [...prev, ...newData.jobs]);
+                setCurrentPageWorker(nextPage);
             }
         } catch (err) {
             console.error(err);
@@ -175,7 +183,6 @@ export default function ProfileScreen() {
             {userProfile && (
                 <>
                     <ProfileHeader user={userProfile} />
-                    {/* Descripción del usuario truncada */}
                     {userProfile.description && (
                         <View style={styles.descriptionContainer}>
                             <Text style={styles.userDescription}>
@@ -199,50 +206,44 @@ export default function ProfileScreen() {
                     Calificación: {latestRating} {latestRating === 1 ? 'estrella' : 'estrellas'}
                 </Text>
             )}
-            {/* Botón de reporte en la esquina superior derecha */}
-            <TouchableOpacity
-                style={styles.reportButton}
-                onPress={() => setReportModalVisible(true)}
-            >
+            <TouchableOpacity style={styles.reportButton} onPress={() => setReportModalVisible(true)}>
                 <Text style={styles.reportButtonText}>Reportar</Text>
             </TouchableOpacity>
             <CreateJob visible={createJobVisible} onClose={() => setCreateJobVisible(false)} />
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
-                    style={[styles.toggleButton, activeSection === 'employer' && styles.activeToggle]}
-                    onPress={() => setActiveSection('employer')}
-                >
-                    <Text style={[styles.toggleButtonText, activeSection === 'employer' && styles.activeToggleText]}>
-                        Mis trabajos
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
                     style={[styles.toggleButton, activeSection === 'jobFeed' && styles.activeToggle]}
                     onPress={() => setActiveSection('jobFeed')}
                 >
                     <Text style={[styles.toggleButtonText, activeSection === 'jobFeed' && styles.activeToggleText]}>
-                        Trabajos realizados
+                        Trabajos
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.toggleButton, activeSection === 'employer' && styles.activeToggle]}
+                    onPress={() => setActiveSection('employer')}
+                >
+                    <Text style={[styles.toggleButtonText, activeSection === 'employer' && styles.activeToggleText]}>
+                        Trabajos creados
                     </Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 
-    // Estado y función para el modal de reporte
+    // Función para enviar reporte
     const handleSendReport = async () => {
         if (!reportMessage.trim() || !token || !id) {
             alert('El reporte no puede estar vacío');
             return;
         }
         try {
-            // Se crea el objeto reporte con el ID del usuario reportado y el mensaje
             const reportData = {
-                reportedUserId: id,  // ID del usuario que se está reportando
-                text: reportMessage, // Mensaje del reporte
+                reportedUserId: id,
+                text: reportMessage,
             };
             const res = await createReports(reportData, token);
             console.log(res);
-
             if (res && res.reporterUserId) {
                 alert('Reporte enviado exitosamente');
                 setReportMessage('');
@@ -256,37 +257,26 @@ export default function ProfileScreen() {
         }
     };
 
-
-    // Renderizamos cada ítem de la lista
-    const renderItem: ListRenderItem<any> = ({ item }) => (
+    const renderItem = ({ item }: { item: Job }) => (
         <TouchableOpacity
             style={styles.card}
-            onPress={() => {
-                router.push(`/JobDetailVisited?id=${item.id}`);
-            }}
+            onPress={() => router.push(`/JobDetailVisited?id=${item.id}`)}
         >
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.status}>Estado: {item.status}</Text>
         </TouchableOpacity>
     );
 
-    const data = activeSection === 'employer' ? employerJobs : jobFeed;
-    const onEndReached = activeSection === 'employer' ? loadMoreEmployerJobs : loadMoreJobFeed;
-    const sectionLoading = activeSection === 'employer' ? loadingEmployer : loadingJobFeed;
-
-    if (false) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color="#0000ff" />
-            </View>
-        );
-    }
+    // Dependiendo de la sección activa, usamos los datos correspondientes y la función onEndReached
+    const data = activeSection === 'jobFeed' ? workerJobs : employerJobs;
+    const onEndReached = activeSection === 'jobFeed' ? loadMoreWorkerJobs : loadMoreEmployerJobs;
+    const sectionLoading = activeSection === 'jobFeed' ? loadingWorker : loadingEmployer;
 
     return (
         <View style={styles.outerContainer}>
             {sectionLoading && (
                 <View style={styles.center}>
-                    <ActivityIndicator size="large" color="#0000ff" />
+                    <ActivityIndicator size="large" color="#03DAC5" />
                 </View>
             )}
             <FlatList
@@ -317,8 +307,8 @@ export default function ProfileScreen() {
                             multiline
                         />
                         <View style={styles.modalButtons}>
-                            <Button title="Enviar" onPress={handleSendReport} />
-                            <Button title="Cancelar" onPress={() => setReportModalVisible(false)} color="#BB86FC" />
+                            <Button title="Enviar" onPress={handleSendReport} color="#03DAC5" />
+                            <Button title="Cancelar" onPress={() => setReportModalVisible(false)} color="#03DAC5" />
                         </View>
                     </View>
                 </View>
@@ -328,10 +318,25 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    outerContainer: { flex: 1, backgroundColor: '#121212' },
-    flatListContainer: { flexGrow: 1, padding: 10, backgroundColor: '#121212' },
-    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#121212' },
-    errorText: { color: '#CF6679', marginBottom: 20 },
+    outerContainer: {
+        flex: 1,
+        backgroundColor: '#121212',
+    },
+    flatListContainer: {
+        flexGrow: 1,
+        padding: 10,
+        backgroundColor: '#121212',
+    },
+    center: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#121212',
+    },
+    errorText: {
+        color: '#CF6679',
+        marginBottom: 20,
+    },
     ratingText: {
         fontSize: 16,
         color: '#03DAC5',
@@ -347,10 +352,10 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
-        backgroundColor: '#333',
+        backgroundColor: '#1E1E1E',
     },
     activeToggle: {
-        backgroundColor: '#BB86FC',
+        backgroundColor: '#03DAC5',
     },
     toggleButtonText: {
         fontSize: 16,
@@ -404,12 +409,11 @@ const styles = StyleSheet.create({
         marginTop: 4,
         textDecorationLine: 'underline',
     },
-
     reportButton: {
         position: 'absolute',
         top: 16,
         right: 16,
-        backgroundColor: '#CF6679',
+        backgroundColor: '#03DAC5',
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 5,

@@ -21,10 +21,11 @@ const JobDetail: React.FC = () => {
     // Obtenemos el id del job desde la URL y el token desde el contexto de autenticación
     const { id } = useLocalSearchParams();
     const { token } = useAuth();
-    const router = useRouter()
-    // Usamos any para manejar la información que llega directamente de la API
+    const router = useRouter();
+
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
+
     useEffect(() => {
         const fetchJobDetails = async () => {
             try {
@@ -48,7 +49,7 @@ const JobDetail: React.FC = () => {
     if (loading) {
         return (
             <View style={styles.centered}>
-                <ActivityIndicator size="large" color="#007BFF" />
+                <ActivityIndicator size="large" color="#03DAC5" />
             </View>
         );
     }
@@ -56,14 +57,14 @@ const JobDetail: React.FC = () => {
     if (!job) {
         return (
             <View style={styles.centered}>
-                <Text>No se encontró el trabajo.</Text>
+                <Text style={styles.messageText}>No se encontró el trabajo.</Text>
             </View>
         );
     }
 
     const handleApply = async () => {
         const res = await applyToJob(id as string, token as string);
-        if (res.message === "Applied to job successfully") {
+        if (res.message === 'Applied to job successfully') {
             Alert.alert('Postulación enviada', 'Has postulado exitosamente a este trabajo.');
         }
     };
@@ -93,9 +94,7 @@ const JobDetail: React.FC = () => {
             {job.user && (
                 <TouchableOpacity
                     style={styles.chatButton}
-                    onPress={() => router.push(`/ChatJobs?jobId=${id}`)
-                    }
-
+                    onPress={() => router.push(`/ChatJobs?jobId=${id}`)}
                 >
                     <Text style={styles.chatButtonText}>Abrir Chat</Text>
                 </TouchableOpacity>
@@ -132,8 +131,9 @@ const JobDetail: React.FC = () => {
                     </MapView>
                 </View>
             )}
+
             <View style={styles.applyButtonContainer}>
-                <Button title="Postularme al Trabajo" onPress={handleApply} color="#007BFF" />
+                <Button title="Postularme al Trabajo" onPress={handleApply} color="#03DAC5" />
             </View>
         </ScrollView>
     );
@@ -152,6 +152,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#121212',
+    },
+    messageText: {
+        color: '#E0E0E0',
+        fontSize: 16,
     },
     title: {
         fontSize: 24,
@@ -189,7 +193,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 10,
-        color: '#BB86FC',
+        color: '#03DAC5',
     },
     employerInfo: {
         flexDirection: 'row',
@@ -205,7 +209,7 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#BB86FC',
+        backgroundColor: '#03DAC5',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,

@@ -9,9 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "bundlerIdentifier": "com.nexovecinal.app",
       "supportsTablet": true
     },
     "android": {
+      "package": "com.nexovecinal.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -36,6 +38,11 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "986130da-6534-4144-94be-e74db5d65c82"
+      }
     }
   }
 }

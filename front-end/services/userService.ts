@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { router } from "expo-router";
 
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.11:8084"
+const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084"
 // Función para hacer un GET que envía un token en el header Authorization
 export const getUserToken = async (token: string) => {
     try {
