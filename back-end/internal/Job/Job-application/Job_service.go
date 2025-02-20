@@ -120,6 +120,9 @@ func (js *JobService) UpdateJobStatusToCompleted(jobId, UserId primitive.ObjectI
 func (js *JobService) GetJobTokenAdmin(jobId, UserId primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.GetJobDetails(jobId, UserId)
 }
+func (js *JobService) GetJobDetailvisited(jobId primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
+	return js.JobRepository.GetJobDetailvisited(jobId)
+}
 
 // Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación
 func (js *JobService) GetJobsProfile(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
@@ -138,7 +141,11 @@ func (js *JobService) GetLatestJobsForEmployer(jobID primitive.ObjectID) (float6
 	return js.JobRepository.GetAverageRatingForEmployer(jobID)
 
 }
-func (js *JobService) GetJobsAssignedNoCompleted(jobID primitive.ObjectID) ([]jobdomain.Job, error) {
-	return js.JobRepository.GetJobsAssignedNoCompleted(jobID)
+func (js *JobService) GetJobsAssignedNoCompleted(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	return js.JobRepository.GetJobsAssignedNoCompleted(jobID, page)
+
+}
+func (js *JobService) GetJobsAssignedCompleted(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	return js.JobRepository.GetJobsAssignedCompleted(jobID, page)
 
 }

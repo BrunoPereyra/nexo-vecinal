@@ -31,11 +31,14 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	App.Get("/job/get-jobIdEmploye", middleware.UseExtractor(), JobHandler.GetJobByIDForEmployee) // obtiene detalles para trabajadores
 	//Realiza una petición GET para obtener los trabajos del perfil del usuario con paginación
 	App.Get("/job/get-jobs-profile", middleware.UseExtractor(), JobHandler.GetJobsProfile)
+
+	// trabajos creados por el usuario
 	App.Get("/job/get-jobs-user-Employe-profile", middleware.UseExtractor(), JobHandler.GetJobsUserIDForEmployeProfile)
 	// profile visited
 	App.Get("/job/get-jobs-profile-vist", JobHandler.GetJobsProfilevist)
 	App.Get("/job/get-jobs-user-Employe-profile-vist", JobHandler.GetJobsUserIDForEmployeProfilevist)
-
+	App.Get("/job/get-jobs-user-completedvisited", JobHandler.GetJobsUserCompletedVisited)
+	App.Get("/job/get-job-detaild-user-visited", JobHandler.GetJobDetailvisited)
 	// rating
 	App.Get("/job/get-latest-jobs-worker", middleware.UseExtractor(), JobHandler.GetLatestJobsForWorker)
 	App.Get("/job/get-latest-jobs-employe", middleware.UseExtractor(), JobHandler.GetLatestJobsForEmployer)
@@ -43,7 +46,8 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	// visited
 	App.Get("/job/get-latest-jobs-worker-vist", JobHandler.GetLatestJobsForWorkervist)
 	App.Get("/job/get-latest-jobs-employe-vist", JobHandler.GetLatestJobsForEmployervist)
-	//
+	// pedir distintos status de trabajos
 	App.Get("/job/get-jobs-assigned-nocompleted", middleware.UseExtractor(), JobHandler.GetJobsAssignedNoCompleted)
+	App.Get("/job/get-jobs-assigned-completed", middleware.UseExtractor(), JobHandler.GetJobsAssignedCompleted)
 
 }

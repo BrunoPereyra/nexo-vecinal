@@ -581,15 +581,105 @@ func (j *JobHandler) GetJobsAssignedNoCompleted(c *fiber.Ctx) error {
 			"message": "Invalid applicant ID",
 		})
 	}
-	jobs, err := j.JobService.GetJobsAssignedNoCompleted(userid)
+
+	// Leer parámetros de paginación con valores por defecto
+	page, err := strconv.Atoi(c.Query("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+	// Se asume que el servicio se ha modificado para recibir page y limit
+	jobs, err := j.JobService.GetJobsAssignedNoCompleted(userid, page)
+
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "StatusInternalServerErrorb",
+			"message": "Error retrieving jobs",
 			"error":   err.Error(),
 		})
 	}
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "ok",
 		"data":    jobs,
+	})
+}
+
+func (j *JobHandler) GetJobsAssignedCompleted(c *fiber.Ctx) error {
+	idValue := c.Context().UserValue("_id").(string)
+	userid, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid applicant ID",
+		})
+	}
+
+	// Leer parámetros de paginación
+	page, err := strconv.Atoi(c.Query("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	jobs, err := j.JobService.GetJobsAssignedCompleted(userid, page)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error retrieving jobs",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"data":    jobs,
+	})
+}
+
+func (j *JobHandler) GetJobsUserCompletedVisited(c *fiber.Ctx) error {
+	idUser := c.Query("id")
+	userid, err := primitive.ObjectIDFromHex(idUser)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+			"error":   err.Error(),
+		})
+	}
+
+	// Leer parámetros de paginación
+	page, err := strconv.Atoi(c.Query("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	jobs, err := j.JobService.GetJobsAssignedCompleted(userid, page)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error retrieving jobs",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"data":    jobs,
+	})
+}
+func (j *JobHandler) GetJobDetailvisited(c *fiber.Ctx) error {
+	idUser := c.Query("id")
+	userid, err := primitive.ObjectIDFromHex(idUser)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+			"error":   err.Error(),
+		})
+	}
+	jobs, err := j.JobService.GetJobDetailvisited(userid)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error retrieving jobs",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"job":     jobs,
 	})
 }
