@@ -34,17 +34,12 @@ export default function ProfileScreen() {
     const [error, setError] = useState<string>('');
     const [employerJobs, setEmployerJobs] = useState<any[]>([]);
     const [jobFeed, setJobFeed] = useState<any[]>([]);
-    // Sección activa: 'employer' (Mis trabajos) o 'jobFeed' (Trabajos realizados)
     const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('jobFeed');
     const [createJobVisible, setCreateJobVisible] = useState(false);
-    // Paginación para cada sección
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
     const [currentPageJobFeed, setCurrentPageJobFeed] = useState(1);
-    // Estado para guardar la calificación (rating) más reciente
     const [latestRating, setLatestRating] = useState<number | null>(null);
-    // Estado para mostrar/ocultar el menú de opciones en la esquina superior derecha
     const [showDropdown, setShowDropdown] = useState(false);
-    // Estados para editar la biografía
     const [editBioVisible, setEditBioVisible] = useState(false);
     const [biografia, setBiografia] = useState('');
 
@@ -52,12 +47,8 @@ export default function ProfileScreen() {
         const fetchRating = async () => {
             if (!token) return;
             let res;
-            if (activeSection === 'employer') {
-                res = await GetLatestJobsForEmployer(token as string);
-            } else {
-                res = await GetLatestJobsForWorker(token as string);
-            }
-            console.log(res);
+            res = await GetLatestJobsForEmployer(token as string);
+
             if (res && res.Rating !== undefined) {
                 setLatestRating(res.Rating);
             }
@@ -65,7 +56,6 @@ export default function ProfileScreen() {
         fetchRating();
     }, [activeSection, token]);
 
-    // Al iniciar, cargar la última sección activa desde AsyncStorage y el perfil del usuario
     useEffect(() => {
         const fetchProfile = async () => {
             if (!token) {
@@ -74,14 +64,9 @@ export default function ProfileScreen() {
                 return;
             }
             try {
-                const cachedSection = await AsyncStorage.getItem('activeSection');
-                if (cachedSection === 'jobFeed' || cachedSection === 'employer') {
-                    setActiveSection(cachedSection);
-                }
                 const data = await getUserToken(token);
                 if (data?.data) {
                     setUserProfile(data.data);
-                    // Opcional: cargar la biografía actual desde el perfil
                     setBiografia(data.data.Biography || '');
                 }
             } catch (err: any) {
@@ -94,13 +79,10 @@ export default function ProfileScreen() {
         fetchProfile();
     }, [token]);
 
-    // Guardar la sección activa en AsyncStorage cada vez que cambie
     useEffect(() => {
         AsyncStorage.setItem('activeSection', activeSection);
     }, [activeSection]);
 
-
-    // Cuando la sección activa sea "Trabajos realizados", se solicita esa información
     useEffect(() => {
         if (!token) return;
         const fetchJobFeed = async () => {
@@ -125,37 +107,31 @@ export default function ProfileScreen() {
         router.replace('/login');
     };
 
-    // Función para abrir el modal de edición de biografía
     const HandleEditbiografia = () => {
         setEditBioVisible(true);
         setShowDropdown(false);
     };
 
-    // Función para guardar la biografía tras la validación
     const handleSaveBiografia = async () => {
         if (biografia.length < 10 || biografia.length > 100) {
             Alert.alert('Error', 'La biografía debe tener entre 10 y 100 caracteres.');
             return;
         }
-        // Aquí podrías llamar a una API para actualizar la biografía del usuario.
         const resEdit = await Editbiografia(biografia, token as string);
         console.log(resEdit);
         setEditBioVisible(false);
     };
 
-    // Función para el botón "Subscribirse"
     const handleSubscribe = () => {
         Alert.alert('Subscribirse', 'Función no implementada.');
         setShowDropdown(false);
     };
 
-    // Función para cerrar sesión desde el menú
     const handleLogoutOption = () => {
         setShowDropdown(false);
         handleLogout();
     };
 
-    // Función para cargar más trabajos en "Mis trabajos"
     const loadMoreEmployerJobs = async () => {
         if (!token) return;
         const nextPage = currentPageEmployer + 1;
@@ -170,7 +146,6 @@ export default function ProfileScreen() {
         }
     };
 
-    // Función para cargar más trabajos en "Trabajos realizados"
     const loadMoreJobFeed = async () => {
         if (!token) return;
         const nextPage = currentPageJobFeed + 1;
@@ -185,25 +160,32 @@ export default function ProfileScreen() {
         }
     };
 
-    // Encabezado que se renderiza antes de la lista
     const ListHeader = () => (
-        <View>
+        <View style={styles.headerContainer}>
             {userProfile && <ProfileHeader user={userProfile} />}
-            {latestRating !== null && (
+            {/* {latestRating !== null && (
                 <Text style={styles.ratingText}>
                     Calificación: {latestRating} {latestRating === 1 ? 'estrella' : 'estrellas'}
                 </Text>
+            )} */}
+            {latestRating !== null && (
+                <View style={styles.starContainer}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <Text
+                            key={star}
+                            style={[
+                                styles.star,
+                                star <= latestRating ? styles.selectedStar : styles.unselectedStar,
+                            ]}
+                        >
+                            ★
+                        </Text>
+                    ))}
+                    <Text style={styles.ratingText}>
+                        {latestRating} {latestRating === 1 ? 'estrella' : 'estrellas'}
+                    </Text>
+                </View>
             )}
-            {/* Botón para abrir el formulario de creación de trabajo */}
-            <TouchableOpacity
-                style={styles.createJobButton}
-                onPress={() => setCreateJobVisible(true)}
-            >
-                <Text style={styles.createJobButtonText}>Crear Trabajo</Text>
-            </TouchableOpacity>
-            {/* Modal de creación de trabajo */}
-            <CreateJob visible={createJobVisible} onClose={() => setCreateJobVisible(false)} />
-            {/* Botones para alternar entre secciones */}
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
                     style={[styles.toggleButton, activeSection === 'jobFeed' && styles.activeToggle]}
@@ -213,24 +195,22 @@ export default function ProfileScreen() {
                         Trabajos realizados
                     </Text>
                 </TouchableOpacity>
+
             </View>
         </View>
     );
 
-    // Renderizamos cada ítem de la lista según la sección activa
-    const renderItem: ListRenderItem<any> = ({ item }) => {
-        return (
-            <TouchableOpacity
-                style={styles.card}
-                onPress={() => {
-                    router.push(`/EmployerJobDetail?id=${item.id}`);
-                }}
-            >
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.status}>Estado: {item.status}</Text>
-            </TouchableOpacity>
-        );
-    };
+    const renderItem: ListRenderItem<any> = ({ item }) => (
+        <TouchableOpacity
+            style={styles.card}
+            onPress={() => {
+                router.push(`/EmployerJobDetail?id=${item.id}`);
+            }}
+        >
+            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.cardStatus}>Estado: {item.status}</Text>
+        </TouchableOpacity>
+    );
 
     const data = activeSection === 'employer' ? employerJobs : jobFeed;
     const onEndReached =
@@ -254,7 +234,7 @@ export default function ProfileScreen() {
     }
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, backgroundColor: '#121212' }}>
             <FlatList
                 data={data}
                 keyExtractor={(item) => item.id.toString()}
@@ -262,12 +242,7 @@ export default function ProfileScreen() {
                 ListHeaderComponent={ListHeader}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.5}
-                contentContainerStyle={styles.container}
-                ListFooterComponent={
-                    <View style={styles.footer}>
-                        <Button title="Cerrar sesión" onPress={handleLogout} color="#03DAC5" />
-                    </View>
-                }
+                contentContainerStyle={styles.listContainer}
             />
             {/* Botón de opciones en la esquina superior derecha */}
             <TouchableOpacity
@@ -284,15 +259,11 @@ export default function ProfileScreen() {
                     <TouchableOpacity onPress={handleSubscribe} style={styles.dropdownButton}>
                         <Text style={styles.dropdownButtonText}>Subscribirse</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={handleLogoutOption}
-                        style={[styles.dropdownButton, styles.dropdownLogout]}
-                    >
+                    <TouchableOpacity onPress={handleLogoutOption} style={[styles.dropdownButton, styles.dropdownLogout]}>
                         <Text style={styles.dropdownButtonText}>Cerrar sesión</Text>
                     </TouchableOpacity>
                 </View>
             )}
-            {/* Modal para editar la biografía */}
             <Modal visible={editBioVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -312,38 +283,58 @@ export default function ProfileScreen() {
                     </View>
                 </View>
             </Modal>
+            {/* Floating Action Button para "Crear Trabajo" */}
+            <TouchableOpacity style={styles.fab} onPress={() => setCreateJobVisible(true)}>
+                <Text style={styles.fabText}>+</Text>
+            </TouchableOpacity>
+            {/* Modal de creación de trabajo */}
+            <CreateJob visible={createJobVisible} onClose={() => setCreateJobVisible(false)} />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        padding: 10,
-        backgroundColor: '#121212'
+    listContainer: {
+        padding: 16,
+        backgroundColor: '#121212',
     },
     center: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#121212'
+        backgroundColor: '#121212',
     },
     errorText: {
         color: '#CF6679',
-        marginBottom: 20
+        marginBottom: 20,
+        fontSize: 16,
+    },
+    headerContainer: {
+        marginBottom: 16,
+    },
+    ratingText: {
+        fontSize: 16,
+        color: '#03DAC5',
+        textAlign: 'center',
+        marginVertical: 8,
+        fontWeight: '600',
     },
     toggleContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        marginVertical: 10,
+        justifyContent: 'space-evenly',
+        marginVertical: 12,
     },
     toggleButton: {
         paddingVertical: 10,
         paddingHorizontal: 20,
-        borderRadius: 5,
+        borderRadius: 30,
         backgroundColor: '#1E1E1E',
+        borderWidth: 1,
+        borderColor: '#444',
     },
     activeToggle: {
         backgroundColor: '#03DAC5',
+        borderColor: '#03DAC5',
     },
     toggleButtonText: {
         fontSize: 16,
@@ -351,65 +342,59 @@ const styles = StyleSheet.create({
     },
     activeToggleText: {
         color: '#121212',
-    },
-    createJobButton: {
-        backgroundColor: '#03DAC5',
-        padding: 12,
-        borderRadius: 5,
-        alignItems: 'center',
-        marginVertical: 10,
-    },
-    createJobButtonText: {
-        color: '#121212',
         fontWeight: 'bold',
-        fontSize: 16,
     },
     card: {
         backgroundColor: '#1E1E1E',
         padding: 16,
-        borderRadius: 8,
-        marginVertical: 6,
-        elevation: 2,
+        borderRadius: 12,
+        marginVertical: 8,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowOffset: { width: 0, height: 2 },
     },
-    title: {
-        fontSize: 16,
+    cardTitle: {
+        fontSize: 18,
         fontWeight: 'bold',
         color: '#E0E0E0',
+        marginBottom: 4,
     },
-    status: {
+    cardStatus: {
         fontSize: 14,
         color: '#B0B0B0',
-        marginTop: 4,
-    },
-    footer: {
-        marginVertical: 20,
-    },
-    ratingText: {
-        fontSize: 16,
-        color: '#03DAC5',
-        textAlign: 'center',
-        marginBottom: 10,
     },
     optionsButton: {
         position: 'absolute',
         top: 10,
         right: 10,
-        padding: 10,
+        padding: 8,
         backgroundColor: '#1E1E1E',
-        borderRadius: 5,
+        borderRadius: 30,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
         zIndex: 100,
     },
     optionsButtonText: {
         color: '#E0E0E0',
-        fontSize: 18,
+        fontSize: 24,
     },
     dropdown: {
         position: 'absolute',
         top: 50,
         right: 10,
         backgroundColor: '#1E1E1E',
-        borderRadius: 5,
-        paddingVertical: 5,
+        borderRadius: 8,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
         zIndex: 99,
     },
     dropdownButton: {
@@ -423,40 +408,79 @@ const styles = StyleSheet.create({
     dropdownLogout: {
         borderTopWidth: 1,
         borderColor: '#444',
-        marginTop: 5,
+        marginTop: 8,
     },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.6)',
     },
     modalContent: {
-        width: '80%',
-        backgroundColor: '#121212',
-        borderRadius: 8,
+        width: '85%',
+        backgroundColor: '#1E1E1E',
+        borderRadius: 12,
         padding: 20,
+        elevation: 6,
     },
     modalTitle: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#E0E0E0',
-        marginBottom: 10,
+        marginBottom: 12,
+        textAlign: 'center',
     },
     modalTextInput: {
         height: 100,
-        borderColor: '#1E1E1E',
+        borderColor: '#444',
         borderWidth: 1,
-        borderRadius: 5,
-        padding: 10,
+        borderRadius: 8,
+        padding: 12,
         color: '#E0E0E0',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#121212',
         textAlignVertical: 'top',
         marginBottom: 20,
+        fontSize: 16,
     },
     modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+    },
+    // FAB para "Crear Trabajo"
+    fab: {
+        position: 'absolute',
+        bottom: 30,
+        right: 30,
+        backgroundColor: '#03DAC5',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 6,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    fabText: {
+        color: '#121212',
+        fontSize: 30,
+        fontWeight: 'bold',
+    }, starContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginVertical: 8,
+    },
+    star: {
+        fontSize: 24,
+        marginHorizontal: 4,
+    },
+    selectedStar: {
+        color: '#F1C40F',
+    }, unselectedStar: {
+        color: '#444',
     },
 });
 

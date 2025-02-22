@@ -7,13 +7,13 @@ import {
     ScrollView,
     StyleSheet,
     TouchableOpacity,
-    TextInput
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { GetJobDetailvisited, provideWorkerFeedback } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { FeedbackSection } from '@/components/FeedbackSection';
 
 export default function JobDetailWorker() {
     // Obtenemos el parámetro "id" de la URL
@@ -26,7 +26,7 @@ export default function JobDetailWorker() {
     const [error, setError] = useState<string>('');
     const [actionLoading, setActionLoading] = useState<boolean>(false);
 
-    // Estados para feedback y rating
+    // Estados para feedback y rating (trabajador)
     const [feedback, setFeedback] = useState<string>('');
     const [rating, setRating] = useState<number>(0);
 
@@ -95,7 +95,9 @@ export default function JobDetailWorker() {
     if (error || !jobDetail) {
         return (
             <View style={styles.center}>
-                <Text style={styles.errorText}>{error || 'No se encontró el detalle del trabajo'}</Text>
+                <Text style={styles.errorText}>
+                    {error || 'No se encontró el detalle del trabajo'}
+                </Text>
                 <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
             </View>
         );
@@ -118,7 +120,13 @@ export default function JobDetailWorker() {
             {/* Botón para abrir el chat */}
             <TouchableOpacity
                 style={styles.chatButton}
-                onPress={() => router.push(`/ChatJobs?jobId=${jobDetail.id}`)}
+                onPress={() =>
+                    router.push(
+                        `/ChatJobs?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
+                            JSON.stringify(jobDetail.userDetails)
+                        )}`
+                    )
+                }
             >
                 <Text style={styles.chatButtonText}>Abrir Chat</Text>
             </TouchableOpacity>
@@ -147,69 +155,17 @@ export default function JobDetailWorker() {
                 </View>
             )}
 
-            {/* Sección de feedback */}
-            <View style={styles.feedbackContainer}>
-                {jobDetail.employerFeedback && (
-                    <View style={styles.existingFeedbackContainer}>
-                        <Text style={styles.sectionTitle}>Feedback del Empleador:</Text>
-                        <Text style={styles.feedbackText}>Comentario: {jobDetail.employerFeedback.comment}</Text>
-                        <Text style={styles.feedbackText}>
-                            Calificación: {jobDetail.employerFeedback.rating} {jobDetail.employerFeedback.rating === 1 ? "estrella" : "estrellas"}
-                        </Text>
-                        <Text style={styles.feedbackText}>
-                            Fecha: {new Date(jobDetail.employerFeedback.createdAt).toLocaleDateString()}
-                        </Text>
-                    </View>
-                )}
-                <View style={styles.workerFeedbackSection}>
-                    <Text style={styles.sectionTitle}>
-                        {jobDetail.workerFeedback ? "Feedback del Trabajador:" : "Dejar Feedback:"}
-                    </Text>
-                    {jobDetail.workerFeedback && (
-                        <View style={styles.existingFeedbackContainer}>
-                            <Text style={styles.feedbackText}>Comentario: {jobDetail.workerFeedback.comment}</Text>
-                            <Text style={styles.feedbackText}>
-                                Calificación: {jobDetail.workerFeedback.rating} {jobDetail.workerFeedback.rating === 1 ? "estrella" : "estrellas"}
-                            </Text>
-                            <Text style={styles.feedbackText}>
-                                Fecha: {new Date(jobDetail.workerFeedback.createdAt).toLocaleDateString()}
-                            </Text>
-                        </View>
-                    )}
-                    <View style={styles.ratingContainer}>
-                        <Text style={styles.ratingLabel}>Calificación:</Text>
-                        {[1, 2, 3, 4, 5].map((star) => (
-                            <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                                <Text
-                                    style={[
-                                        styles.star,
-                                        star <= rating ? styles.selectedStar : styles.unselectedStar,
-                                    ]}
-                                >
-                                    ★
-                                </Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                    <TextInput
-                        style={styles.feedbackInput}
-                        placeholder="Escribe tu feedback..."
-                        placeholderTextColor="#888"
-                        value={feedback}
-                        onChangeText={setFeedback}
-                        multiline
-                    />
-                    <TouchableOpacity
-                        style={styles.feedbackButton}
-                        onPress={handleLeaveFeedback}
-                        disabled={actionLoading}
-                    >
-                        <Text style={styles.feedbackButtonText}>
-                            {jobDetail.workerFeedback ? "Actualizar Feedback" : "Enviar Feedback"}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+            <FeedbackSection
+                jobDetail={jobDetail}
+                currentUserId={currentUserId || ''}
+                rating={rating}
+                feedback={feedback}
+                actionLoading={actionLoading}
+                setRating={setRating}
+                setFeedback={setFeedback}
+                handleLeaveFeedback={handleLeaveFeedback}
+                mode="worker"
+            />
 
             <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
         </ScrollView>
@@ -220,123 +176,54 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        backgroundColor: '#121212'
+        backgroundColor: '#121212',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 8,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     description: {
         fontSize: 16,
         marginBottom: 8,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     detail: {
         fontSize: 16,
         marginBottom: 4,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     mapContainer: {
         height: 200,
         width: '100%',
         marginVertical: 16,
         borderRadius: 8,
-        overflow: 'hidden'
+        overflow: 'hidden',
     },
     map: {
-        flex: 1
+        flex: 1,
     },
     chatButton: {
         backgroundColor: '#03DAC5',
         paddingVertical: 10,
         borderRadius: 5,
         marginVertical: 16,
-        alignItems: 'center'
+        alignItems: 'center',
     },
     chatButtonText: {
         color: '#121212',
         fontWeight: 'bold',
-        fontSize: 16
-    },
-    feedbackContainer: {
-        marginTop: 16,
-        padding: 12,
-        backgroundColor: '#1E1E1E',
-        borderRadius: 8
-    },
-    sectionTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginVertical: 8,
-        color: '#03DAC5'
-    },
-    existingFeedbackContainer: {
-        marginBottom: 16,
-        padding: 8,
-        backgroundColor: '#121212',
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: '#03DAC5'
-    },
-    feedbackText: {
         fontSize: 16,
-        marginBottom: 4,
-        color: '#E0E0E0'
-    },
-    workerFeedbackSection: {
-        marginTop: 8
-    },
-    ratingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 10
-    },
-    ratingLabel: {
-        fontSize: 16,
-        marginRight: 8,
-        color: '#E0E0E0'
-    },
-    star: {
-        fontSize: 24,
-        marginHorizontal: 2
-    },
-    selectedStar: {
-        color: '#03DAC5'
-    },
-    unselectedStar: {
-        color: '#444'
-    },
-    feedbackInput: {
-        borderWidth: 1,
-        borderColor: '#444',
-        borderRadius: 5,
-        padding: 8,
-        minHeight: 60,
-        marginBottom: 10,
-        backgroundColor: '#121212',
-        color: '#E0E0E0'
-    },
-    feedbackButton: {
-        backgroundColor: '#03DAC5',
-        paddingVertical: 10,
-        borderRadius: 5,
-        alignItems: 'center'
-    },
-    feedbackButtonText: {
-        color: '#121212',
-        fontWeight: 'bold',
-        fontSize: 16
-    },
-    errorText: {
-        color: '#CF6679',
-        marginBottom: 16
     },
     center: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#121212'
-    }
+        backgroundColor: '#121212',
+    },
+    errorText: {
+        color: '#CF6679',
+        marginBottom: 16,
+    },
 });

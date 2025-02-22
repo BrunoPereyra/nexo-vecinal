@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     View,
     TextInput,
-    Button,
     TouchableOpacity,
     Text,
     StyleSheet,
@@ -105,7 +104,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                 const cachedTags = await AsyncStorage.getItem('selectedTags');
                 const cachedTriangle = await AsyncStorage.getItem('trianglePoints');
 
-                // Valores por defecto o cargados de caché
                 const loadedTitle = cachedTitle || '';
                 const loadedTags = cachedTags ? JSON.parse(cachedTags) : [];
                 let loadedPoints: { latitude: number; longitude: number }[] = [];
@@ -122,7 +120,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                         }
                     }
                 } else {
-                    // Si no hay filtros en caché, usamos los puntos por defecto
                     loadedPoints = defaultTrianglePoints;
                     const data = computeTriangleData(defaultTrianglePoints);
                     if (data) {
@@ -131,14 +128,11 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                     }
                 }
 
-                // Actualizamos los estados locales
                 setSearchTitle(loadedTitle);
                 setSelectedTags(loadedTags);
                 setTrianglePoints(loadedPoints);
                 setLocation(loadedLocation);
                 setRadius(loadedRadius);
-
-                // Ejecutamos la búsqueda automáticamente con los filtros cargados
                 onSearch({
                     searchTitle: loadedTitle,
                     selectedTags: loadedTags,
@@ -154,8 +148,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
         loadCachedFilters();
     }, []);
 
-
-    // Alternar selección de etiqueta
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {
             setSelectedTags(selectedTags.filter((t) => t !== tag));
@@ -164,7 +156,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
         }
     };
 
-    // Manejar toques en el mapa para definir el área (hasta 3 puntos)
     const handleMapPress = (e: any) => {
         const { coordinate } = e.nativeEvent;
         if (trianglePoints.length < 3) {
@@ -182,14 +173,12 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
         }
     };
 
-    // Botón Reset: desmarca todos los puntos del mapa
     const resetArea = () => {
         setTrianglePoints([]);
         setLocation(null);
         setRadius(0);
     };
 
-    // Al presionar Buscar, se guardan los filtros en AsyncStorage y se envían al padre
     const handleSearchPress = async () => {
         try {
             await AsyncStorage.setItem('searchTitle', searchTitle);
@@ -198,12 +187,12 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
         } catch (error) {
             console.error('Error saving filters in cache:', error);
         }
+        setShowAdvanced(false)
         onSearch({ searchTitle, selectedTags, trianglePoints, location, radius });
     };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.filterTitle}>Filtrar Ofertas</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Buscar por título"
@@ -275,7 +264,9 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                 </>
             )}
 
-            <Button title="Buscar" onPress={handleSearchPress} color="#03DAC5" />
+            <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
+                <Text style={styles.searchButtonText}>Buscar</Text>
+            </TouchableOpacity>
         </View>
     );
 };
@@ -368,7 +359,6 @@ const darkMapStyle = [
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: '#1E293B',
         padding: 16,
         borderRadius: 10,
         marginBottom: 16,
@@ -378,6 +368,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         borderWidth: 2,
+        backgroundColor: '#1E1E1E'
     },
     filterTitle: {
         fontSize: 18,
@@ -389,9 +380,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#444',
         borderRadius: 8,
-        padding: 10,
+        padding: 8,
         marginBottom: 10,
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#121212',
         color: '#E0E0E0',
     },
     moreFiltersButton: {
@@ -399,7 +390,7 @@ const styles = StyleSheet.create({
     },
     moreFiltersText: {
         color: '#03DAC5',
-        fontSize: 16,
+        fontSize: 14,
     },
     label: {
         fontSize: 16,
@@ -413,18 +404,20 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     tag: {
-        backgroundColor: '#1E1E1E',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
+        backgroundColor: '#121212',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
         borderRadius: 20,
         marginRight: 8,
         marginBottom: 8,
+        borderWidth: 1,
+        borderColor: '#444'
     },
     tagSelected: {
         backgroundColor: '#BB86FC',
     },
     tagText: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#E0E0E0',
     },
     tagTextSelected: {
@@ -432,7 +425,7 @@ const styles = StyleSheet.create({
     },
     mapContainer: {
         width: '100%',
-        height: 200,
+        height: 150,
         marginBottom: 12,
         borderRadius: 8,
         overflow: 'hidden',
@@ -448,17 +441,30 @@ const styles = StyleSheet.create({
     },
     resetButton: {
         backgroundColor: 'rgba(0,0,0,0.6)',
-        padding: 8,
+        padding: 6,
         borderRadius: 5,
     },
     resetButtonText: {
         color: '#fff',
-        fontSize: 12,
+        fontSize: 10,
     },
     infoText: {
-        fontSize: 14,
+        fontSize: 12,
         color: '#E0E0E0',
         marginBottom: 4,
+    },
+    searchButton: {
+        backgroundColor: '#03DAC5',
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    searchButtonText: {
+        color: '#121212',
+        fontSize: 14,
+        fontWeight: 'bold',
     },
 });
 

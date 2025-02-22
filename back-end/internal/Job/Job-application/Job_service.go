@@ -141,11 +141,11 @@ func (js *JobService) GetLatestJobsForEmployer(jobID primitive.ObjectID) (float6
 	return js.JobRepository.GetAverageRatingForEmployer(jobID)
 
 }
-func (js *JobService) GetJobsAssignedNoCompleted(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+func (js *JobService) GetJobsAssignedNoCompleted(jobID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.GetJobsAssignedNoCompleted(jobID, page)
 
 }
-func (js *JobService) GetJobsAssignedCompleted(jobID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+func (js *JobService) GetJobsAssignedCompleted(jobID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.GetJobsAssignedCompleted(jobID, page)
 
 }

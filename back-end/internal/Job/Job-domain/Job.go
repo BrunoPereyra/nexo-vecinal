@@ -122,6 +122,7 @@ type User struct {
 type JobDetailsUsers struct {
 	ID               primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserID           primitive.ObjectID `json:"userId" bson:"userId"`
+	UserDetails      *User              `json:"userDetails,omitempty" bson:"userDetails,omitempty"` // Datos embebidos del usuario creador
 	Title            string             `json:"title" bson:"title"`
 	Description      string             `json:"description" bson:"description"`
 	Location         GeoPoint           `json:"location" bson:"location"`

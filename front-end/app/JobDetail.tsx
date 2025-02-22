@@ -32,9 +32,6 @@ const JobDetail: React.FC = () => {
                 const result = await jobIdEmployee(id as string, token as string);
                 if (result && result.job) {
                     setJob(result.job);
-                    if (result.job.user) {
-                        AsyncStorage.setItem('employerProfile', JSON.stringify(result.job.user));
-                    }
                 }
             } catch (error) {
                 console.error('Error al obtener los detalles del job:', error);
@@ -91,14 +88,17 @@ const JobDetail: React.FC = () => {
             </View>
 
             {/* Botón de Chat visible para todos, pasando el id del empleador */}
-            {job.user && (
+            {/* {job.user && (
                 <TouchableOpacity
                     style={styles.chatButton}
-                    onPress={() => router.push(`/ChatJobs?jobId=${id}`)}
+                    onPress={() => router.push(
+                        `/ChatJobs?jobId=${id}&employerProfile=${encodeURIComponent(
+                            JSON.stringify(job.user)
+                        )}`)}
                 >
                     <Text style={styles.chatButtonText}>Abrir Chat</Text>
                 </TouchableOpacity>
-            )}
+            )} */}
 
             {/* Perfil del Empleador */}
             {job.user && (

@@ -6,25 +6,55 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ScrollView
+  ScrollView,
+  Alert
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { sendChatMessage, getMessagesBetween } from '@/services/chatService';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+
 const API = process.env.EXPO_URL_APIWS || "ws://192.168.0.28:8084";
+
+// Definimos la interfaz para los mensajes
+interface Message {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  jobId: string;
+  text: string;
+  createdAt: string;
+}
+
 export default function ChatJobs() {
-  const { token } = useAuth(); // Se asume que el contexto Auth provee el token
+  const { token } = useAuth();
+  const router = useRouter();
   const [chatPartner, setChatPartner] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [newMessage, setNewMessage] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const ws = useRef<WebSocket | null>(null);
-  const params = useLocalSearchParams()
-  const { jobId } = params;
+  const params = useLocalSearchParams();
+  const { jobId, employerProfile } = params;
+  // Convertir jobId a string si es un arreglo
+  const jobIdStr = Array.isArray(jobId) ? jobId[0] : jobId;
 
+  // Extraer el perfil del empleador desde los parámetros de la ruta
+  // Convertir employerProfile a string
+  const employerProfileStr = Array.isArray(employerProfile) ? employerProfile[0] : employerProfile;
+
+  useEffect(() => {
+    if (employerProfileStr) {
+      try {
+        const profile = JSON.parse(decodeURIComponent(employerProfileStr));
+        setChatPartner(profile);
+      } catch (error) {
+        console.error('Error al parsear employerProfile:', error);
+      }
+    }
+  }, [employerProfileStr]);
 
   // Cargar información del usuario actual desde AsyncStorage
   useEffect(() => {
@@ -33,7 +63,7 @@ export default function ChatJobs() {
         const id = await AsyncStorage.getItem('id');
         const avatar = await AsyncStorage.getItem('avatar');
         const nameUser = await AsyncStorage.getItem('nameUser');
-        setCurrentUser({ id, avatar, nameUser });
+        setCurrentUser({ id: id || '', avatar, nameUser });
       } catch (err) {
         console.error('Error al cargar info del usuario:', err);
       }
@@ -41,29 +71,13 @@ export default function ChatJobs() {
     loadCurrentUser();
   }, []);
 
-  // Cargar el perfil del chat partner desde AsyncStorage
-  useEffect(() => {
-    const loadChatPartner = async () => {
-      try {
-        const partnerString = await AsyncStorage.getItem('employerProfile');
-        if (partnerString) {
-          setChatPartner(JSON.parse(partnerString));
-        }
-      } catch (err) {
-        console.error('Error al cargar el perfil del chat partner:', err);
-      }
-    };
-    loadChatPartner();
-  }, []);
-
-  // Función para cargar los mensajes entre el usuario actual y el chat partner (para la carga inicial)
+  // Función para cargar los mensajes entre el usuario actual y el chat partner
   const loadMessages = async () => {
     if (!token || !currentUser || !chatPartner) return;
     setLoading(true);
     try {
       const data = await getMessagesBetween(currentUser.id, chatPartner.id, token);
       console.log(data);
-
       setMessages(data || []);
     } catch (err) {
       console.error('Error al cargar mensajes:', err);
@@ -72,58 +86,59 @@ export default function ChatJobs() {
     }
   };
 
-  // Llama a loadMessages cuando se tengan token, currentUser y chatPartner
   useEffect(() => {
     loadMessages();
   }, [token, currentUser, chatPartner]);
 
   // Suscribirse a WebSocket para recibir mensajes en tiempo real
   useEffect(() => {
+    let pingInterval: NodeJS.Timeout;
     const subscribeWebSocket = async () => {
       if (!currentUser || !chatPartner) return;
-      // Suponemos que se guarda el jobId en AsyncStorage para la conversación (o usa un valor por defecto)
-      console.log(API);
-
-      ws.current = new WebSocket(`${API}/chat/subscribe/${jobId}`);
-
+      ws.current = new WebSocket(`${API}/chat/subscribe/${jobIdStr}`);
       ws.current.onopen = () => {
         console.log('WebSocket conectado');
+        pingInterval = setInterval(() => {
+          if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+            ws.current.send(JSON.stringify({ type: 'ping' }));
+            console.log('Ping enviado');
+          }
+        }, 30000);
       };
-
       ws.current.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          // Verificamos que el mensaje corresponda a la conversación actual
+          // Ignorar mensajes tipo "pong"
+          if (message.type && message.type === 'pong') {
+            console.log('Pong recibido');
+            return;
+          }
+          // Verificar que el mensaje pertenezca a la conversación actual
           if (
             (message.senderId === chatPartner.id && message.receiverId === currentUser.id) ||
             (message.senderId === currentUser.id && message.receiverId === chatPartner.id)
           ) {
             console.log('Mensaje recibido:', message);
-
-            setMessages(prevMessages => [...prevMessages, message] as any);
+            setMessages(prevMessages => [...prevMessages, message]);
           }
         } catch (error) {
           console.error('Error al parsear mensaje de WebSocket:', error);
         }
       };
-
       ws.current.onerror = (e) => {
-        console.error('WebSocket error:', e.message);
+        console.error('WebSocket error');
       };
-
       ws.current.onclose = () => {
         console.log('WebSocket desconectado');
+        if (pingInterval) clearInterval(pingInterval);
       };
     };
-
     subscribeWebSocket();
-
     return () => {
-      if (ws.current) {
-        ws.current.close();
-      }
+      if (ws.current) ws.current.close();
+      if (pingInterval) clearInterval(pingInterval);
     };
-  }, [currentUser, chatPartner]);
+  }, [currentUser, chatPartner, jobIdStr]);
 
   // Función para enviar un mensaje
   const handleSend = async () => {
@@ -132,16 +147,16 @@ export default function ChatJobs() {
       const messageData = {
         senderId: currentUser.id,
         receiverId: chatPartner.id,
-        jobId,
+        jobId: jobIdStr,
         text: newMessage.trim(),
       };
       console.log('Enviando mensaje:', messageData);
-
       const res = await sendChatMessage(messageData, token);
       if (res) {
         console.log(res);
-
-        // En lugar de recargar todos los mensajes, agregamos el mensaje nuevo a la lista
+        if (res.data === "no se puede chatear: el trabajo está completado") {
+          Alert.alert('No se puede chatear: el trabajo está completado');
+        }
         setNewMessage('');
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }
@@ -166,7 +181,7 @@ export default function ChatJobs() {
           {messages.map((item) => (
             <View key={item.id} style={styles.messageContainer}>
               <Text style={styles.messageSender}>
-                {item.senderId !== currentUser.id ? 'Yo' : chatPartner.nameUser}
+                {item.senderId === currentUser.id ? currentUser.nameUser : chatPartner.nameUser}
               </Text>
               <Text style={styles.messageText}>{item.text}</Text>
               <Text style={styles.messageDate}>
