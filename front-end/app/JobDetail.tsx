@@ -10,12 +10,12 @@ import {
     Button,
     Alert,
     TouchableOpacity,
+    TextInput
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { applyToJob, jobIdEmployee } from '../services/JobsService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const JobDetail: React.FC = () => {
     // Obtenemos el id del job desde la URL y el token desde el contexto de autenticación
@@ -25,6 +25,10 @@ const JobDetail: React.FC = () => {
 
     const [job, setJob] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    // Estados para la propuesta, precio y para mostrar u ocultar los inputs
+    const [proposal, setProposal] = useState("");
+    const [price, setPrice] = useState("");
+    const [showInputs, setShowInputs] = useState(false);
 
     useEffect(() => {
         const fetchJobDetails = async () => {
@@ -60,13 +64,35 @@ const JobDetail: React.FC = () => {
     }
 
     const handleApply = async () => {
-        const res = await applyToJob(id as string, token as string);
+        // Si aún no se han mostrado los inputs, al presionar se despliegan
+        if (!showInputs) {
+            setShowInputs(true);
+            return;
+        }
+
+        // Validación en el cliente para la propuesta y precio
+        if (proposal.trim().length < 10 || proposal.trim().length > 100) {
+            Alert.alert("Error", "La propuesta debe tener entre 10 y 100 caracteres");
+            return;
+        }
+        const numericPrice = parseInt(price, 10);
+        if (isNaN(numericPrice) || numericPrice < 100 || numericPrice > 10000000) {
+            Alert.alert("Error", "El precio debe estar entre 100 y 10,000,000");
+            return;
+        }
+
+        const res = await applyToJob(id as string, proposal, numericPrice, token as string);
+        console.log(res);
+
         if (res.message === 'Applied to job successfully') {
             Alert.alert('Postulación enviada', 'Has postulado exitosamente a este trabajo.');
+            // Opcional: puedes resetear los inputs o navegar a otra pantalla
+        } else {
+            Alert.alert('Error', res.error || 'Ocurrió un error al postularse');
         }
     };
 
-    // Asumimos que job.location.coordinates viene en formato [longitud, latitud]
+    // Se asume que job.location.coordinates viene en formato [longitud, latitud]
     const region = {
         latitude: job.location.coordinates[1],
         longitude: job.location.coordinates[0],
@@ -86,19 +112,6 @@ const JobDetail: React.FC = () => {
                 <Text style={styles.label}>Estado:</Text>
                 <Text style={styles.value}>{job.status}</Text>
             </View>
-
-            {/* Botón de Chat visible para todos, pasando el id del empleador */}
-            {/* {job.user && (
-                <TouchableOpacity
-                    style={styles.chatButton}
-                    onPress={() => router.push(
-                        `/ChatJobs?jobId=${id}&employerProfile=${encodeURIComponent(
-                            JSON.stringify(job.user)
-                        )}`)}
-                >
-                    <Text style={styles.chatButtonText}>Abrir Chat</Text>
-                </TouchableOpacity>
-            )} */}
 
             {/* Perfil del Empleador */}
             {job.user && (
@@ -132,8 +145,33 @@ const JobDetail: React.FC = () => {
                 </View>
             )}
 
+            {/* Sección para mostrar/ocultar los inputs */}
+            {showInputs && (
+                <View style={styles.applyForm}>
+                    <TextInput
+                        placeholder="Ingresa tu propuesta (10-100 caracteres)"
+                        placeholderTextColor="#888"
+                        style={styles.input}
+                        value={proposal}
+                        onChangeText={setProposal}
+                    />
+                    <TextInput
+                        placeholder="Ingresa el precio (100 - 10,000,000)"
+                        placeholderTextColor="#888"
+                        style={styles.input}
+                        value={price}
+                        onChangeText={setPrice}
+                        keyboardType="numeric"
+                    />
+                </View>
+            )}
+
             <View style={styles.applyButtonContainer}>
-                <Button title="Postularme al Trabajo" onPress={handleApply} color="#03DAC5" />
+                <Button
+                    title={showInputs ? "Enviar Propuesta" : "Postularme al Trabajo"}
+                    onPress={handleApply}
+                    color="#03DAC5"
+                />
             </View>
         </ScrollView>
     );
@@ -234,20 +272,20 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
-    applyButtonContainer: {
+    applyForm: {
         marginTop: 20,
     },
-    chatButton: {
-        backgroundColor: '#03DAC5',
-        paddingVertical: 10,
+    input: {
+        height: 40,
+        borderColor: '#03DAC5',
+        borderWidth: 1,
         borderRadius: 5,
-        marginVertical: 16,
-        alignItems: 'center',
+        marginBottom: 10,
+        paddingHorizontal: 10,
+        color: '#E0E0E0',
     },
-    chatButtonText: {
-        color: '#121212',
-        fontWeight: 'bold',
-        fontSize: 16,
+    applyButtonContainer: {
+        marginTop: 10,
     },
 });
 

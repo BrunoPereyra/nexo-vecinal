@@ -3,7 +3,6 @@ package Jobinterfaces
 import (
 	Jobapplication "back-end/internal/Job/Job-application"
 	jobdomain "back-end/internal/Job/Job-domain"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -26,7 +25,6 @@ func NewJobHandler(jobService *Jobapplication.JobService) *JobHandler {
 // CreateJob maneja la creación de un nuevo job.
 func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 	var createReq jobdomain.CreateJobRequest
-	fmt.Println(createReq.Location)
 	if err := c.BodyParser(&createReq); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",
@@ -62,8 +60,13 @@ func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 // ApplyToJob permite que el trabajador se postule a un job.
 // Se espera que la ruta tenga un parámetro "jobId".
 func (j *JobHandler) ApplyToJob(c *fiber.Ctx) error {
-	var reqJon jobdomain.JobId
-	if err := c.BodyParser(&reqJon); err != nil {
+	var job jobdomain.JobData
+	if err := c.BodyParser(&job); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Bad Request",
+		})
+	}
+	if err := job.ValidateJobData(); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",
 		})
@@ -76,7 +79,7 @@ func (j *JobHandler) ApplyToJob(c *fiber.Ctx) error {
 			"message": "Invalid applicant ID",
 		})
 	}
-	if err = j.JobService.ApplyToJob(reqJon.JobId, applicantID); err != nil {
+	if err = j.JobService.ApplyToJob(job.JobId, applicantID, job.Proposal, job.Price); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Could not apply to job",
 			"error":   err.Error(),

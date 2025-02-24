@@ -14,13 +14,18 @@ import { useAuth } from '../context/AuthContext';
 import { GetJobDetailvisited, GetJobTokenAdmin } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApplicantsList from '@/components/ApplicantsList';
+import { FeedbackSection } from '@/components/FeedbackSection';
 
 export default function JobDetailVisited() {
     // Obtenemos el parámetro "id" de la URL
     const { id: jobId } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { token } = useAuth();
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
+    useEffect(() => {
+        AsyncStorage.getItem('id').then((id) => setCurrentUserId(id));
+    }, []);
     const [jobDetail, setJobDetail] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
@@ -75,7 +80,7 @@ export default function JobDetailVisited() {
         return (<ScrollView style={darkStyles.container} contentContainerStyle={{ paddingBottom: 20 }}>
             {/* Información principal del trabajo */}
             <Text style={darkStyles.title}>{jobDetail.title}</Text>
-            <Text style={darkStyles.description}>{jobDetail.biography}</Text>
+            <Text style={darkStyles.description}>{jobDetail.description}</Text>
             <Text style={darkStyles.detail}>Precio: ${jobDetail.budget}</Text>
             <Text style={darkStyles.detail}>Estado: {jobDetail.status}</Text>
             {assignedCandidate && (
@@ -109,65 +114,21 @@ export default function JobDetailVisited() {
             )}
 
             {/* Sección de postulados */}
-            <ApplicantsList job={jobDetail} token={token as string} />
+            {/* <ApplicantsList job={jobDetail} token={token as string} /> */}
 
             {/* Sección de feedback: mostramos ambos feedbacks sin condición */}
-            <View style={darkStyles.feedbackContainer}>
-                {jobDetail.employerFeedback && (
-                    <View style={darkStyles.existingFeedbackContainer}>
-                        <Text style={darkStyles.feedbackTitle}>Feedback del Empleador:</Text>
-                        <Text style={darkStyles.feedbackText}>
-                            Comentario: {jobDetail.employerFeedback.comment}
-                        </Text>
-                        <View style={darkStyles.ratingContainer}>
-                            <Text style={darkStyles.ratingLabel}>Calificación:</Text>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Text
-                                    key={star}
-                                    style={[
-                                        darkStyles.star,
-                                        star <= jobDetail.employerFeedback.rating
-                                            ? darkStyles.selectedStar
-                                            : darkStyles.unselectedStar,
-                                    ]}
-                                >
-                                    ★
-                                </Text>
-                            ))}
-                        </View>
 
-                    </View>
-
-                )}
-                {jobDetail.workerFeedback && (
-                    <View style={darkStyles.existingFeedbackContainer}>
-                        <Text style={darkStyles.feedbackTitle}>Feedback del Trabajador:</Text>
-                        <Text style={darkStyles.feedbackText}>
-                            Comentario: {jobDetail.workerFeedback.comment}
-                        </Text>
-                        <View style={darkStyles.ratingContainer}>
-                            <Text style={darkStyles.ratingLabel}>Calificación:</Text>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                                <Text
-                                    key={star}
-                                    style={[
-                                        darkStyles.star,
-                                        star <= jobDetail.workerFeedback.rating
-                                            ? darkStyles.selectedStar
-                                            : darkStyles.unselectedStar,
-                                    ]}
-                                >
-                                    ★
-                                </Text>
-                            ))}
-                        </View>
-
-                    </View>
-
-                )}
-
-            </View>
-
+            <FeedbackSection
+                jobDetail={jobDetail}
+                currentUserId={currentUserId || ''}
+                rating={0}
+                feedback={"feedback"}
+                actionLoading={false}
+                setRating={() => { }}
+                setFeedback={() => { }}
+                handleLeaveFeedback={() => { }}
+                mode="employer"
+            />
             <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
         </ScrollView>)
     }

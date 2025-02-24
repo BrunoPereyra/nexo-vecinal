@@ -30,28 +30,35 @@ type GeoPoint struct {
 	Coordinates []float64 `bson:"coordinates" json:"coordinates"` // [longitud, latitud]
 }
 
+// Application representa la postulación de un usuario con su propuesta y precio.
+type Application struct {
+	ApplicantID primitive.ObjectID `json:"applicantId" bson:"applicantId"`
+	Proposal    string             `json:"proposal" bson:"proposal" validate:"max=100"` // Máximo 100 caracteres
+	Price       float64            `json:"price" bson:"price"`
+	AppliedAt   time.Time          `json:"appliedAt" bson:"appliedAt"`
+}
+
 // Job representa la estructura de una publicación de trabajo o necesidad.
 type Job struct {
-	ID               primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
-	UserID           primitive.ObjectID   `json:"userId" bson:"userId"`           // Quien creó la propuesta (empleador)
-	Title            string               `json:"title" bson:"title"`             // Título breve del trabajo
-	Description      string               `json:"description" bson:"description"` // Descripción detallada del trabajo
-	Location         GeoPoint             `json:"location" bson:"location"`
-	Tags             []string             `json:"tags" bson:"tags"`                                             // Etiquetas para clasificar el trabajo
-	Budget           float64              `json:"budget" bson:"budget"`                                         // Presupuesto estimado inicial
-	FinalCost        float64              `json:"finalCost" bson:"finalCost"`                                   // Costo final acordado (después de negociaciones)
-	Status           JobStatus            `json:"status" bson:"status"`                                         // Estado actual de la publicación
-	Applicants       []primitive.ObjectID `json:"applicants" bson:"applicants"`                                 // Usuarios que se postularon
-	AssignedTo       *primitive.ObjectID  `json:"assignedTo,omitempty" bson:"assignedTo,omitempty"`             // Trabajador asignado (si ya se eligió)
-	EmployerFeedback *Feedback            `json:"employerFeedback,omitempty" bson:"employerFeedback,omitempty"` // Opinión del empleador sobre el trabajador
-	WorkerFeedback   *Feedback            `json:"workerFeedback,omitempty" bson:"workerFeedback,omitempty"`     // Opinión del trabajador sobre el empleador
-	CreatedAt        time.Time            `json:"createdAt" bson:"createdAt"`                                   // Fecha de creación de la publicación
-	UpdatedAt        time.Time            `json:"updatedAt" bson:"updatedAt"`                                   // Fecha de la última actualización
+	ID                  primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserID              primitive.ObjectID `jzson:"userId" bson:"userId"`
+	Title               string             `json:"title" bson:"title"`
+	Description         string             `json:"description" bson:"description"`
+	Location            GeoPoint           `json:"location" bson:"location"`
+	Tags                []string           `json:"tags" bson:"tags"`
+	Budget              float64            `json:"budget" bson:"budget"`
+	FinalCost           float64            `json:"finalCost" bson:"finalCost"`
+	Status              JobStatus          `json:"status" bson:"status"`
+	Applicants          []Application      `json:"applicants" bson:"applicants"` // Ahora cada postulación incluye propuesta y precio.
+	AssignedApplication *Application       `json:"assignedApplication,omitempty" bson:"assignedApplication,omitempty"`
+	EmployerFeedback    *Feedback          `json:"employerFeedback,omitempty" bson:"employerFeedback,omitempty"`
+	WorkerFeedback      *Feedback          `json:"workerFeedback,omitempty" bson:"workerFeedback,omitempty"`
+	CreatedAt           time.Time          `json:"createdAt" bson:"createdAt"`
+	UpdatedAt           time.Time          `json:"updatedAt" bson:"updatedAt"`
 
-	// Datos de pago
-	PaymentStatus   string  `json:"paymentStatus" bson:"paymentStatus"`     // "pending", "paid", "released"
-	PaymentAmount   float64 `json:"paymentAmount" bson:"paymentAmount"`     // Monto del pago
-	PaymentIntentID string  `json:"paymentIntentId" bson:"paymentIntentId"` // ID del PaymentIntent en Stripe
+	PaymentStatus   string  `json:"paymentStatus" bson:"paymentStatus"`
+	PaymentAmount   float64 `json:"paymentAmount" bson:"paymentAmount"`
+	PaymentIntentID string  `json:"paymentIntentId" bson:"paymentIntentId"`
 }
 
 // CreateJobRequest representa la información necesaria para crear un job.
@@ -110,6 +117,17 @@ func (u *FindJobsByTagsAndLocation) Validate() error {
 	return validate.Struct(u)
 }
 
+type JobData struct {
+	JobId    primitive.ObjectID `json:"JobId" validate:"required"`
+	Price    float64            `json:"price" validate:"required"`
+	Proposal string             `json:"Proposal" validate:"required,min=3,max=100"`
+}
+
+func (job JobData) ValidateJobData() error {
+	validate := validator.New()
+	return validate.Struct(job)
+}
+
 type JobId struct {
 	JobId primitive.ObjectID `json:"JobId" validate:"required"`
 }
@@ -119,26 +137,39 @@ type User struct {
 	Avatar   string             `json:"avatar" bson:"Avatar"`
 }
 
+// ApplicantDetails representa la postulación enriquecida con los datos completos del usuario.
+type ApplicantDetails struct {
+	ApplicantID primitive.ObjectID `json:"applicantId" bson:"applicantId"`
+	Proposal    string             `json:"proposal" bson:"proposal"`
+	Price       float64            `json:"price" bson:"price"`
+	AppliedAt   time.Time          `json:"appliedAt" bson:"appliedAt"`
+	// UserData contiene la información del usuario postulante (extraída con $lookup)
+	UserData *User `json:"userData,omitempty" bson:"userData,omitempty"`
+}
+
+// JobDetailsUsers es la estructura final del job, incluyendo datos del creador, las aplicaciones y
+// la información del trabajador asignado (fusionada de assignedApplication y los datos del usuario).
 type JobDetailsUsers struct {
-	ID               primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID           primitive.ObjectID `json:"userId" bson:"userId"`
-	UserDetails      *User              `json:"userDetails,omitempty" bson:"userDetails,omitempty"` // Datos embebidos del usuario creador
-	Title            string             `json:"title" bson:"title"`
-	Description      string             `json:"description" bson:"description"`
-	Location         GeoPoint           `json:"location" bson:"location"`
-	Tags             []string           `json:"tags" bson:"tags"`
-	Budget           float64            `json:"budget" bson:"budget"`
-	FinalCost        float64            `json:"finalCost" bson:"finalCost"`
-	Status           JobStatus          `json:"status" bson:"status"`
-	Applicants       []User             `json:"applicants" bson:"applicants"` // Corregido
-	AssignedTo       *User              `json:"assignedTo,omitempty" bson:"assignedTo,omitempty"`
-	EmployerFeedback *Feedback          `json:"employerFeedback,omitempty" bson:"employerFeedback,omitesmpty"`
-	WorkerFeedback   *Feedback          `json:"workerFeedback,omitempty" bson:"workerFeedback,omitempty"`
-	CreatedAt        time.Time          `json:"createdAt" bson:"createdAt"`
-	UpdatedAt        time.Time          `json:"updatedAt" bson:"updatedAt"`
-	PaymentStatus    string             `json:"paymentStatus" bson:"paymentStatus"`
-	PaymentAmount    float64            `json:"paymentAmount" bson:"paymentAmount"`
-	PaymentIntentID  string             `json:"paymentIntentId" bson:"paymentIntentId"`
+	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	UserID      primitive.ObjectID `json:"userId" bson:"userId"`
+	UserDetails *User              `json:"userDetails,omitempty" bson:"userDetails,omitempty"` // Datos del creador
+	Title       string             `json:"title" bson:"title"`
+	Description string             `json:"description" bson:"description"`
+	Location    GeoPoint           `json:"location" bson:"location"`
+	Tags        []string           `json:"tags" bson:"tags"`
+	Budget      float64            `json:"budget" bson:"budget"`
+	FinalCost   float64            `json:"finalCost" bson:"finalCost"`
+	Status      JobStatus          `json:"status" bson:"status"`
+	Applicants  []ApplicantDetails `json:"applicants" bson:"applicants"`
+	// En AssignedTo se fusiona el objeto assignedApplication con los datos del usuario asignado
+	AssignedTo       *ApplicantDetails `json:"assignedTo,omitempty" bson:"assignedTo,omitempty"`
+	EmployerFeedback *Feedback         `json:"employerFeedback,omitempty" bson:"employerFeedback,omitempty"`
+	WorkerFeedback   *Feedback         `json:"workerFeedback,omitempty" bson:"workerFeedback,omitempty"`
+	CreatedAt        time.Time         `json:"createdAt" bson:"createdAt"`
+	UpdatedAt        time.Time         `json:"updatedAt" bson:"updatedAt"`
+	PaymentStatus    string            `json:"paymentStatus" bson:"paymentStatus"`
+	PaymentAmount    float64           `json:"paymentAmount" bson:"paymentAmount"`
+	PaymentIntentID  string            `json:"paymentIntentId" bson:"paymentIntentId"`
 }
 
 type GetJobByIDForEmployee struct {

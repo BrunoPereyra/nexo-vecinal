@@ -22,7 +22,6 @@ export const createJob = async (jobData: any, token: string) => {
     }
 };
 export const GetJobTokenAdmin = async (JobId: any, token: string) => {
-    console.log(JobId);
     try {
         const res = await fetch(`${API}/job/get-job-token-admin`, {
             method: 'POST',
@@ -32,6 +31,7 @@ export const GetJobTokenAdmin = async (JobId: any, token: string) => {
             },
             body: JSON.stringify({ JobId })
         });
+
         return await res.json();
     } catch (error) {
         console.error("Error en createJob:", error);
@@ -44,9 +44,7 @@ export const GetJobTokenAdmin = async (JobId: any, token: string) => {
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
  */
-export const getJobsProfile = async (page: number, token: string) => {
-    console.log("Page:", page);
-    console.log("Token:", token);
+export const getCreateJobsProfile = async (page: number, token: string) => {
 
     try {
         // Construimos la URL usando el parámetro page
@@ -74,9 +72,6 @@ export const getJobsProfile = async (page: number, token: string) => {
  * @returns La respuesta de la API en formato JSON.
  */
 export const GetJobsByUserIDForEmploye = async (page: number, token: string) => {
-    console.log("Page:", page);
-    console.log("Token:", token);
-
     try {
         // Construimos la URL usando el parámetro page
         const url = `${API}/job/get-jobs-user-Employe-profile?page=${page}`;
@@ -124,21 +119,29 @@ export const jobIdEmployee = async (jobId: string, token: string) => {
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
  */
-export const applyToJob = async (JobId: string, token: string) => {
+export const applyToJob = async (
+    JobId: string,
+    proposal: string,
+    price: number,
+    token: string
+) => {
     try {
+
         const res = await fetch(`${API}/job/apply`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ JobId })
+            body: JSON.stringify({ JobId, Proposal: proposal, price }),
         });
         return await res.json();
     } catch (error) {
+
         console.error("Error en applyToJob:", error);
     }
 };
+
 
 
 /**
@@ -326,9 +329,12 @@ export const GetJobsUserIDForEmployeProfilevist = async (page: number, id: strin
 
         return await res.json();
     } catch (error) {
+        console.log("OENE");
+
         console.error("Error en getJobsProfile 3:", error);
     }
 };
+// como empleado recibio estrellas
 export const GetLatestJobsForWorker = async (token: string) => {
     try {
         // Construimos la URL usando el parámetro page
@@ -347,7 +353,10 @@ export const GetLatestJobsForWorker = async (token: string) => {
     } catch (error) {
         console.error("Error en getJobsProfile 2:", error);
     }
-}; export const GetLatestJobsForEmployer = async (token: string) => {
+
+};
+// estrellas que recibio como el empleador
+export const GetLatestJobsForEmployer = async (token: string) => {
 
     try {
         // Construimos la URL usando el parámetro page

@@ -17,7 +17,6 @@ import { getUserByid } from '@/services/userService';
 import {
     GetJobsUserIDForEmployeProfilevist,
     GetJobsUserCompleted,
-    GetLatestJobsForEmployer,
     GetLatestJobsForWorkervist,
     GetLatestJobsForEmployervist,
 } from '@/services/JobsService';

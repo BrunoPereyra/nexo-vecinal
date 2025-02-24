@@ -25,20 +25,20 @@ func NewJobService(jobRepository *jobinfrastructure.JobRepository) *JobService {
 // CreateJob crea una nueva publicación de trabajo a partir de la información del request y el ID del usuario creador.
 func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID primitive.ObjectID) (primitive.ObjectID, error) {
 	newJob := jobdomain.Job{
-		UserID:           userID,
-		Title:            createReq.Title,
-		Description:      createReq.Description,
-		Location:         createReq.Location,
-		Tags:             createReq.Tags,
-		Budget:           createReq.Budget,
-		FinalCost:        0,                       // Se asigna en una etapa posterior
-		Status:           jobdomain.JobStatusOpen, // Estado inicial
-		Applicants:       []primitive.ObjectID{},  // Sin postulantes inicialmente
-		AssignedTo:       nil,                     // Sin asignación inicial
-		EmployerFeedback: nil,
-		WorkerFeedback:   nil,
-		CreatedAt:        time.Now(),
-		UpdatedAt:        time.Now(),
+		UserID:              userID,
+		Title:               createReq.Title,
+		Description:         createReq.Description,
+		Location:            createReq.Location,
+		Tags:                createReq.Tags,
+		Budget:              createReq.Budget,
+		FinalCost:           0,                         // Se asigna en una etapa posterior
+		Status:              jobdomain.JobStatusOpen,   // Estado inicial
+		Applicants:          []jobdomain.Application{}, // Sin postulantes inicialmente
+		AssignedApplication: &jobdomain.Application{},  // Sin asignación inicial
+		EmployerFeedback:    nil,
+		WorkerFeedback:      nil,
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
 	}
 
 	jobID, err := js.JobRepository.CreateJob(newJob)
@@ -50,8 +50,8 @@ func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID pri
 }
 
 // ApplyToJob permite que un trabajador se postule a un job.
-func (js *JobService) ApplyToJob(jobID, applicantID primitive.ObjectID) error {
-	return js.JobRepository.ApplyToJob(jobID, applicantID)
+func (js *JobService) ApplyToJob(jobID, applicantID primitive.ObjectID, proposal string, price float64) error {
+	return js.JobRepository.ApplyToJob(jobID, applicantID, proposal, price)
 }
 
 // AssignJob asigna a un trabajador a un job, cambiando el estado a "in_progress".

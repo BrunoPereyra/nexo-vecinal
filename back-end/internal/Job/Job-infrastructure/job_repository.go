@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -65,9 +66,14 @@ func (j *JobRepository) IsUserBanned(userId primitive.ObjectID) (bool, error) {
 	return user.Banned, nil
 }
 
-// ApplyToJob permite que un trabajador se postule a un job agregando su ID a la lista de applicants.
-func (j *JobRepository) ApplyToJob(jobID, applicantID primitive.ObjectID) error {
-	// 1. Verificar si el usuario cumple con las condiciones para aplicar
+// ApplyToJob permite que un trabajador se postule a un job agregando su aplicación (con propuesta y precio).
+func (j *JobRepository) ApplyToJob(jobID, applicantID primitive.ObjectID, proposal string, price float64) error {
+	// Validar que la propuesta no exceda los 100 caracteres.
+	if len(proposal) > 100 {
+		return errors.New("la propuesta excede los 100 caracteres")
+	}
+
+	// Verificar si el usuario cumple con las condiciones para aplicar.
 	canApply, err := j.canUserApply(applicantID)
 	if err != nil {
 		return err
@@ -76,12 +82,21 @@ func (j *JobRepository) ApplyToJob(jobID, applicantID primitive.ObjectID) error 
 		return errors.New("el usuario necesita Prime para aplicar a más de dos trabajos")
 	}
 
-	// 2. Agregar el usuario a la lista de aplicantes del trabajo
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-	filter := bson.M{"_id": jobID}
+	// Usamos un filtro que evite agregar la misma postulación dos veces.
+	filter := bson.M{
+		"_id":                    jobID,
+		"applicants.applicantId": bson.M{"$ne": applicantID},
+	}
+	newApplication := bson.M{
+		"applicantId": applicantID,
+		"proposal":    proposal,
+		"price":       price,
+		"appliedAt":   time.Now(),
+	}
 	update := bson.M{
-		"$addToSet": bson.M{"applicants": applicantID}, // $addToSet evita duplicados
-		"$set":      bson.M{"updatedAt": time.Now()},
+		"$push": bson.M{"applicants": newApplication},
+		"$set":  bson.M{"updatedAt": time.Now()},
 	}
 
 	result, err := jobColl.UpdateOne(context.Background(), filter, update)
@@ -89,7 +104,7 @@ func (j *JobRepository) ApplyToJob(jobID, applicantID primitive.ObjectID) error 
 		return err
 	}
 	if result.MatchedCount == 0 {
-		return errors.New("job not found")
+		return errors.New("job not encontrado o ya existe una postulación del usuario")
 	}
 
 	return nil
@@ -118,15 +133,35 @@ func (j *JobRepository) canUserApply(userID primitive.ObjectID) (bool, error) {
 	return true, nil
 }
 
-// AssignJob permite que el empleador asigne un job a un trabajador, actualizando el estado a "in_progress".
-func (j *JobRepository) AssignJob(jobID, workerID primitive.ObjectID) error {
+// AssignJob permite que el empleador asigne un job a un trabajador
+// tomando la postulación del usuario (Application) y actualizando el estado a "in_progress".
+func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
+	// Primero se obtiene el job para buscar la postulación del applicantID.
+	job, err := j.GetJobByID(jobID)
+	if err != nil {
+		return err
+	}
+
+	var selectedApp jobdomain.Application
+	found := false
+	for _, app := range job.Applicants {
+		if app.ApplicantID == applicantID {
+			selectedApp = app
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("no se encontró la postulación del usuario")
+	}
+
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{"_id": jobID}
 	update := bson.M{
 		"$set": bson.M{
-			"assignedTo": workerID,
-			"status":     jobdomain.JobStatusInProgress,
-			"updatedAt":  time.Now(),
+			"assignedApplication": selectedApp,
+			"status":              jobdomain.JobStatusInProgress,
+			"updatedAt":           time.Now(),
 		},
 	}
 	result, err := jobColl.UpdateOne(context.Background(), filter, update)
@@ -134,24 +169,19 @@ func (j *JobRepository) AssignJob(jobID, workerID primitive.ObjectID) error {
 		return err
 	}
 	if result.MatchedCount == 0 {
-		return errors.New("job not found")
+		return errors.New("job no encontrado")
 	}
 	return nil
 }
 
 func (j *JobRepository) UpdateJobStatusToCompleted(jobID, idUser primitive.ObjectID) (*jobdomain.Job, error) {
-	// 1. Traer el documento del job
 	job, err := j.GetJobByID(jobID)
 	if err != nil {
 		return nil, err
 	}
-
-	// Si ya está completado, devolvemos un error
 	if job.Status == jobdomain.JobStatusCompleted {
 		return nil, errors.New("job already completed")
 	}
-
-	// 2. Actualizar el estado a completed (solo si no es completed)
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{
 		"_id":    jobID,
@@ -164,7 +194,6 @@ func (j *JobRepository) UpdateJobStatusToCompleted(jobID, idUser primitive.Objec
 			"updatedAt": time.Now(),
 		},
 	}
-
 	result, err := jobColl.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return nil, err
@@ -172,24 +201,20 @@ func (j *JobRepository) UpdateJobStatusToCompleted(jobID, idUser primitive.Objec
 	if result.MatchedCount == 0 {
 		return nil, errors.New("job not found or already completed")
 	}
-
-	// 3. Traer el documento actualizado para usar sus datos (por ejemplo, los IDs para incrementar contadores)
 	updatedJob, err := j.GetJobByID(jobID)
 	if err != nil {
 		return nil, err
 	}
-
-	// 4. Incrementar los contadores de trabajos completados para el empleador y el trabajador
+	// Incrementar el contador para el empleador
 	if err := j.incrementUserJobCount(updatedJob.UserID); err != nil {
 		return nil, err
 	}
-	if updatedJob.AssignedTo != nil {
-		if err := j.incrementUserJobCount(*updatedJob.AssignedTo); err != nil {
+	// Incrementar el contador para el trabajador asignado (si existe)
+	if updatedJob.AssignedApplication != nil {
+		if err := j.incrementUserJobCount(updatedJob.AssignedApplication.ApplicantID); err != nil {
 			return nil, err
 		}
 	}
-
-	// Devolver el documento actualizado
 	return updatedJob, nil
 }
 
@@ -213,14 +238,32 @@ func (j *JobRepository) incrementUserJobCount(userID primitive.ObjectID) error {
 
 // ReassignJob permite al empleador reasignar el job a un nuevo trabajador en caso de inconvenientes.
 func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error {
+	// Primero se obtiene el job para buscar la postulación del newWorkerID.
+	job, err := j.GetJobByID(jobID)
+	if err != nil {
+		return err
+	}
+
+	var selectedApp jobdomain.Application
+	found := false
+	for _, app := range job.Applicants {
+		if app.ApplicantID == newWorkerID {
+			selectedApp = app
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("no se encontró la postulación del usuario")
+	}
+
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{"_id": jobID}
 	update := bson.M{
 		"$set": bson.M{
-			"assignedTo": newWorkerID,
-			// Se asume que al reasignar el job se mantiene en estado "in_progress"
-			"status":    jobdomain.JobStatusInProgress,
-			"updatedAt": time.Now(),
+			"assignedApplication": selectedApp,
+			"status":              jobdomain.JobStatusInProgress, // Se mantiene el estado "in_progress"
+			"updatedAt":           time.Now(),
 		},
 	}
 	result, err := jobColl.UpdateOne(context.Background(), filter, update)
@@ -264,9 +307,9 @@ func (j *JobRepository) ProvideEmployerFeedback(jobID, employerID primitive.Obje
 func (j *JobRepository) ProvideWorkerFeedback(jobID, workerID primitive.ObjectID, feedback jobdomain.Feedback) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{
-		"_id":        jobID,
-		"assignedTo": workerID,                     // Verifica que el campo assignedTo coincida con workerID
-		"status":     jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
+		"_id":                             jobID,
+		"assignedApplication.applicantId": workerID,                     // Verifica que el campo assignedApplication.applicantId coincida con workerID
+		"status":                          jobdomain.JobStatusCompleted, // Verifica que el job esté completado
 	}
 	update := bson.M{
 		"$set": bson.M{
@@ -330,6 +373,8 @@ func (j *JobRepository) UpdateJobPaymentStatus(jobID primitive.ObjectID, status 
 	_, err := jobColl.UpdateOne(context.Background(), filter, update)
 	return err
 }
+
+// estos es aparte 1
 func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.Job, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
@@ -379,67 +424,111 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	return jobs, nil
 }
 
-// pedir trabajo token
 func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
-	// Definir el pipeline de agregación
 	pipeline := mongo.Pipeline{
-		// 1. $match: Filtrar el job por _id y userId
-		{
-			{Key: "$match", Value: bson.D{
+		// Stage 1: Filtrar por jobID y userId (esto se usa cuando queremos el job creado por un usuario concreto)
+		{{
+			Key: "$match", Value: bson.D{
 				{Key: "_id", Value: jobID},
 				{Key: "userId", Value: idUser},
-			}},
-		},
-		// 2. $lookup: Traer los datos de los postulantes (Applicants) desde la colección Users
-		{
-			{Key: "$lookup", Value: bson.D{
+			},
+		}},
+		// Stage 2: Desempaquetar el array de applicants para poder hacer lookup en cada uno
+		{{
+			Key: "$unwind", Value: bson.D{
+				{Key: "path", Value: "$applicants"},
+				{Key: "preserveNullAndEmptyArrays", Value: true},
+			},
+		}},
+		// Stage 3: Lookup para traer la información del postulante usando applicants.applicantId
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
-				{Key: "localField", Value: "applicants"},
+				{Key: "localField", Value: "applicants.applicantId"},
 				{Key: "foreignField", Value: "_id"},
-				{Key: "as", Value: "applicants"},
-			}},
-		},
-		// 3. $lookup: Traer el usuario asignado (AssignedTo) desde la colección Users
-		{
-			{Key: "$lookup", Value: bson.D{
+				{Key: "as", Value: "applicantData"},
+			},
+		}},
+		// Stage 4: Fusionar la información de la aplicación con la información del usuario
+		{{
+			Key: "$addFields", Value: bson.D{
+				{Key: "applicants", Value: bson.D{
+					{Key: "$mergeObjects", Value: bson.A{
+						"$applicants",
+						bson.D{
+							{Key: "userData", Value: bson.D{
+								{Key: "$ifNull", Value: bson.A{
+									// Si existe datos del usuario, obtenemos el primer elemento, sino un objeto vacío.
+									bson.D{{Key: "$arrayElemAt", Value: bson.A{"$applicantData", 0}}},
+									bson.D{},
+								}},
+							}},
+						},
+					}},
+				}},
+			},
+		}},
+		// Stage 5: Volver a agrupar para reconstruir el array de applicants
+		{{
+			Key: "$group", Value: bson.D{
+				{Key: "_id", Value: "$_id"},
+				{Key: "userId", Value: bson.D{{Key: "$first", Value: "$userId"}}},
+				{Key: "title", Value: bson.D{{Key: "$first", Value: "$title"}}},
+				{Key: "description", Value: bson.D{{Key: "$first", Value: "$description"}}},
+				{Key: "location", Value: bson.D{{Key: "$first", Value: "$location"}}},
+				{Key: "tags", Value: bson.D{{Key: "$first", Value: "$tags"}}},
+				{Key: "budget", Value: bson.D{{Key: "$first", Value: "$budget"}}},
+				{Key: "finalCost", Value: bson.D{{Key: "$first", Value: "$finalCost"}}},
+				{Key: "status", Value: bson.D{{Key: "$first", Value: "$status"}}},
+				{Key: "createdAt", Value: bson.D{{Key: "$first", Value: "$createdAt"}}},
+				{Key: "updatedAt", Value: bson.D{{Key: "$first", Value: "$updatedAt"}}},
+				{Key: "paymentStatus", Value: bson.D{{Key: "$first", Value: "$paymentStatus"}}},
+				{Key: "paymentAmount", Value: bson.D{{Key: "$first", Value: "$paymentAmount"}}},
+				{Key: "paymentIntentId", Value: bson.D{{Key: "$first", Value: "$paymentIntentId"}}},
+				{Key: "employerFeedback", Value: bson.D{{Key: "$first", Value: "$employerFeedback"}}},
+				{Key: "workerFeedback", Value: bson.D{{Key: "$first", Value: "$workerFeedback"}}},
+				{Key: "applicants", Value: bson.D{{Key: "$push", Value: "$applicants"}}},
+				{Key: "assignedApplication", Value: bson.D{{Key: "$first", Value: "$assignedApplication"}}},
+			},
+		}},
+		// Stage 6: Lookup para traer la información del usuario asignado utilizando assignedApplication.applicantId
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
-				{Key: "localField", Value: "assignedTo"},
+				{Key: "localField", Value: "assignedApplication.applicantId"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "assignedToArr"},
-			}},
-		},
-		// 4. $addFields: Extraer el primer elemento de assignedToArr si existe; de lo contrario, devolver un objeto vacío
-		{
-			{Key: "$addFields", Value: bson.D{
+			},
+		}},
+		// Stage 7: Fusionar la información de assignedApplication con la del usuario asignado
+		{{
+			Key: "$addFields", Value: bson.D{
 				{Key: "assignedTo", Value: bson.D{
 					{Key: "$cond", Value: bson.D{
 						{Key: "if", Value: bson.D{
 							{Key: "$gt", Value: bson.A{
-								bson.D{{Key: "$size", Value: "$assignedToArr"}}, 0,
+								bson.D{{Key: "$size", Value: "$assignedToArr"}},
+								0,
 							}},
 						}},
 						{Key: "then", Value: bson.D{
-							{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}},
+							{Key: "$mergeObjects", Value: bson.A{
+								"$assignedApplication",
+								bson.D{{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}}},
+							}},
 						}},
 						{Key: "else", Value: bson.D{}},
 					}},
 				}},
-			}},
-		},
-		// 5. $project: Seleccionar únicamente los campos necesarios
-		{
-			{Key: "$project", Value: bson.D{
-				// Para los postulantes: solo _id, NameUser y Avatar
-				{Key: "applicants._id", Value: 1},
-				{Key: "applicants.NameUser", Value: 1},
-				{Key: "applicants.Avatar", Value: 1},
-				// Para el usuario asignado: solo _id, NameUser y Avatar
-				{Key: "assignedTo._id", Value: 1},
-				{Key: "assignedTo.NameUser", Value: 1},
-				{Key: "assignedTo.Avatar", Value: 1},
-				// Otros campos del job
+			},
+		}},
+		// Stage 8: Proyección final
+		{{
+			Key: "$project", Value: bson.D{
+				{Key: "applicants", Value: 1},
+				{Key: "assignedTo", Value: 1},
 				{Key: "userId", Value: 1},
 				{Key: "title", Value: 1},
 				{Key: "description", Value: 1},
@@ -455,100 +544,90 @@ func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdom
 				{Key: "paymentIntentId", Value: 1},
 				{Key: "employerFeedback", Value: 1},
 				{Key: "workerFeedback", Value: 1},
-			}},
-		},
+			},
+		}},
 	}
 
-	// Ejecutar la agregación
-	cursor, err := jobColl.Aggregate(context.TODO(), pipeline)
+	cursor, err := jobColl.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(context.TODO())
+	defer cursor.Close(context.Background())
 
-	// Decodificar el resultado en el struct JobDetailsUsers
 	var jobDetails []jobdomain.JobDetailsUsers
-	if err := cursor.All(context.TODO(), &jobDetails); err != nil {
+	if err := cursor.All(context.Background(), &jobDetails); err != nil {
 		return nil, err
 	}
-
 	if len(jobDetails) == 0 {
 		return nil, errors.New("job not found")
 	}
 
 	return &jobDetails[0], nil
 }
+
 func (j *JobRepository) GetJobDetailvisited(jobID primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
-	// Definir el pipeline de agregación
 	pipeline := mongo.Pipeline{
-		// 1. $match: Filtrar el job por _id
-		{
-			{Key: "$match", Value: bson.D{
+		// 1. Filtrar el job por _id
+		{{
+			Key: "$match", Value: bson.D{
 				{Key: "_id", Value: jobID},
-			}},
-		},
-		// 2. $lookup: Traer el usuario asignado (AssignedTo) desde la colección Users
-		{
-			{Key: "$lookup", Value: bson.D{
+			},
+		}},
+		// 2. Lookup para el usuario asignado, usando assignedApplication.applicantId
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
-				{Key: "localField", Value: "assignedTo"},
+				{Key: "localField", Value: "assignedApplication.applicantId"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "assignedToArr"},
-			}},
-		},
-		// 3. $addFields: Extraer el primer elemento de assignedToArr si existe; de lo contrario, devolver un objeto vacío
-		{
-			{Key: "$addFields", Value: bson.D{
+			},
+		}},
+		// 3. Extraer el primer elemento de assignedToArr para assignedTo
+		{{
+			Key: "$addFields", Value: bson.D{
 				{Key: "assignedTo", Value: bson.D{
 					{Key: "$cond", Value: bson.D{
 						{Key: "if", Value: bson.D{
-							{Key: "$gt", Value: bson.A{
-								bson.D{{Key: "$size", Value: "$assignedToArr"}}, 0,
-							}},
+							{Key: "$gt", Value: bson.A{bson.D{{Key: "$size", Value: "$assignedToArr"}}, 0}},
 						}},
-						{Key: "then", Value: bson.D{
-							{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}},
-						}},
+						{Key: "then", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}}}},
 						{Key: "else", Value: bson.D{}},
 					}},
 				}},
-			}},
-		},
-		// 4. $lookup: Traer los detalles del usuario creador (userId) desde la colección Users
-		{
-			{Key: "$lookup", Value: bson.D{
+			},
+		}},
+		// 4. Lookup para traer los detalles del usuario creador
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "userId"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "userDetailsArr"},
-			}},
-		},
-		// 5. $addFields: Extraer el primer elemento de userDetailsArr para userDetails
-		{
-			{Key: "$addFields", Value: bson.D{
+			},
+		}},
+		// 5. Extraer el primer elemento de userDetailsArr para userDetails
+		{{
+			Key: "$addFields", Value: bson.D{
 				{Key: "userDetails", Value: bson.D{
 					{Key: "$arrayElemAt", Value: bson.A{"$userDetailsArr", 0}},
 				}},
-			}},
-		},
-		// 6. $project: Seleccionar únicamente los campos necesarios
-		{
-			{Key: "$project", Value: bson.D{
-				// Para los postulantes: solo _id, NameUser y Avatar
-				{Key: "applicants._id", Value: 1},
-				{Key: "applicants.NameUser", Value: 1},
-				{Key: "applicants.Avatar", Value: 1},
-				// Para el usuario asignado: solo _id, NameUser y Avatar
+			},
+		}},
+		// 6. Proyectar únicamente los campos necesarios
+		{{
+			Key: "$project", Value: bson.D{
+				{Key: "applicants.applicantId", Value: 1},
+				{Key: "applicants.proposal", Value: 1},
+				{Key: "applicants.price", Value: 1},
+				{Key: "applicants.appliedAt", Value: 1},
 				{Key: "assignedTo._id", Value: 1},
 				{Key: "assignedTo.NameUser", Value: 1},
 				{Key: "assignedTo.Avatar", Value: 1},
-				// Para el usuario creador (userId): obtener _id, NameUser y Avatar
 				{Key: "userDetails._id", Value: 1},
 				{Key: "userDetails.NameUser", Value: 1},
 				{Key: "userDetails.Avatar", Value: 1},
-				// Otros campos del job
 				{Key: "title", Value: 1},
 				{Key: "description", Value: 1},
 				{Key: "location", Value: 1},
@@ -563,23 +642,20 @@ func (j *JobRepository) GetJobDetailvisited(jobID primitive.ObjectID) (*jobdomai
 				{Key: "paymentIntentId", Value: 1},
 				{Key: "employerFeedback", Value: 1},
 				{Key: "workerFeedback", Value: 1},
-			}},
-		},
+			},
+		}},
 	}
 
-	// Ejecutar la agregación
-	cursor, err := jobColl.Aggregate(context.TODO(), pipeline)
+	cursor, err := jobColl.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(context.TODO())
+	defer cursor.Close(context.Background())
 
-	// Decodificar el resultado en el struct JobDetailsUsers
 	var jobDetails []jobdomain.JobDetailsUsers
-	if err := cursor.All(context.TODO(), &jobDetails); err != nil {
+	if err := cursor.All(context.Background(), &jobDetails); err != nil {
 		return nil, err
 	}
-
 	if len(jobDetails) == 0 {
 		return nil, errors.New("job not found")
 	}
@@ -663,11 +739,11 @@ func (j *JobRepository) GetJobsByUserID(userID primitive.ObjectID, page int) ([]
 	// Filtrar por el userId
 	filter := bson.M{"userId": userID}
 
-	// Configurar la paginación y el orden: 10 trabajos por página, ordenados de más recientes a más viejos
+	// Configurar la paginación: 10 trabajos por página, ordenados de más recientes a más viejos
 	opts := options.Find().
 		SetLimit(10).
 		SetSkip(int64((page - 1) * 10)).
-		SetSort(bson.D{{"createdAt", -1}})
+		SetSort(bson.D{{Key: "createdAt", Value: -1}})
 
 	cursor, err := jobColl.Find(context.Background(), filter, opts)
 	if err != nil {
@@ -688,50 +764,64 @@ func (j *JobRepository) GetJobsByUserIDForEmploye(userID primitive.ObjectID, pag
 	skip := int64((page - 1) * 10)
 
 	pipeline := mongo.Pipeline{
-		// 1. Filtrar los trabajos cuyo campo "userId" coincida con el usuario
-		{{Key: "$match", Value: bson.D{
-			{Key: "userId", Value: userID},
-		}}},
-		// 2. Lookup: unir la información del usuario (el creador del job) usando la variable "userId"
-		{{Key: "$lookup", Value: bson.D{
-			{Key: "from", Value: "Users"},
-			{Key: "let", Value: bson.D{
-				{Key: "userId", Value: "$userId"},
-			}},
-			{Key: "pipeline", Value: bson.A{
-				bson.D{
-					{Key: "$match", Value: bson.D{
-						{Key: "$expr", Value: bson.D{
-							{Key: "$eq", Value: bson.A{"$_id", "$$userId"}},
-						}},
+		// Stage 1: Filtrar trabajos cuyo campo "assignedApplication.applicantId" coincida con el usuario
+		{{
+			Key: "$match", Value: bson.D{
+				{Key: "assignedApplication.applicantId", Value: userID},
+			},
+		}},
+		// Stage 2: Lookup para unir la información del usuario creador usando un pipeline
+		{{
+			Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "Users"},
+				{Key: "let", Value: bson.D{
+					{Key: "userId", Value: "$userId"},
+				}},
+				{Key: "pipeline", Value: bson.A{
+					bson.D{{
+						Key: "$match", Value: bson.D{
+							{Key: "$expr", Value: bson.D{
+								{Key: "$eq", Value: bson.A{"$_id", "$$userId"}},
+							}},
+						},
 					}},
-				},
-				bson.D{
-					{Key: "$project", Value: bson.D{
-						{Key: "_id", Value: 1},
-						{Key: "nameUser", Value: 1},
-						{Key: "avatar", Value: 1},
+					bson.D{{
+						Key: "$project", Value: bson.D{
+							{Key: "_id", Value: 1},
+							{Key: "nameUser", Value: 1},
+							{Key: "avatar", Value: 1},
+						},
 					}},
-				},
-			}},
-			{Key: "as", Value: "user"},
-		}}},
-		// 3. Convertir el array "user" en un documento
-		{{Key: "$unwind", Value: bson.D{
-			{Key: "path", Value: "$user"},
-			{Key: "preserveNullAndEmptyArrays", Value: true},
-		}}},
-		// 4. Proyectar para omitir el campo "Applicants"
-		{{Key: "$project", Value: bson.D{
-			{Key: "Applicants", Value: 0},
-		}}},
-		// 5. Ordenar por "createdAt" de forma descendente (más recientes primero)
-		{{Key: "$sort", Value: bson.D{
-			{Key: "createdAt", Value: -1},
-		}}},
-		// 6. Paginación: saltar y limitar los resultados
-		{{Key: "$skip", Value: skip}},
-		{{Key: "$limit", Value: limit}},
+				}},
+				{Key: "as", Value: "user"},
+			},
+		}},
+		// Stage 3: Convertir el array "user" en un documento
+		{{
+			Key: "$unwind", Value: bson.D{
+				{Key: "path", Value: "$user"},
+				{Key: "preserveNullAndEmptyArrays", Value: true},
+			},
+		}},
+		// Stage 4: Proyectar para omitir el campo "applicants"
+		{{
+			Key: "$project", Value: bson.D{
+				{Key: "applicants", Value: 0},
+			},
+		}},
+		// Stage 5: Ordenar por "createdAt" descendente
+		{{
+			Key: "$sort", Value: bson.D{
+				{Key: "createdAt", Value: -1},
+			},
+		}},
+		// Stage 6: Paginación: saltar y limitar los resultados
+		{{
+			Key: "$skip", Value: skip,
+		}},
+		{{
+			Key: "$limit", Value: limit,
+		}},
 	}
 
 	cursor, err := jobColl.Aggregate(context.Background(), pipeline)
@@ -753,19 +843,17 @@ func (j *JobRepository) GetJobsByUserIDForEmploye(userID primitive.ObjectID, pag
 }
 
 // GetAverageRatingForWorker calcula el promedio de calificaciones que un trabajador ha recibido
-// en los últimos 10 trabajos completados.
 func (j *JobRepository) GetAverageRatingForWorker(workerID primitive.ObjectID) (float64, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
-	// Filtramos por trabajos asignados al trabajador y que estén completados.
+	// Filtrar por trabajos asignados al trabajador y que estén completados.
 	filter := bson.M{
-		"assignedTo": workerID,
-		"status":     jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
-
+		"assignedApplication.applicantId": workerID,
+		"status":                          jobdomain.JobStatusCompleted,
 	}
 
 	// Opciones: orden descendente por createdAt y límite de 10 documentos.
-	opts := options.Find().SetSort(bson.D{{"createdAt", -1}}).SetLimit(10)
+	opts := options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}).SetLimit(10)
 
 	cursor, err := jobColl.Find(context.Background(), filter, opts)
 	if err != nil {
@@ -778,7 +866,7 @@ func (j *JobRepository) GetAverageRatingForWorker(workerID primitive.ObjectID) (
 		return 0, err
 	}
 
-	// Calculamos el promedio de estrellas a partir del feedback del empleador.
+	// Calcular el promedio a partir del feedback del empleador.
 	var totalRating float64
 	var count int
 	for _, job := range jobs {
@@ -792,23 +880,20 @@ func (j *JobRepository) GetAverageRatingForWorker(workerID primitive.ObjectID) (
 		return 0, nil // No hay calificaciones disponibles.
 	}
 
-	avgRating := totalRating / float64(count)
-	return avgRating, nil
+	average := totalRating / float64(count)
+	return math.Round(average*10) / 10, nil
 }
 
 // GetAverageRatingForEmployer calcula el promedio de calificaciones que un empleador ha recibido
-// en los últimos 10 trabajos completados.
 func (j *JobRepository) GetAverageRatingForEmployer(employerID primitive.ObjectID) (float64, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
-	// Filtramos por trabajos creados por el empleador y que estén completados.
 	filter := bson.M{
 		"userId": employerID,
-		"status": jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
+		"status": jobdomain.JobStatusCompleted,
 	}
 
-	// Opciones: orden descendente por createdAt y límite de 10 documentos.
-	opts := options.Find().SetSort(bson.D{{"createdAt", -1}}).SetLimit(10)
+	opts := options.Find().SetSort(bson.D{{Key: "createdAt", Value: -1}}).SetLimit(10)
 
 	cursor, err := jobColl.Find(context.Background(), filter, opts)
 	if err != nil {
@@ -821,7 +906,6 @@ func (j *JobRepository) GetAverageRatingForEmployer(employerID primitive.ObjectI
 		return 0, err
 	}
 
-	// Calculamos el promedio de estrellas a partir del feedback del trabajador.
 	var totalRating float64
 	var count int
 	for _, job := range jobs {
@@ -832,70 +916,78 @@ func (j *JobRepository) GetAverageRatingForEmployer(employerID primitive.ObjectI
 	}
 
 	if count == 0 {
-		return 0, nil // No hay calificaciones disponibles.
+		return 0, nil
 	}
 
-	avgRating := totalRating / float64(count)
-	return avgRating, nil
+	average := totalRating / float64(count)
+	return math.Round(average*10) / 10, nil
 }
+
 func (j *JobRepository) GetJobsAssignedCompleted(employerID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
 	// Filtrar por assignedTo y status completado
 	filter := bson.M{
-		"assignedTo": employerID,
-		"status":     jobdomain.JobStatusCompleted,
+		"assignedApplication.applicantId": employerID,
+		"status":                          jobdomain.JobStatusCompleted,
 	}
 	limit := 10
 	skip := (page - 1) * limit
 
-	// Definición del pipeline de agregación con sintaxis de claves nombradas
 	pipeline := mongo.Pipeline{
-		{ // Stage 1: Filtrado
-			primitive.E{Key: "$match", Value: filter},
-		},
-		{ // Stage 2: Ordenar por createdAt descendente
-			primitive.E{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}},
-		},
-		{ // Stage 3: Paginación
-			primitive.E{Key: "$skip", Value: skip},
-		},
-		{
-			primitive.E{Key: "$limit", Value: limit},
-		},
-		{ // Stage 4: Lookup para obtener el usuario asignado
-			primitive.E{Key: "$lookup", Value: bson.D{
+		// Stage 1: Filtrado
+		{{
+			Key: "$match", Value: filter,
+		}},
+		// Stage 2: Ordenar por createdAt descendente
+		{{
+			Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}},
+		}},
+		// Stage 3: Paginación
+		{{
+			Key: "$skip", Value: skip,
+		}},
+		{{
+			Key: "$limit", Value: limit,
+		}},
+		// Stage 4: Lookup para obtener el usuario asignado
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "assignedTo"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "assignedToArr"},
-			}},
-		},
-		{ // Stage 5: Extraer el primer elemento de assignedToArr
-			primitive.E{Key: "$addFields", Value: bson.D{
+			},
+		}},
+		// Stage 5: Extraer el primer elemento de assignedToArr
+		{{
+			Key: "$addFields", Value: bson.D{
 				{Key: "assignedTo", Value: bson.D{
 					{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}},
 				}},
-			}},
-		},
-		{ // Stage 6: Lookup para obtener los detalles del usuario creador (userId)
-			primitive.E{Key: "$lookup", Value: bson.D{
+			},
+		}},
+		// Stage 6: Lookup para obtener los detalles del usuario creador (userId)
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "userId"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "userDetailsArr"},
-			}},
-		},
-		{ // Stage 7: Extraer el primer elemento de userDetailsArr
-			primitive.E{Key: "$addFields", Value: bson.D{
+			},
+		}},
+		// Stage 7: Extraer el primer elemento de userDetailsArr
+		{{
+			Key: "$addFields", Value: bson.D{
 				{Key: "userDetails", Value: bson.D{
 					{Key: "$arrayElemAt", Value: bson.A{"$userDetailsArr", 0}},
 				}},
-			}},
-		},
-		{ // Stage 8: Proyección para limitar los campos
-			primitive.E{Key: "$project", Value: bson.D{
-				{Key: "applicants._id", Value: 1},
+			},
+		}},
+		// Stage 8: Proyección para limitar los campos
+		{{
+			Key: "$project", Value: bson.D{
+				{Key: "applicants.applicantId", Value: 1},
 				{Key: "applicants.NameUser", Value: 1},
 				{Key: "applicants.Avatar", Value: 1},
 				{Key: "assignedTo._id", Value: 1},
@@ -919,8 +1011,8 @@ func (j *JobRepository) GetJobsAssignedCompleted(employerID primitive.ObjectID, 
 				{Key: "paymentIntentId", Value: 1},
 				{Key: "employerFeedback", Value: 1},
 				{Key: "workerFeedback", Value: 1},
-			}},
-		},
+			},
+		}},
 	}
 
 	cursor, err := jobColl.Aggregate(context.Background(), pipeline)
@@ -940,9 +1032,8 @@ func (j *JobRepository) GetJobsAssignedCompleted(employerID primitive.ObjectID, 
 func (j *JobRepository) GetJobsAssignedNoCompleted(employerID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
-	// Filtrar por assignedTo y status no completados
 	filter := bson.M{
-		"assignedTo": employerID,
+		"assignedApplication.applicantId": employerID,
 		"status": bson.M{"$in": []string{
 			string(jobdomain.JobStatusOpen),
 			string(jobdomain.JobStatusInProgress),
@@ -951,52 +1042,59 @@ func (j *JobRepository) GetJobsAssignedNoCompleted(employerID primitive.ObjectID
 	limit := 10
 	skip := (page - 1) * limit
 
-	// Definición del pipeline de agregación con sintaxis de claves nombradas
 	pipeline := mongo.Pipeline{
-		{ // Stage 1: Filtrado
-			primitive.E{Key: "$match", Value: filter},
-		},
-		{ // Stage 2: Ordenar por createdAt descendente
-			primitive.E{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}},
-		},
-		{ // Stage 3: Paginación
-			primitive.E{Key: "$skip", Value: skip},
-		},
-		{
-			primitive.E{Key: "$limit", Value: limit},
-		},
-		{ // Stage 4: Lookup para obtener el usuario asignado
-			primitive.E{Key: "$lookup", Value: bson.D{
+		// Stage 1: Filtrado
+		{{
+			Key: "$match", Value: filter,
+		}},
+		// Stage 2: Ordenar por createdAt descendente
+		{{
+			Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}},
+		}},
+		// Stage 3: Paginación
+		{{
+			Key: "$skip", Value: skip,
+		}},
+		{{
+			Key: "$limit", Value: limit,
+		}},
+		// Stage 4: Lookup para obtener el usuario asignado
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "assignedTo"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "assignedToArr"},
-			}},
-		},
-		{ // Stage 5: Extraer el primer elemento de assignedToArr
-			primitive.E{Key: "$addFields", Value: bson.D{
+			},
+		}},
+		// Stage 5: Extraer el primer elemento de assignedToArr
+		{{
+			Key: "$addFields", Value: bson.D{
 				{Key: "assignedTo", Value: bson.D{
 					{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}},
 				}},
-			}},
-		},
-		{ // Stage 6: Lookup para obtener los detalles del usuario creador (userId)
-			primitive.E{Key: "$lookup", Value: bson.D{
+			},
+		}},
+		// Stage 6: Lookup para obtener los detalles del usuario creador (userId)
+		{{
+			Key: "$lookup", Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "userId"},
 				{Key: "foreignField", Value: "_id"},
 				{Key: "as", Value: "userDetailsArr"},
-			}},
-		},
-		{ // Stage 7: Extraer el primer elemento de userDetailsArr
-			primitive.E{Key: "$addFields", Value: bson.D{
+			},
+		}},
+		// Stage 7: Extraer el primer elemento de userDetailsArr
+		{{
+			Key: "$addFields", Value: bson.D{
 				{Key: "userDetails", Value: bson.D{
 					{Key: "$arrayElemAt", Value: bson.A{"$userDetailsArr", 0}},
 				}},
-			}},
-		},
-		{ // Stage 8: Proyección para limitar los campos
-			primitive.E{Key: "$project", Value: bson.D{
+			},
+		}},
+		// Stage 8: Proyección para limitar los campos
+		{{
+			Key: "$project", Value: bson.D{
 				{Key: "applicants._id", Value: 1},
 				{Key: "applicants.NameUser", Value: 1},
 				{Key: "applicants.Avatar", Value: 1},
@@ -1021,8 +1119,8 @@ func (j *JobRepository) GetJobsAssignedNoCompleted(employerID primitive.ObjectID
 				{Key: "paymentIntentId", Value: 1},
 				{Key: "employerFeedback", Value: 1},
 				{Key: "workerFeedback", Value: 1},
-			}},
-		},
+			},
+		}},
 	}
 
 	cursor, err := jobColl.Aggregate(context.Background(), pipeline)

@@ -17,7 +17,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { Editbiografia, getUserToken } from '@/services/userService';
 import {
-    getJobsProfile,
+    getCreateJobsProfile,
     GetJobsByUserIDForEmploye,
     GetLatestJobsForEmployer,
     GetLatestJobsForWorker,
@@ -32,8 +32,9 @@ export default function ProfileScreen() {
     const [userProfile, setUserProfile] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
+    const [workerJobs, setWorkerJobs] = useState<any[]>([]);
     const [employerJobs, setEmployerJobs] = useState<any[]>([]);
-    const [jobFeed, setJobFeed] = useState<any[]>([]);
+    //  jobFeed == trabajos realzados
     const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('jobFeed');
     const [createJobVisible, setCreateJobVisible] = useState(false);
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
@@ -44,16 +45,22 @@ export default function ProfileScreen() {
     const [biografia, setBiografia] = useState('');
 
     useEffect(() => {
-        const fetchRating = async () => {
-            if (!token) return;
+
+        const getRating = async () => {
             let res;
-            res = await GetLatestJobsForEmployer(token as string);
+            if (activeSection === 'jobFeed') {
+
+                res = await GetLatestJobsForWorker(token as string);
+            } else {
+
+                res = await GetLatestJobsForEmployer(token as string);
+            }
 
             if (res && res.Rating !== undefined) {
                 setLatestRating(res.Rating);
             }
-        };
-        fetchRating();
+        }
+        getRating()
     }, [activeSection, token]);
 
     useEffect(() => {
@@ -89,17 +96,40 @@ export default function ProfileScreen() {
             setLoading(true);
             try {
                 const feedData = await GetJobsByUserIDForEmploye(1, token);
-                setJobFeed(feedData?.jobs || []);
+
+                setWorkerJobs(feedData?.jobs || []);
                 setCurrentPageJobFeed(1);
             } catch (error) {
+                setWorkerJobs([]);
                 console.error(error);
             } finally {
                 setLoading(false);
             }
         };
+        const fetchEmployer = async () => {
+            setLoading(true);
+            try {
+                const feedData = await getCreateJobsProfile(1, token);
+                console.log(feedData);
+
+                setEmployerJobs(feedData?.jobs || []);
+                setCurrentPageJobFeed(1);
+            } catch (error) {
+                setEmployerJobs([]);
+
+                console.error(error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        console.log("activeSection", activeSection);
+
         if (activeSection === 'jobFeed') {
             fetchJobFeed();
+        } else {
+            fetchEmployer()
         }
+
     }, [activeSection, token]);
 
     const handleLogout = async () => {
@@ -118,7 +148,6 @@ export default function ProfileScreen() {
             return;
         }
         const resEdit = await Editbiografia(biografia, token as string);
-        console.log(resEdit);
         setEditBioVisible(false);
     };
 
@@ -136,7 +165,7 @@ export default function ProfileScreen() {
         if (!token) return;
         const nextPage = currentPageEmployer + 1;
         try {
-            const newData = await getJobsProfile(nextPage, token);
+            const newData = await getCreateJobsProfile(nextPage, token);
             if (newData?.jobs) {
                 setEmployerJobs(prev => [...prev, ...newData.jobs]);
                 setCurrentPageEmployer(nextPage);
@@ -152,7 +181,7 @@ export default function ProfileScreen() {
         try {
             const newData = await GetJobsByUserIDForEmploye(nextPage, token);
             if (newData?.jobs) {
-                setJobFeed(prev => [...prev, ...newData.jobs]);
+                setWorkerJobs(prev => [...prev, ...newData.jobs]);
                 setCurrentPageJobFeed(nextPage);
             }
         } catch (err) {
@@ -195,7 +224,14 @@ export default function ProfileScreen() {
                         Trabajos realizados
                     </Text>
                 </TouchableOpacity>
-
+                <TouchableOpacity
+                    style={[styles.toggleButton, activeSection === 'employer' && styles.activeToggle]}
+                    onPress={() => setActiveSection('employer')}
+                >
+                    <Text style={[styles.toggleButtonText, activeSection === 'employer' && styles.activeToggleText]}>
+                        Trabajos creados
+                    </Text>
+                </TouchableOpacity>
             </View>
         </View>
     );
@@ -212,7 +248,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
     );
 
-    const data = activeSection === 'employer' ? employerJobs : jobFeed;
+    const data = activeSection === 'employer' ? employerJobs : workerJobs;
     const onEndReached =
         activeSection === 'employer' ? loadMoreEmployerJobs : loadMoreJobFeed;
 

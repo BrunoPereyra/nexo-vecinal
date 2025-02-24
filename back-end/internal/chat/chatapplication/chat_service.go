@@ -9,6 +9,8 @@ import (
 	jobinfrastructure "back-end/internal/Job/Job-infrastructure"
 	"back-end/internal/chat/chatdomain"
 	"back-end/internal/chat/chatinfrastructure"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // ChatService se encarga de la lógica de negocio para el chat.
@@ -40,11 +42,11 @@ func (s *ChatService) SendMessage(ctx context.Context, msg chatdomain.ChatMessag
 			return msg, fmt.Errorf("no se puede chatear: el trabajo está completado")
 		}
 		// Validar que los participantes sean el empleador y el trabajador asignado.
-		if job.AssignedTo == nil {
+		if job.AssignedApplication.ApplicantID == primitive.NilObjectID {
 			return msg, fmt.Errorf("el trabajo no tiene asignado un trabajador")
 		}
-		validParticipants := (job.UserID == msg.SenderID && *job.AssignedTo == msg.ReceiverID) ||
-			(job.UserID == msg.ReceiverID && *job.AssignedTo == msg.SenderID)
+		validParticipants := (job.UserID == msg.SenderID && job.AssignedApplication.ApplicantID == msg.ReceiverID) ||
+			(job.UserID == msg.ReceiverID && job.AssignedApplication.ApplicantID == msg.SenderID)
 		if !validParticipants {
 			return msg, fmt.Errorf("el chat solo está permitido entre el empleador y el trabajador asignado")
 		}

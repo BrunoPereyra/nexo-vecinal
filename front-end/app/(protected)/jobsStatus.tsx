@@ -33,6 +33,7 @@ const JobsStatusScreen: React.FC = () => {
           GetJobsAssignedNoCompleted(token),
           GetJobsAssignedCompleted(token)
         ]);
+
         setJobsNotCompleted(responseNotCompleted?.data || []);
         setJobsCompleted(responseCompleted?.data || []);
       } catch (err: any) {
