@@ -47,6 +47,8 @@ export default function EmployerJobDetail() {
       setLoading(true);
       try {
         const data = await GetJobTokenAdmin(jobId, token);
+        console.log("data", data);
+
         if (data.job) {
           setJobDetail(data.job);
         } else {
@@ -167,35 +169,38 @@ export default function EmployerJobDetail() {
         onPress={() =>
           router.push(
             `/ChatJobs?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
-              JSON.stringify(jobDetail.assignedTo)
+              JSON.stringify(jobDetail.assignedTo.userData)
             )}`
           )
+
         }
       >
         <Text style={darkStyles.chatButtonText}>Abrir Chat</Text>
       </TouchableOpacity>
-      {jobDetail.location && jobDetail.location.coordinates && (
-        <View style={darkStyles.mapContainer}>
-          <MapView
-            style={darkStyles.map}
-            initialRegion={{
-              latitude: jobDetail.location.coordinates[1],
-              longitude: jobDetail.location.coordinates[0],
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}
-          >
-            <Marker
-              coordinate={{
+      {
+        jobDetail.location && jobDetail.location.coordinates && (
+          <View style={darkStyles.mapContainer}>
+            <MapView
+              style={darkStyles.map}
+              initialRegion={{
                 latitude: jobDetail.location.coordinates[1],
                 longitude: jobDetail.location.coordinates[0],
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
               }}
-              title={jobDetail.title}
-              description={jobDetail.description}
-            />
-          </MapView>
-        </View>
-      )}
+            >
+              <Marker
+                coordinate={{
+                  latitude: jobDetail.location.coordinates[1],
+                  longitude: jobDetail.location.coordinates[0],
+                }}
+                title={jobDetail.title}
+                description={jobDetail.description}
+              />
+            </MapView>
+          </View>
+        )
+      }
       <ApplicantsList job={jobDetail} token={token as string} />
       <TouchableOpacity
         style={darkStyles.completeButton}
@@ -219,7 +224,7 @@ export default function EmployerJobDetail() {
       />
 
       <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
-    </ScrollView>
+    </ScrollView >
   );
 }
 

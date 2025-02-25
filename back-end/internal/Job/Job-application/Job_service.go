@@ -118,7 +118,8 @@ func (js *JobService) UpdateJobStatusToCompleted(jobId, UserId primitive.ObjectI
 	return js.JobRepository.UpdateJobStatusToCompleted(jobId, UserId)
 }
 func (js *JobService) GetJobTokenAdmin(jobId, UserId primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
-	return js.JobRepository.GetJobDetails(jobId, UserId)
+	Job, err := js.JobRepository.GetJobDetails(jobId, UserId)
+	return Job, err
 }
 func (js *JobService) GetJobDetailvisited(jobId primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.GetJobDetailvisited(jobId)

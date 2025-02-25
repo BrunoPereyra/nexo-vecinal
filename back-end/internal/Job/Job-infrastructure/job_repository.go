@@ -426,124 +426,122 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 
 func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-
 	pipeline := mongo.Pipeline{
-		// Stage 1: Filtrar por jobID y userId (esto se usa cuando queremos el job creado por un usuario concreto)
+		// Stage 1: Filtrar por jobID y que el usuario sea el creador o el asignado
 		{{
-			Key: "$match", Value: bson.D{
+			Key: "$match",
+			Value: bson.D{
 				{Key: "_id", Value: jobID},
-				{Key: "userId", Value: idUser},
+				{Key: "$or", Value: bson.A{
+					bson.D{{Key: "userId", Value: idUser}},
+					bson.D{{Key: "assignedApplication.applicantId", Value: idUser}},
+				}},
 			},
 		}},
-		// Stage 2: Desempaquetar el array de applicants para poder hacer lookup en cada uno
+		// Stage 2: Lookup para obtener los detalles del usuario creador
 		{{
-			Key: "$unwind", Value: bson.D{
-				{Key: "path", Value: "$applicants"},
+			Key: "$lookup",
+			Value: bson.D{
+				{Key: "from", Value: "Users"},
+				{Key: "localField", Value: "userId"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "userDetails"},
+			},
+		}},
+		// Stage 3: Unwind de userDetails con preserveNullAndEmptyArrays para conservar el documento aun si no hay coincidencia
+		{{
+			Key: "$unwind",
+			Value: bson.D{
+				{Key: "path", Value: "$userDetails"},
 				{Key: "preserveNullAndEmptyArrays", Value: true},
 			},
 		}},
-		// Stage 3: Lookup para traer la información del postulante usando applicants.applicantId
+		// Stage 4: Lookup para obtener detalles de los postulantes
 		{{
-			Key: "$lookup", Value: bson.D{
+			Key: "$lookup",
+			Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "applicants.applicantId"},
 				{Key: "foreignField", Value: "_id"},
-				{Key: "as", Value: "applicantData"},
+				{Key: "as", Value: "applicantsDetails"},
 			},
 		}},
-		// Stage 4: Fusionar la información de la aplicación con la información del usuario
+		// Stage 5: Mapear el arreglo de postulantes para incluir userData en cada uno
 		{{
-			Key: "$addFields", Value: bson.D{
+			Key: "$addFields",
+			Value: bson.D{
 				{Key: "applicants", Value: bson.D{
-					{Key: "$mergeObjects", Value: bson.A{
-						"$applicants",
-						bson.D{
+					{Key: "$map", Value: bson.D{
+						{Key: "input", Value: "$applicants"},
+						{Key: "as", Value: "app"},
+						{Key: "in", Value: bson.D{
+							{Key: "applicantId", Value: "$$app.applicantId"},
+							{Key: "proposal", Value: "$$app.proposal"},
+							{Key: "price", Value: "$$app.price"},
+							{Key: "appliedAt", Value: "$$app.appliedAt"},
 							{Key: "userData", Value: bson.D{
-								{Key: "$ifNull", Value: bson.A{
-									// Si existe datos del usuario, obtenemos el primer elemento, sino un objeto vacío.
-									bson.D{{Key: "$arrayElemAt", Value: bson.A{"$applicantData", 0}}},
-									bson.D{},
+								{Key: "$arrayElemAt", Value: bson.A{
+									bson.D{
+										{Key: "$filter", Value: bson.D{
+											{Key: "input", Value: "$applicantsDetails"},
+											{Key: "as", Value: "detail"},
+											{Key: "cond", Value: bson.D{
+												{Key: "$eq", Value: bson.A{"$$detail._id", "$$app.applicantId"}},
+											}},
+										}},
+									},
+									0,
 								}},
 							}},
-						},
+						}},
 					}},
 				}},
 			},
 		}},
-		// Stage 5: Volver a agrupar para reconstruir el array de applicants
+		// Stage 6: Lookup para obtener detalles del usuario asignado (si existe)
 		{{
-			Key: "$group", Value: bson.D{
-				{Key: "_id", Value: "$_id"},
-				{Key: "userId", Value: bson.D{{Key: "$first", Value: "$userId"}}},
-				{Key: "title", Value: bson.D{{Key: "$first", Value: "$title"}}},
-				{Key: "description", Value: bson.D{{Key: "$first", Value: "$description"}}},
-				{Key: "location", Value: bson.D{{Key: "$first", Value: "$location"}}},
-				{Key: "tags", Value: bson.D{{Key: "$first", Value: "$tags"}}},
-				{Key: "budget", Value: bson.D{{Key: "$first", Value: "$budget"}}},
-				{Key: "finalCost", Value: bson.D{{Key: "$first", Value: "$finalCost"}}},
-				{Key: "status", Value: bson.D{{Key: "$first", Value: "$status"}}},
-				{Key: "createdAt", Value: bson.D{{Key: "$first", Value: "$createdAt"}}},
-				{Key: "updatedAt", Value: bson.D{{Key: "$first", Value: "$updatedAt"}}},
-				{Key: "paymentStatus", Value: bson.D{{Key: "$first", Value: "$paymentStatus"}}},
-				{Key: "paymentAmount", Value: bson.D{{Key: "$first", Value: "$paymentAmount"}}},
-				{Key: "paymentIntentId", Value: bson.D{{Key: "$first", Value: "$paymentIntentId"}}},
-				{Key: "employerFeedback", Value: bson.D{{Key: "$first", Value: "$employerFeedback"}}},
-				{Key: "workerFeedback", Value: bson.D{{Key: "$first", Value: "$workerFeedback"}}},
-				{Key: "applicants", Value: bson.D{{Key: "$push", Value: "$applicants"}}},
-				{Key: "assignedApplication", Value: bson.D{{Key: "$first", Value: "$assignedApplication"}}},
-			},
-		}},
-		// Stage 6: Lookup para traer la información del usuario asignado utilizando assignedApplication.applicantId
-		{{
-			Key: "$lookup", Value: bson.D{
+			Key: "$lookup",
+			Value: bson.D{
 				{Key: "from", Value: "Users"},
 				{Key: "localField", Value: "assignedApplication.applicantId"},
 				{Key: "foreignField", Value: "_id"},
-				{Key: "as", Value: "assignedToArr"},
+				{Key: "as", Value: "assignedUserDetails"},
 			},
 		}},
-		// Stage 7: Fusionar la información de assignedApplication con la del usuario asignado
+		// Stage 7: Combinar assignedApplication con los datos del usuario asignado
 		{{
-			Key: "$addFields", Value: bson.D{
+			Key: "$addFields",
+			Value: bson.D{
 				{Key: "assignedTo", Value: bson.D{
 					{Key: "$cond", Value: bson.D{
 						{Key: "if", Value: bson.D{
-							{Key: "$gt", Value: bson.A{
-								bson.D{{Key: "$size", Value: "$assignedToArr"}},
-								0,
+							// Si el tipo de assignedApplication es "object"
+							{Key: "$eq", Value: bson.A{
+								bson.D{{Key: "$type", Value: "$assignedApplication"}},
+								"object",
 							}},
 						}},
 						{Key: "then", Value: bson.D{
-							{Key: "$mergeObjects", Value: bson.A{
-								"$assignedApplication",
-								bson.D{{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}}},
+							{Key: "$cond", Value: bson.D{
+								// Si hay detalles del usuario asignado (array con tamaño mayor a 0)
+								{Key: "if", Value: bson.D{{Key: "$gt", Value: bson.A{
+									bson.D{{Key: "$size", Value: "$assignedUserDetails"}},
+									0,
+								}}}},
+								{Key: "then", Value: bson.D{
+									{Key: "$mergeObjects", Value: bson.A{
+										"$assignedApplication",
+										bson.D{{Key: "userData", Value: bson.D{
+											{Key: "$arrayElemAt", Value: bson.A{"$assignedUserDetails", 0}},
+										}}},
+									}},
+								}},
+								{Key: "else", Value: "$assignedApplication"},
 							}},
 						}},
-						{Key: "else", Value: bson.D{}},
+						{Key: "else", Value: nil},
 					}},
 				}},
-			},
-		}},
-		// Stage 8: Proyección final
-		{{
-			Key: "$project", Value: bson.D{
-				{Key: "applicants", Value: 1},
-				{Key: "assignedTo", Value: 1},
-				{Key: "userId", Value: 1},
-				{Key: "title", Value: 1},
-				{Key: "description", Value: 1},
-				{Key: "location", Value: 1},
-				{Key: "tags", Value: 1},
-				{Key: "budget", Value: 1},
-				{Key: "finalCost", Value: 1},
-				{Key: "status", Value: 1},
-				{Key: "createdAt", Value: 1},
-				{Key: "updatedAt", Value: 1},
-				{Key: "paymentStatus", Value: 1},
-				{Key: "paymentAmount", Value: 1},
-				{Key: "paymentIntentId", Value: 1},
-				{Key: "employerFeedback", Value: 1},
-				{Key: "workerFeedback", Value: 1},
 			},
 		}},
 	}
@@ -554,15 +552,14 @@ func (j *JobRepository) GetJobDetails(jobID, idUser primitive.ObjectID) (*jobdom
 	}
 	defer cursor.Close(context.Background())
 
-	var jobDetails []jobdomain.JobDetailsUsers
-	if err := cursor.All(context.Background(), &jobDetails); err != nil {
+	var jobs []jobdomain.JobDetailsUsers
+	if err = cursor.All(context.Background(), &jobs); err != nil {
 		return nil, err
 	}
-	if len(jobDetails) == 0 {
+	if len(jobs) == 0 {
 		return nil, errors.New("job not found")
 	}
-
-	return &jobDetails[0], nil
+	return &jobs[0], nil
 }
 
 func (j *JobRepository) GetJobDetailvisited(jobID primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
