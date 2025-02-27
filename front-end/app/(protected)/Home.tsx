@@ -37,7 +37,6 @@ const Home: React.FC = () => {
     };
     try {
       const data = await getJobsByFilters(apiFilters, token);
-      console.log('Jobs:', data);
       setJobs(data || []);
     } catch (error) {
       console.error('Error fetching jobs:', error);

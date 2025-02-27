@@ -73,6 +73,8 @@ export default function ProfileScreen() {
             try {
                 const data = await getUserToken(token);
                 if (data?.data) {
+                    console.log(data.data);
+
                     setUserProfile(data.data);
                     setBiografia(data.data.Biography || '');
                 }
@@ -101,7 +103,7 @@ export default function ProfileScreen() {
                 setCurrentPageJobFeed(1);
             } catch (error) {
                 setWorkerJobs([]);
-                console.error(error);
+                // console.error(error);
             } finally {
                 setLoading(false);
             }
@@ -295,11 +297,21 @@ export default function ProfileScreen() {
                     <TouchableOpacity onPress={handleSubscribe} style={styles.dropdownButton}>
                         <Text style={styles.dropdownButtonText}>Subscribirse</Text>
                     </TouchableOpacity>
+                    {/* Nuevo botón para administradores */}
+                    {/* {userProfile?.PanelAdminNexoVecinal?.Level === 1 && ( */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/adminPanel')}
+                        style={styles.dropdownButton}
+                    >
+                        <Text style={styles.dropdownButtonText}>Administrador</Text>
+                    </TouchableOpacity>
+                    {/* )} */}
                     <TouchableOpacity onPress={handleLogoutOption} style={[styles.dropdownButton, styles.dropdownLogout]}>
                         <Text style={styles.dropdownButtonText}>Cerrar sesión</Text>
                     </TouchableOpacity>
                 </View>
             )}
+
             <Modal visible={editBioVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
