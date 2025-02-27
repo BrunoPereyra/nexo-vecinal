@@ -6,9 +6,6 @@ import (
 	"back-end/pkg/authGoogleAuthenticator"
 	"back-end/pkg/helpers"
 
-	// "back-end/pkg/authGoogleAuthenticator"
-	// "back-end/pkg/helpers"
-	// "back-end/pkg/utils"
 	"context"
 	"encoding/json"
 	"errors"
@@ -550,10 +547,6 @@ func (u *UserRepository) GetUserBykey(key string) (*domain.GetUser, error) {
 	return u.getUser(filter)
 }
 
-func (u *UserRepository) GetUserByCmt(Cmt string) (*domain.User, error) {
-	filter := bson.D{{Key: "Cmt", Value: Cmt}}
-	return u.getFullUser(filter)
-}
 func (u *UserRepository) GetUserBanInstream(key string) (bool, error) {
 	filter := bson.D{{Key: "KeyTransmission", Value: key}}
 
