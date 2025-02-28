@@ -3,6 +3,7 @@ package cursosinterfaces
 import (
 	"back-end/internal/cursos/cursosapplication"
 	cursosdomain "back-end/internal/cursos/cursosfomain"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -31,7 +32,6 @@ func NewCursoHandler(service *cursosapplication.CursoService, userRepo UserRepos
 
 // CreateCurso maneja la creación de un nuevo curso.
 func (h *CursoHandler) CreateCurso(c *fiber.Ctx) error {
-	// Se extrae el ID del usuario desde el token (usando middleware.UseExtractor())
 	idValue := c.Context().UserValue("_id").(string)
 	userID, err := primitive.ObjectIDFromHex(idValue)
 	if err != nil {
@@ -41,10 +41,14 @@ func (h *CursoHandler) CreateCurso(c *fiber.Ctx) error {
 	}
 
 	var req cursosdomain.CursoModelValidator
+	fmt.Println(c.BodyParser(&req))
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid request body"})
 	}
+
 	if err := req.ValidateCurso(); err != nil {
+		fmt.Print(err.Error())
+
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": err.Error()})
 	}
 
@@ -70,7 +74,8 @@ func (h *CursoHandler) CreateCurso(c *fiber.Ctx) error {
 		Seccion:       req.Seccion,
 	}
 
-	if err := h.CursoService.CreateCurso(curso); err != nil {
+	err = h.CursoService.CreateCurso(curso)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error creating course"})
 	}
 	return c.Status(fiber.StatusCreated).JSON(curso)

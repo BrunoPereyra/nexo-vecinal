@@ -4,6 +4,7 @@ import (
 	"back-end/internal/cursos/cursosapplication"
 	cursosinfrastructure "back-end/internal/cursos/cursosinfrastructura"
 	"back-end/internal/cursos/cursosinterfaces"
+	userinfrastructure "back-end/internal/user/user-infrastructure"
 	"back-end/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,10 +13,10 @@ import (
 )
 
 // UserRepository se debe implementar en otra parte de tu aplicación y pasarse aquí.
-type UserRepository = cursosinterfaces.UserRepository
 
 // CursoRoutes configura los endpoints para gestionar cursos.
-func CursoRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *mongo.Client, userRepo UserRepository) {
+func CursoRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *mongo.Client) {
+	userRepo := userinfrastructure.NewUserRepository(redisClient, mongoClient)
 	// Se crea el repositorio, servicio y handler de cursos.
 	cursoRepo := cursosinfrastructure.NewCursoRepository(mongoClient)
 	cursoService := cursosapplication.NewCursoService(cursoRepo)

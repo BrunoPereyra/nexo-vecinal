@@ -1,7 +1,21 @@
 // app/(protected)/adminPanel.tsx
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    StyleSheet,
+    FlatList,
+    Alert,
+    ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
+import {
+    getActiveCourses,
+    getCoursesPaginated,
+    Course,
+} from '@/services/cursos';
 
 const dummyReports = [
     {
@@ -17,20 +31,40 @@ const dummyReports = [
     // Más reportes de ejemplo...
 ];
 
-const dummyCourses = [
-    { id: '101', title: 'Curso de React', active: true },
-    { id: 'c2', title: 'Curso de Node.js', active: false },
-    { id: 'c3', title: 'Curso de MongoDB', active: true },
-    { id: 'c4', title: 'Curso de Diseño UX', active: false },
-    // Más cursos de ejemplo...
-];
-
 export default function AdminPanelScreen() {
+    const { token } = useAuth();
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'reports' | 'courses'>('reports');
     const [courseFilter, setCourseFilter] = useState<'active' | 'inactive'>('active');
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loadingCourses, setLoadingCourses] = useState<boolean>(false);
 
-    const filteredCourses = dummyCourses.filter(course => course.active === (courseFilter === 'active'));
+    useEffect(() => {
+        if (activeTab === 'courses') {
+            fetchCourses();
+        }
+    }, [courseFilter, token, activeTab]);
+
+    const fetchCourses = async () => {
+        setLoadingCourses(true);
+        try {
+            if (courseFilter === 'active') {
+                const activeCourses = await getActiveCourses(token as string);
+                setCourses(activeCourses);
+            } else {
+                // Obtenemos cursos paginados y filtramos los que ya finalizaron su campaña
+                const allCourses = await getCoursesPaginated(1, 100, token as string);
+                const inactiveCourses = allCourses.filter(
+                    course => new Date(course.campaignEnd) <= new Date()
+                );
+                setCourses(inactiveCourses);
+            }
+        } catch (error: any) {
+            Alert.alert('Error', error.message);
+        } finally {
+            setLoadingCourses(false);
+        }
+    };
 
     const renderReportItem = ({ item }: { item: typeof dummyReports[0] }) => (
         <View style={styles.reportCard}>
@@ -55,10 +89,12 @@ export default function AdminPanelScreen() {
         </View>
     );
 
-    const renderCourseItem = ({ item }: { item: typeof dummyCourses[0] }) => (
+    const renderCourseItem = ({ item }: { item: Course }) => (
         <TouchableOpacity style={styles.courseCard} onPress={() => router.push(`/cursos/${item.id}`)}>
             <Text style={styles.courseTitle}>{item.title}</Text>
-            <Text style={styles.courseStatus}>{item.active ? 'Activo' : 'Inactivo'}</Text>
+            <Text style={styles.courseStatus}>
+                {courseFilter === 'active' ? 'Activo' : 'Inactivo'}
+            </Text>
         </TouchableOpacity>
     );
 
@@ -83,6 +119,7 @@ export default function AdminPanelScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
+
             {activeTab === 'reports' ? (
                 <FlatList
                     data={dummyReports}
@@ -110,17 +147,18 @@ export default function AdminPanelScreen() {
                             </Text>
                         </TouchableOpacity>
                     </View>
-                    <FlatList
-                        data={filteredCourses}
-                        keyExtractor={(item) => item.id}
-                        renderItem={renderCourseItem}
-                        contentContainerStyle={styles.listContainer}
-                    />
-                    {/* Botón flotante para crear curso, visible sólo en la sección de cursos */}
-                    <TouchableOpacity
-                        style={styles.fab}
-                        onPress={() => router.push('/CreateCourseScreen')}
-                    >
+                    {loadingCourses ? (
+                        <ActivityIndicator size="large" color="#03DAC5" />
+                    ) : (
+                        <FlatList
+                            data={courses}
+                            keyExtractor={(item) => item.id}
+                            renderItem={renderCourseItem}
+                            contentContainerStyle={styles.listContainer}
+                        />
+                    )}
+                    {/* Botón flotante que redirige a la pantalla de creación de curso */}
+                    <TouchableOpacity style={styles.fab} onPress={() => router.push('/CreateCourseScreen')}>
                         <Text style={styles.fabText}>+</Text>
                     </TouchableOpacity>
                 </View>

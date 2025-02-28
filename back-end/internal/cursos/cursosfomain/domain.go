@@ -9,10 +9,10 @@ import (
 
 // Socials representa los enlaces de redes sociales asociados a un curso.
 type Socials struct {
-	Instagram string `json:"instagram" bson:"instagram" validate:"required,url"`
-	Youtube   string `json:"youtube" bson:"youtube" validate:"required,url"`
-	Website   string `json:"website" bson:"website" validate:"required,url"`
-	Twitter   string `json:"twitter" bson:"twitter" validate:"required,url"`
+	Instagram string `json:"instagram" bson:"instagram" validate:"	url"`
+	Youtube   string `json:"youtube" bson:"youtube" validate:"url"`
+	Website   string `json:"website" bson:"website" validate:"url"`
+	Twitter   string `json:"twitter" bson:"twitter" validate:"url"`
 }
 
 // Curso representa la entidad de un curso.
@@ -30,10 +30,10 @@ type Curso struct {
 
 // SocialsModel representa los enlaces sociales asociados al curso.
 type SocialsModel struct {
-	Instagram string `json:"instagram" validate:"required,url"`
-	Youtube   string `json:"youtube" validate:"required,url"`
-	Website   string `json:"website" validate:"required,url"`
-	Twitter   string `json:"twitter" validate:"required,url"`
+	Instagram string `json:"instagram"`
+	Youtube   string `json:"youtube" `
+	Website   string `json:"website" `
+	Twitter   string `json:"twitter" `
 }
 
 // CursoModelValidator se utiliza para validar la información de creación de un curso.
@@ -52,9 +52,14 @@ type CursoModelValidator struct {
 	CampaignEndTime   time.Time `json:"-" bson:"campaignEnd"`
 }
 
-// ValidateCurso valida el modelo y parsea las fechas de campaña.
 func (c *CursoModelValidator) ValidateCurso() error {
 	validate := validator.New()
+
+	// Registro de la validación "datetime" personalizada.
+	validate.RegisterValidation("datetime", func(fl validator.FieldLevel) bool {
+		_, err := time.Parse(fl.Param(), fl.Field().String())
+		return err == nil
+	})
 
 	if err := validate.Struct(c); err != nil {
 		return err

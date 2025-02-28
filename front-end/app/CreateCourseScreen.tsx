@@ -2,9 +2,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
+import { createCourse, CreateCourseRequest } from '@/services/cursos';
 
 export default function CreateCourseScreen() {
     const router = useRouter();
+    const { token } = useAuth();
 
     // Estados para la información del curso
     const [title, setTitle] = useState('');
@@ -15,32 +18,64 @@ export default function CreateCourseScreen() {
     const [youtube, setYoutube] = useState('');
     const [website, setWebsite] = useState('');
     const [twitter, setTwitter] = useState('');
+    // Nuevos estados para code, seccion y fechas
+    const [code, setCode] = useState('');
+    const [seccion, setSeccion] = useState('');
+    const [campaignStart, setCampaignStart] = useState('');
+    const [campaignEnd, setCampaignEnd] = useState('');
+    // Función auxiliar para convertir "DD-MM-YYYY" a ISO (asumiendo hora 00:00:00 UTC)
+    const convertDateToISO = (dateStr: string): string => {
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) {
+            throw new Error("Formato de fecha inválido. Use DD-MM-YYYY");
+        }
+        const [day, month, year] = parts;
+        // Creamos la fecha usando el formato YYYY-MM-DD
+        const date = new Date(`${year}-${month}-${day}T00:00:00Z`);
+        if (isNaN(date.getTime())) {
+            throw new Error("Fecha inválida");
+        }
+        return date.toISOString();
+    };
 
-    const handleSubmit = () => {
-        if (!title || !description || !content) {
-            Alert.alert('Error', 'Por favor, complete los campos obligatorios.');
+    const handleSubmit = async () => {
+        if (!title || !description || !content || !code || !seccion || !campaignStart || !campaignEnd) {
+            Alert.alert('Error', 'Por favor, complete todos los campos obligatorios.');
             return;
         }
-
-        const newCourse = {
+        let isoStart: string, isoEnd: string;
+        try {
+            isoStart = convertDateToISO(campaignStart);
+            isoEnd = convertDateToISO(campaignEnd);
+        } catch (error: any) {
+            Alert.alert('Error', error.message);
+            return;
+        }
+        const newCourse: CreateCourseRequest = {
             title,
             description,
             content,
             socials: {
-                instagram: instagram || undefined,
-                youtube: youtube || undefined,
-                website: website || undefined,
-                twitter: twitter || undefined,
+                instagram: instagram || '',
+                youtube: youtube || '',
+                website: website || '',
+                twitter: twitter || '',
             },
+            campaignStart: isoStart,
+            campaignEnd: isoEnd,
+            baneado: false,
+            seccion,
+            code,
         };
 
-        console.log('Nuevo curso:', newCourse);
-        Alert.alert('Curso creado', 'El curso se ha creado correctamente.');
-
-        // Aquí podrías llamar a una API para guardar el curso y luego redirigir,
-        // por ejemplo: router.push('/adminPanel')
-        // Por este ejemplo, solo regresamos al panel.
-        router.back();
+        try {
+            await createCourse(newCourse, token as string);
+            Alert.alert('Curso creado', 'El curso se ha creado correctamente.');
+            router.back();
+        } catch (error: any) {
+            console.error(error);
+            Alert.alert('Error', error.message);
+        }
     };
 
     return (
@@ -100,6 +135,35 @@ export default function CreateCourseScreen() {
                 placeholderTextColor="#B0B0B0"
                 value={twitter}
                 onChangeText={setTwitter}
+            />
+            <Text style={styles.subHeader}>Información adicional</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Código"
+                placeholderTextColor="#B0B0B0"
+                value={code}
+                onChangeText={setCode}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Sección"
+                placeholderTextColor="#B0B0B0"
+                value={seccion}
+                onChangeText={setSeccion}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Fecha de inicio (ISO)"
+                placeholderTextColor="#B0B0B0"
+                value={campaignStart}
+                onChangeText={setCampaignStart}
+            />
+            <TextInput
+                style={styles.input}
+                placeholder="Fecha de fin (ISO)"
+                placeholderTextColor="#B0B0B0"
+                value={campaignEnd}
+                onChangeText={setCampaignEnd}
             />
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
                 <Text style={styles.submitButtonText}>Crear Curso</Text>

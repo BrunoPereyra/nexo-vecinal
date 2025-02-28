@@ -421,7 +421,7 @@ func (u *UserRepository) AutCode(id primitive.ObjectID, code string) error {
 		return err
 	}
 
-	if User.PanelAdminNexoVecinal.Level != 1 || !User.PanelAdminNexoVecinal.Asset || User.PanelAdminNexoVecinal.Code != code {
+	if User.PanelAdminNexoVecinal.Level != 1 || User.PanelAdminNexoVecinal.Code != code {
 		return fmt.Errorf("usuario no autorizado")
 	}
 	return nil
