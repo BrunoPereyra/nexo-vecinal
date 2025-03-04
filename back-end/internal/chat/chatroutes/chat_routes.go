@@ -5,6 +5,7 @@ import (
 	"back-end/internal/chat/chatapplication"
 	"back-end/internal/chat/chatinfrastructure"
 	"back-end/internal/chat/chatinterfaces"
+	"back-end/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
@@ -20,9 +21,9 @@ func ChatRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *mongo.Cl
 	chatHandler := chatinterfaces.NewChatHandler(chatService)
 
 	chatGroup := app.Group("/chat")
-	chatGroup.Post("/messages", chatHandler.SendMessage)
-	chatGroup.Get("/messages", chatHandler.GetMessagesBetween)
-	chatGroup.Post("/messages/:id/read", chatHandler.MarkMessageAsRead)
+	chatGroup.Post("/messages", middleware.UseExtractor(), chatHandler.SendMessage)
+	chatGroup.Get("/messages", middleware.UseExtractor(), chatHandler.GetMessagesBetween)
+	chatGroup.Post("/messages/:id/read", middleware.UseExtractor(), chatHandler.MarkMessageAsRead)
 	// Nueva ruta para suscripción vía WebSocket
-	chatGroup.Get("/subscribe/:jobID", websocket.New(chatHandler.SubscribeMessages))
+	chatGroup.Get("/subscribe/:jobID", middleware.UseExtractor(), websocket.New(chatHandler.SubscribeMessages))
 }

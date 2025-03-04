@@ -46,7 +46,7 @@ func (r *ReportRepository) GetReportById(ctx context.Context, id string) (*admin
 	if err != nil {
 		return nil, fmt.Errorf("invalid report id: %v", err)
 	}
-	collection := r.mongoClient.Database("your_database").Collection("user_reports")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("user_reports")
 	var report admindomain.UserReport
 	err = collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&report)
 	if err != nil {
@@ -61,7 +61,7 @@ func (r *ReportRepository) GetReportsByUser(ctx context.Context, reportedUserID 
 	if err != nil {
 		return nil, fmt.Errorf("invalid reported user id: %v", err)
 	}
-	collection := r.mongoClient.Database("your_database").Collection("user_reports")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("user_reports")
 	sortOrder := 1
 	if order == "desc" {
 		sortOrder = -1
@@ -79,20 +79,40 @@ func (r *ReportRepository) GetReportsByUser(ctx context.Context, reportedUserID 
 	return reports, nil
 }
 
-// GetGlobalReports recupera todos los reportes, ordenados por fecha.
-func (r *ReportRepository) GetGlobalReports(ctx context.Context, order string) ([]admindomain.UserReport, error) {
-	collection := r.mongoClient.Database("your_database").Collection("user_reports")
+func (r *ReportRepository) GetGlobalReports(ctx context.Context, order string) ([]admindomain.UserReportResponse, error) {
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("user_reports")
 	sortOrder := 1
 	if order == "desc" {
 		sortOrder = -1
 	}
-	opts := options.Find()
-	opts.SetSort(bson.D{{Key: "createdAt", Value: sortOrder}})
-	cursor, err := collection.Find(ctx, bson.M{}, opts)
+
+	// Pipeline de agregación para unir la información de los usuarios.
+	pipeline := mongo.Pipeline{
+		// Lookup para el usuario reportado.
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "Users"},
+			{Key: "localField", Value: "reportedUserId"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "reportedUser"},
+		}}},
+		{{Key: "$unwind", Value: "$reportedUser"}},
+		// Lookup para el usuario que realiza el reporte.
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "Users"},
+			{Key: "localField", Value: "reporterUserId"},
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "reporterUser"},
+		}}},
+		{{Key: "$unwind", Value: "$reporterUser"}},
+		// Ordenar por fecha.
+		{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: sortOrder}}}},
+	}
+
+	cursor, err := collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get global reports: %v", err)
 	}
-	var reports []admindomain.UserReport
+	var reports []admindomain.UserReportResponse
 	if err = cursor.All(ctx, &reports); err != nil {
 		return nil, fmt.Errorf("failed to decode global reports: %v", err)
 	}
@@ -105,7 +125,7 @@ func (r *ReportRepository) MarkReportAsRead(ctx context.Context, reportID string
 	if err != nil {
 		return fmt.Errorf("invalid report id: %v", err)
 	}
-	collection := r.mongoClient.Database("your_database").Collection("user_reports")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("user_reports")
 	update := bson.M{
 		"$set": bson.M{
 			"read": true,
@@ -127,7 +147,7 @@ func (r *ReportRepository) BlockUser(ctx context.Context, userID string) error {
 	if err != nil {
 		return fmt.Errorf("invalid user id: %v", err)
 	}
-	collection := r.mongoClient.Database("your_database").Collection("Users")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	update := bson.M{"$set": bson.M{"Banned": true}}
 	res, err := collection.UpdateOne(ctx, bson.M{"_id": oid}, update)
 	if err != nil {
@@ -145,7 +165,7 @@ func (r *ReportRepository) CheckAdminAuthorization(ctx context.Context, adminID 
 	if err != nil {
 		return fmt.Errorf("invalid admin id: %v", err)
 	}
-	collection := r.mongoClient.Database("your_database").Collection("Users")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	var admin userdomain.User
 	err = collection.FindOne(ctx, bson.M{"_id": oid}).Decode(&admin)
 	if err != nil {

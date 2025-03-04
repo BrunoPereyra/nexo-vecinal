@@ -26,4 +26,5 @@ func CursoRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *mongo.C
 	cursosGroup.Post("/", middleware.UseExtractor(), cursoHandler.CreateCurso) // Crear curso
 	cursosGroup.Get("/paginated", cursoHandler.GetCursosPaginated)             // Obtener cursos paginados
 	cursosGroup.Get("/active", cursoHandler.GetActiveCursos)                   // Obtener cursos con campaña activa
+	cursosGroup.Get("/:id", cursoHandler.GetCursoByID)                         // Obtener curso por ID
 }

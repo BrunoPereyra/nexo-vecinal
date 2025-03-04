@@ -35,7 +35,7 @@ func (s *ReportService) GetReportsByUser(ctx context.Context, reportedUserID str
 }
 
 // GetGlobalReports recupera todos los reportes en el orden indicado.
-func (s *ReportService) GetGlobalReports(ctx context.Context, order string) ([]admindomain.UserReport, error) {
+func (s *ReportService) GetGlobalReports(ctx context.Context, order string) ([]admindomain.UserReportResponse, error) {
 	return s.ReportRepository.GetGlobalReports(ctx, order)
 }
 

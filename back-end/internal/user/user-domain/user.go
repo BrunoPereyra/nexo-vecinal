@@ -62,8 +62,10 @@ type User struct {
 		Code  string    `json:"Code,omitempty" bson:"Code"`
 		Date  time.Time `json:"date,omitempty" bson:"Date,omitempty"`
 	} `json:"PanelAdminNexoVecinal,omitempty" bson:"PanelAdminNexoVecinal"`
-	CompletedJobs int      `json:"completedJobs" bson:"completedJobs"`
-	Location      GeoPoint `json:"location" bson:"location"`
+	CompletedJobs   int                `json:"completedJobs" bson:"completedJobs"`
+	Location        GeoPoint           `json:"location" bson:"location"`
+	Soporte         string             `json:"Soporte" bson:"Soporte"`
+	SoporteAssigned primitive.ObjectID `bson:"soporteassigned"`
 }
 
 type Prime struct {

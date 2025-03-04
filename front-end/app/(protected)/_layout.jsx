@@ -10,6 +10,7 @@ export default function ProtectedLayout() {
   return (
     <ProtectedRoute>
       <Tabs
+      initialRouteName="home"
         screenOptions={{
           tabBarStyle: {
             backgroundColor: isDarkMode ? '#121212' : '#FFFFFF', // Fondo oscuro

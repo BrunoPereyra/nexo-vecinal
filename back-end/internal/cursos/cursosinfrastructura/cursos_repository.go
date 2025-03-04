@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -72,4 +73,12 @@ func (r *CursoRepository) GetActiveCursos() ([]cursosdomain.Curso, error) {
 		cursos = append(cursos, curso)
 	}
 	return cursos, cursor.Err()
+}
+
+// GetCursoByID obtiene un curso por su ID.
+func (r *CursoRepository) GetCursoByID(id primitive.ObjectID) (cursosdomain.Curso, error) {
+	collection := r.mongoClient.Database("NEXO-VECINA").Collection("cursos")
+	var curso cursosdomain.Curso
+	err := collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&curso)
+	return curso, err
 }

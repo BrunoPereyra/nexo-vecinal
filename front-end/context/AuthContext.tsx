@@ -7,6 +7,7 @@ interface AuthContextProps {
     isLoading: boolean;
     login: (token: string, id: string, avatar: string, nameUser: string) => Promise<void>;
     logout: () => Promise<void>;
+    loadCurrentUser: () => Promise<{ id: string | null; Avatar: string | null; NameUser: string | null } | undefined>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextProps>({
     isLoading: true,
     login: async () => { },
     logout: async () => { },
+    loadCurrentUser: async () => undefined,
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -59,9 +61,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error removing token', error);
         }
     };
+    // Cargar información del usuario actual desde AsyncStorage
+    const loadCurrentUser = async (): Promise<{ id: string | null; Avatar: string | null; NameUser: string | null } | undefined> => {
+        try {
+            const id = await AsyncStorage.getItem('id');
+            const Avatar = await AsyncStorage.getItem('avatar');
+            const NameUser = await AsyncStorage.getItem('nameUser');
+            return { id, Avatar, NameUser };
+        } catch (err) {
+            console.error('Error al cargar info del usuario:', err);
+        }
+    };
+
 
     return (
-        <AuthContext.Provider value={{ token, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ token, isLoading, login, logout, loadCurrentUser }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,57 +1,56 @@
-// Ubicado en /app/(protected)/cursos.tsx (o la ruta que definas para cursos)
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { getActiveCourses } from '@/services/cursos';
 
-const courseSections = [
-    {
-        id: "1",
-        title: "Programación",
-        courses: [
-            { id: "101", title: "Introducción a JavaScript", description: "Aprende lo básico de JavaScript." },
-            { id: "102", title: "React Native Avanzado", description: "Desarrolla apps móviles con React Native." },
-        ]
-    },
-    {
-        id: "2",
-        title: "Diseño",
-        courses: [
-            { id: "201", title: "Diseño UX/UI", description: "Mejora la experiencia de usuario." },
-            { id: "202", title: "Adobe Illustrator para Principiantes", description: "Aprende a diseñar con Illustrator." },
-        ]
-    },
-    {
-        id: "3",
-        title: "Marketing",
-        courses: [
-            { id: "301", title: "Marketing Digital", description: "Estrategias para el marketing digital." },
-            { id: "302", title: "SEO y SEM", description: "Optimiza tus campañas de publicidad." },
-        ]
-    },
-    {
-        id: "4",
-        title: "Negocios",
-        courses: [
-            { id: "401", title: "Emprendimiento 101", description: "Inicia tu propio negocio." },
-            { id: "402", title: "Gestión de Proyectos", description: "Aprende a liderar equipos." },
-        ]
-    }
-];
+interface Course {
+    id: string;
+    title: string;
+    description: string;
+    seccion: string;
+}
 
 export default function CursosScreen() {
     const router = useRouter();
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function fetchCourses() {
+            try {
+                const data = await getActiveCourses();
+                setCourses(data);
+            } catch (error) {
+                console.error("Error fetching courses:", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchCourses();
+    }, []);
+
+    const groupedCourses = courses.reduce((acc, course) => {
+        if (!acc[course.seccion]) acc[course.seccion] = [];
+        acc[course.seccion].push(course);
+        return acc;
+    }, {} as Record<string, Course[]>);
 
     const handleCoursePress = (courseId: string) => {
+
         router.push(`/cursos/${courseId}`);
     };
 
+    if (loading) {
+        return <ActivityIndicator size="large" color="#03DAC5" />;
+    }
+
     return (
         <ScrollView style={styles.container}>
-            {courseSections.map(section => (
-                <View key={section.id} style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>{section.title}</Text>
+            {Object.entries(groupedCourses).map(([section, courses]) => (
+                <View key={section} style={styles.sectionContainer}>
+                    <Text style={styles.sectionTitle}>{section}</Text>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        {section.courses.map(course => (
+                        {courses.map(course => (
                             <TouchableOpacity
                                 key={course.id}
                                 style={styles.courseCard}
@@ -74,12 +73,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#121212',
         padding: 16,
     },
-    header: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
-        marginBottom: 16,
-    },
     sectionContainer: {
         marginBottom: 24,
     },
@@ -94,7 +87,7 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 8,
         marginRight: 12,
-        width: 250,
+        width: 280,
     },
     courseTitle: {
         fontSize: 18,
@@ -107,3 +100,4 @@ const styles = StyleSheet.create({
         color: '#B0B0B0',
     },
 });
+

@@ -1,45 +1,24 @@
-// app/(protected)/courseDetail.tsx
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
+import { getCourseById } from '@/services/cursos';
 
-// Datos de ejemplo, extendiendo cada curso con la propiedad "socials"
-const mockCourses = [
-    {
-        id: "101",
-        title: "Introducción a JavaScript",
-        description: "Aprende lo básico de JavaScript.",
-        content: "En este curso aprenderás sobre variables, funciones, objetos y más.",
-        socials: {
-            instagram: "https://instagram.com/exampleJS",
-            youtube: "https://youtube.com/exampleJS",
-            website: "https://examplejs.com",
-            twitter: "https://twitter.com/exampleJS",
-        },
-    },
-    {
-        id: "102",
-        title: "React Native Avanzado",
-        description: "Desarrolla apps móviles con React Native.",
-        content: "Explora hooks, navegación y optimización del rendimiento en React Native.",
-        socials: {}, // Sin enlaces configurados
-    },
-    {
-        id: "201",
-        title: "Diseño UX/UI",
-        description: "Mejora la experiencia de usuario.",
-        content: "Descubre los principios del diseño, prototipado y testing para interfaces.",
-        socials: {
-            website: "https://uxui-example.com",
-        },
-    },
-    // Más cursos de ejemplo...
-];
+interface Course {
+    id: string;
+    title: string;
+    description: string;
+    content: string;
+    socials?: {
+        instagram?: string;
+        youtube?: string;
+        website?: string;
+        twitter?: string;
+    };
+}
 
-// Componente para renderizar los iconos de enlaces sociales
-const SocialLinks = ({ socials }: { socials: { [key: string]: string } }) => {
-    const handlePress = async (url: string) => {
+const SocialLinks = ({ socials }: { socials: Course['socials'] }) => {
+    const handlePress = async (url: any) => {
         const supported = await Linking.canOpenURL(url);
         if (supported) {
             await Linking.openURL(url);
@@ -50,26 +29,26 @@ const SocialLinks = ({ socials }: { socials: { [key: string]: string } }) => {
 
     return (
         <View style={styles.socialContainer}>
-            {socials.instagram ? (
+            {socials?.instagram && (
                 <TouchableOpacity onPress={() => handlePress(socials.instagram)}>
                     <FontAwesome name="instagram" size={28} color="#E1306C" style={styles.icon} />
                 </TouchableOpacity>
-            ) : null}
-            {socials.youtube ? (
+            )}
+            {socials?.youtube && (
                 <TouchableOpacity onPress={() => handlePress(socials.youtube)}>
                     <FontAwesome name="youtube-play" size={28} color="#FF0000" style={styles.icon} />
                 </TouchableOpacity>
-            ) : null}
-            {socials.website ? (
+            )}
+            {socials?.website && (
                 <TouchableOpacity onPress={() => handlePress(socials.website)}>
                     <MaterialCommunityIcons name="web" size={28} color="#03DAC5" style={styles.icon} />
                 </TouchableOpacity>
-            ) : null}
-            {socials.twitter ? (
+            )}
+            {socials?.twitter && (
                 <TouchableOpacity onPress={() => handlePress(socials.twitter)}>
                     <FontAwesome name="twitter" size={28} color="#1DA1F2" style={styles.icon} />
                 </TouchableOpacity>
-            ) : null}
+            )}
         </View>
     );
 };
@@ -77,8 +56,32 @@ const SocialLinks = ({ socials }: { socials: { [key: string]: string } }) => {
 export default function CursoDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
+    const [course, setCourse] = useState<Course | null>(null);
+    const [loading, setLoading] = useState(true);
 
-    const course = mockCourses.find(c => c.id === id);
+    useEffect(() => {
+        if (id) {
+            console.log(id);
+            getCourseById(id)
+                .then((data: Course) => {
+                    console.log(data);
+
+                    setCourse(data);
+                })
+                .catch((error) => {
+                    console.error("Error fetching course:", error);
+                })
+                .finally(() => setLoading(false));
+        }
+    }, [id]);
+
+    if (loading) {
+        return (
+            <View style={styles.container}>
+                <ActivityIndicator size="large" color="#03DAC5" />
+            </View>
+        );
+    }
 
     if (!course) {
         return (
@@ -99,10 +102,7 @@ export default function CursoDetailScreen() {
                 <Text style={styles.contentTitle}>Contenido del Curso</Text>
                 <Text style={styles.content}>{course.content}</Text>
             </View>
-            {/* Sección opcional de enlaces sociales */}
-            {course.socials && Object.keys(course.socials).length > 0 && (
-                <SocialLinks socials={course.socials} />
-            )}
+            {course.socials && Object.keys(course.socials).length > 0 && <SocialLinks socials={course.socials} />}
         </ScrollView>
     );
 }

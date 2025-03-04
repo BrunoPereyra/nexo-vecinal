@@ -108,3 +108,15 @@ export async function getActiveCourses(token?: string): Promise<Course[]> {
     const data = await response.json();
     return data;
 }
+// GetCursoByID
+export async function getCourseById(
+    id: string,
+): Promise<Course> {
+    const response = await fetch(`${API_BASE}/cursos/${id}`);
+    if (!response.ok) {
+        throw new Error(`Error fetching course: ${response.statusText}`);
+    }
+    const data = await response.json();
+
+    return data;
+}

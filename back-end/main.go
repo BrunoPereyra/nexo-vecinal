@@ -6,6 +6,7 @@ import (
 	"back-end/internal/admin/adminroutes"
 	"back-end/internal/chat/chatroutes"
 	"back-end/internal/cursos/cursosroutes"
+	supportroutes "back-end/internal/support/support_routes"
 	userroutes "back-end/internal/user/user-routes"
 	"time"
 
@@ -51,7 +52,7 @@ func main() {
 	adminroutes.AdminReportRoutes(app, redisClient, newMongoDB)
 	chatroutes.ChatRoutes(app, redisClient, newMongoDB)
 	cursosroutes.CursoRoutes(app, redisClient, newMongoDB)
-
+	supportroutes.SupportRoutes(app, redisClient, newMongoDB)
 	PORT := config.PORT()
 	if PORT == "" {
 		PORT = "8081"

@@ -41,7 +41,6 @@ func (h *CursoHandler) CreateCurso(c *fiber.Ctx) error {
 	}
 
 	var req cursosdomain.CursoModelValidator
-	fmt.Println(c.BodyParser(&req))
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid request body"})
 	}
@@ -105,4 +104,17 @@ func (h *CursoHandler) GetActiveCursos(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error fetching active courses"})
 	}
 	return c.JSON(cursos)
+}
+
+// GET CURSO ID
+func (h *CursoHandler) GetCursoByID(c *fiber.Ctx) error {
+	fmt.Println("id")
+
+	id := c.Params("id")
+	fmt.Println(id)
+	curso, err := h.CursoService.GetCursoByID(id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error fetching course"})
+	}
+	return c.JSON(curso)
 }
