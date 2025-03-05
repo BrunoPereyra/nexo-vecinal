@@ -42,11 +42,11 @@ func (h *SupportHandler) SendSupportMessage(c *fiber.Ctx) error {
 
 	// Obtener el código para la autorización (si corresponde)
 	code := c.FormValue("code")
-	savedMsg, err := h.SupportService.SendMessage(context.Background(), msg, code)
+	err := h.SupportService.SendMessage(context.Background(), msg, code)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "mensaje enviado", "data": savedMsg})
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "mensaje enviado"})
 }
 
 // GetSupportMessages endpoint para obtener los mensajes entre un usuario y un agente de soporte.

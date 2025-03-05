@@ -7,18 +7,20 @@ type ProfileHeaderProps = {
         FullName: string;
         NameUser: string;
         biography: string;
-        // Puedes agregar otros campos según necesites
+        // Otros campos si es necesario
     };
 };
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
     return (
         <View style={styles.container}>
-            <View style={styles.avatarContainer}>
+            <View style={styles.topRow}>
                 <Image source={{ uri: user.Avatar }} style={styles.avatar} />
+                <View style={styles.infoContainer}>
+                    <Text style={styles.fullName}>{user.FullName}</Text>
+                    <Text style={styles.username}>@{user.NameUser}</Text>
+                </View>
             </View>
-            <Text style={styles.fullName}>{user.FullName}</Text>
-            <Text style={styles.username}>@{user.NameUser}</Text>
             <Text style={styles.biography}>{user.biography}</Text>
         </View>
     );
@@ -26,10 +28,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
 
 const styles = StyleSheet.create({
     container: {
-        alignItems: 'center',
-        paddingVertical: 20,
-        paddingHorizontal: 20,
         backgroundColor: '#1E1E1E',
+        padding: 16,
         borderRadius: 12,
         marginBottom: 20,
         elevation: 3,
@@ -38,32 +38,36 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
-    avatarContainer: {
-        borderWidth: 2,
-        borderColor: '#03DAC5',
-        borderRadius: 70,
-        padding: 3,
-        marginBottom: 10,
+    topRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
     },
     avatar: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: '#03DAC5',
+    },
+    infoContainer: {
+        flex: 1,
+        marginLeft: 16,
     },
     fullName: {
-        fontSize: 24,
+        fontSize: 22,
         fontWeight: 'bold',
         color: '#E0E0E0',
-        marginBottom: 5,
+        marginBottom: 4,
     },
     username: {
         fontSize: 16,
         color: '#03DAC5',
-        marginBottom: 5,
+        marginBottom: 8,
     },
     biography: {
         fontSize: 14,
         color: '#B0B0B0',
-        textAlign: 'center',
+        textAlign: 'left',
     },
 });

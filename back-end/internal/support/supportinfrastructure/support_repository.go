@@ -40,18 +40,19 @@ func (r *SupportRepository) SendMessage(ctx context.Context, msg supportdomain.S
 	if err != nil {
 		return supportdomain.SupportMessage{}, fmt.Errorf("failed to send support message: %v", err)
 	}
-
-	// Publicar en Redis para notificaciones en tiempo real.
-	channel := fmt.Sprintf("support:conversation:%s", msg.ReceiverID.Hex())
+	return msg, nil
+}
+func (r *SupportRepository) PublishMessage(ctx context.Context, msg supportdomain.SupportMessage, room string) error {
 	messageBytes, err := json.Marshal(msg)
 	if err != nil {
-		fmt.Printf("Error serializing support message: %v\n", err)
-	} else {
-		if err := r.redisClient.Publish(ctx, channel, messageBytes).Err(); err != nil {
-			fmt.Printf("Error publishing support message: %v\n", err)
-		}
+		return fmt.Errorf("error serializing support message: %v", err)
 	}
-	return msg, nil
+
+	if err := r.redisClient.Publish(ctx, room, messageBytes).Err(); err != nil {
+		return fmt.Errorf("error publishing support message: %v", err)
+	}
+
+	return nil
 }
 
 // GetMessagesBetween obtiene los mensajes intercambiados entre un usuario y un agente de soporte.

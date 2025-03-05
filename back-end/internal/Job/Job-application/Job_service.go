@@ -111,7 +111,7 @@ func (js *JobService) GetJobByIDForEmployee(jobID primitive.ObjectID) (*jobdomai
 
 }
 
-func (js *JobService) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.Job, error) {
+func (js *JobService) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.FindJobsByTagsAndLocation(jobFilter)
 }
 func (js *JobService) UpdateJobStatusToCompleted(jobId, UserId primitive.ObjectID) (*jobdomain.Job, error) {

@@ -122,12 +122,8 @@ func (j *JobRepository) canUserApply(userID primitive.ObjectID) (bool, error) {
 		return false, err
 	}
 
-	// Verificar si el usuario tiene Prime activo
-	now := time.Now()
-	isPrimeActive := user.Prime.SubscriptionStart.Before(now) && user.Prime.SubscriptionEnd.After(now)
-
-	if user.CompletedJobs >= 20 && !isPrimeActive {
-		return false, nil
+	if user.Banned {
+		return false, errors.New("estas baneado")
 	}
 
 	return true, nil
@@ -374,8 +370,7 @@ func (j *JobRepository) UpdateJobPaymentStatus(jobID primitive.ObjectID, status 
 	return err
 }
 
-// estos es aparte 1
-func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.Job, error) {
+func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 
 	// Convertir el radio de metros a radianes (radio terrestre ≈ 6,378,100 metros)
@@ -390,8 +385,7 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 			"$in": jobFilter.Tags,
 		}
 	}
-
-	// Filtro por ubicación: trabajos cuyo campo "location" se encuentre dentro del círculo definido
+	// Filtro por ubicación: trabajos dentro del radio especificado
 	filter["location"] = bson.M{
 		"$geoWithin": bson.M{
 			"$centerSphere": []interface{}{
@@ -401,7 +395,7 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 		},
 	}
 
-	// Si se proporcionó un título, se agrega un filtro por título (búsqueda por expresión regular, case-insensitive)
+	// Si se proporcionó un título, se filtra por regex (búsqueda flexible)
 	if jobFilter.Title != "" {
 		filter["title"] = bson.M{
 			"$regex":   jobFilter.Title,
@@ -409,14 +403,31 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 		}
 	}
 
-	// Ejecutar la consulta
-	cursor, err := jobColl.Find(context.Background(), filter)
+	// Definir el pipeline de agregación
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+		// Lookup para obtener detalles del usuario creador
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "Users",
+			"localField":   "userId",
+			"foreignField": "_id",
+			"as":           "userDetails",
+		}}},
+		// Unwind para extraer el objeto de usuario (si existe)
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$userDetails",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+	}
+
+	// Ejecutar la consulta agregada
+	cursor, err := jobColl.Aggregate(context.Background(), pipeline)
 	if err != nil {
 		return nil, err
 	}
 	defer cursor.Close(context.Background())
 
-	var jobs []jobdomain.Job
+	var jobs []jobdomain.JobDetailsUsers
 	if err = cursor.All(context.Background(), &jobs); err != nil {
 		return nil, err
 	}

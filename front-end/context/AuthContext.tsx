@@ -1,4 +1,3 @@
-// context/AuthContext.tsx
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -8,6 +7,8 @@ interface AuthContextProps {
     login: (token: string, id: string, avatar: string, nameUser: string) => Promise<void>;
     logout: () => Promise<void>;
     loadCurrentUser: () => Promise<{ id: string | null; Avatar: string | null; NameUser: string | null } | undefined>;
+    tags: string[];
+    addTag: (tag: string) => void;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -16,11 +17,23 @@ const AuthContext = createContext<AuthContextProps>({
     login: async () => { },
     logout: async () => { },
     loadCurrentUser: async () => undefined,
+    tags: ['Plomería', 'Electricidad', 'Construcción', 'Pintura', 'Carpintería', 'Limpieza'],
+    addTag: () => { },
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    // Estado para las etiquetas, inicializado con algunas por defecto
+    const [tags, setTags] = useState<string[]>([
+        'Plomería',
+        'Electricidad',
+        'Construcción',
+        'Pintura',
+        'Carpintería',
+        'Limpieza',
+    ]);
+
     // Cargar el token almacenado
     const loadToken = async () => {
         try {
@@ -45,13 +58,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             await AsyncStorage.setItem('id', id);
             await AsyncStorage.setItem('avatar', avatar);
             await AsyncStorage.setItem('nameUser', nameUser);
-
             setToken(newToken);
         } catch (error) {
             console.error('Error saving token:', error);
         }
     };
-
 
     const logout = async () => {
         try {
@@ -61,6 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.error('Error removing token', error);
         }
     };
+
     // Cargar información del usuario actual desde AsyncStorage
     const loadCurrentUser = async (): Promise<{ id: string | null; Avatar: string | null; NameUser: string | null } | undefined> => {
         try {
@@ -73,9 +85,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // Función para agregar una nueva etiqueta (si aún no existe)
+    const addTag = (tag: string) => {
+        if (tag && !tags.includes(tag)) {
+            setTags([...tags, tag]);
+        }
+    };
 
     return (
-        <AuthContext.Provider value={{ token, isLoading, login, logout, loadCurrentUser }}>
+        <AuthContext.Provider value={{ token, isLoading, login, logout, loadCurrentUser, tags, addTag }}>
             {children}
         </AuthContext.Provider>
     );

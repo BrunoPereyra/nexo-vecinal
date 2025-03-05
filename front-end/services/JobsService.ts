@@ -126,7 +126,6 @@ export const applyToJob = async (
     token: string
 ) => {
     try {
-
         const res = await fetch(`${API}/job/apply`, {
             method: "POST",
             headers: {

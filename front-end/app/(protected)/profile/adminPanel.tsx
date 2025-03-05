@@ -10,12 +10,11 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/context/AuthContext';
 import { getActiveCourses, getCoursesPaginated, Course } from '@/services/cursos';
 import ReportsList from '@/components/cursos/ReportsList';
 import SupportChatsList, { Conversation, User as ChatUser } from '@/components/admin/SupportChatsList';
-import SupportChat from '@/components/SupportChat';
+import SupportChatAdmin from '@/components/chatsupport/SupportChatAdmin';
 
 export default function AdminPanelScreen() {
     const { token, logout, } = useAuth();
@@ -151,12 +150,8 @@ export default function AdminPanelScreen() {
             ) : activeTab === 'support' ? (
                 <SupportChatsList token={token as string} onConversationPress={handleConversationPress} />
             ) : null}
-            <TouchableOpacity style={styles.optionsButton} onPress={handleLogout}>
-                <Text style={styles.optionsButtonText}>Cerrar sesión</Text>
-            </TouchableOpacity>
-            {/* Solo se renderiza el SupportChat modal si selectedUserProfile tiene datos */}
             {chatDetailVisible && selectedUserProfile && (
-                <SupportChat
+                <SupportChatAdmin
                     visible={chatDetailVisible}
                     onClose={() => setChatDetailVisible(false)}
                     token={token as string}

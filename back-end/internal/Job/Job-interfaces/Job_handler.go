@@ -233,6 +233,7 @@ func (j *JobHandler) GetJobsByFilters(c *fiber.Ctx) error {
 	// Ejemplo: se reciben los filtros desde el body en formato JSON.
 	var reqFilyer jobdomain.FindJobsByTagsAndLocation
 	if err := c.BodyParser(&reqFilyer); err != nil {
+
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Solicitud inválida"})
 	}
 	if err := reqFilyer.Validate(); err != nil {
@@ -241,7 +242,6 @@ func (j *JobHandler) GetJobsByFilters(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
-
 	jobs, err := j.JobService.FindJobsByTagsAndLocation(reqFilyer)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error al obtener trabajos", "error": err.Error()})

@@ -105,7 +105,7 @@ type TransferPaymentResponse struct {
 	TransferID string `json:"transfer_id"`
 }
 type FindJobsByTagsAndLocation struct {
-	Tags           []string `json:"tags" validate:"dive"`
+	Tags           []string `json:"tags"`
 	Longitude      float64  `json:"longitude" validate:"required,gte=-180,lte=180"`
 	Latitude       float64  `json:"latitude" validate:"required,gte=-90,lte=90"`
 	RadiusInMeters float64  `json:"radius" validate:"required,gt=0,lte=100000"`

@@ -25,7 +25,7 @@ import {
 import { ProfileHeader } from "@/components/ProfileHeader";
 import { CreateJob } from "@/components/CreateJob";
 import { useAuth } from "@/context/AuthContext";
-import SupportChat from "@/components/SupportChat";
+import SupportChat from '@/components/chatsupport/SupportChat';
 
 // Interfaz de usuario (ajústala según tu modelo de datos)
 interface User {

@@ -1,74 +1,48 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 
-interface JobLocation {
-    type: string;
-    coordinates: number[];
+export interface JobUserDetails {
+    avatar: string;
+    id: string;
+    nameUser: string;
 }
 
-interface Job {
+export interface Job {
     id: string;
     title: string;
-    location: string | JobLocation;
+    description: string;
     tags: string[];
     budget: number;
+    userDetails: JobUserDetails;
+    status: string;
 }
 
 interface JobCardProps {
     job: Job;
+    onPress: () => void;
 }
 
-const JobCard: React.FC<JobCardProps> = ({ job }) => {
-    const router = useRouter();
+const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
-    const renderLocationMap = (location: string | JobLocation) => {
-        if (typeof location === 'object' && location.type === 'Point' && Array.isArray(location.coordinates)) {
-            const [longitude, latitude] = location.coordinates;
-            const region = {
-                latitude,
-                longitude,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-            };
-
-            return (
-                <MapView
-                    style={darkStyles.map}
-                    initialRegion={region}
-                    scrollEnabled={false}
-                    zoomEnabled={false}
-                    rotateEnabled={false}
-                    pitchEnabled={false}
-                    pointerEvents="none"
-                >
-                    <Marker coordinate={{ latitude, longitude }} />
-                </MapView>
-            );
-        } else if (typeof location === 'string') {
-            return <Text style={darkStyles.locationText}>{location}</Text>;
-        }
-        return null;
+    const truncateDescription = (text: string, maxLength: number) => {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
     };
 
     return (
-        <TouchableOpacity
-            style={darkStyles.cardContainer}
-            onPress={() => {
-                router.push(`/JobDetail?id=${job.id}`);
-            }}
-        >
-            <Text style={darkStyles.title}>{job.title}</Text>
-            <View style={darkStyles.locationContainer}>
-                <Text style={darkStyles.locationLabel}>Ubicación:</Text>
-                {renderLocationMap(job.location)}
+        <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
+            {/* Sección de usuario en la parte superior */}
+            <View style={styles.userDetailsContainer}>
+                <Image source={{ uri: job.userDetails.avatar }} style={styles.avatar} />
+                <Text style={styles.userName}>{job.userDetails.nameUser}</Text>
             </View>
-            <Text style={darkStyles.budget}>Presupuesto: ${job.budget.toFixed(2)}</Text>
-            <View style={darkStyles.tagsContainer}>
+            <Text style={styles.title}>{job.title}</Text>
+            <Text style={styles.description}>{truncateDescription(job.description, 100)}</Text>
+            <Text style={styles.budget}>Presupuesto: ${job.budget.toFixed(2)}</Text>
+            <View style={styles.tagsContainer}>
                 {job.tags.map((tag, index) => (
-                    <View key={index} style={darkStyles.tag}>
-                        <Text style={darkStyles.tagText}>{tag}</Text>
+                    <View key={index} style={styles.tag}>
+                        <Text style={styles.tagText}>{tag}</Text>
                     </View>
                 ))}
             </View>
@@ -76,7 +50,7 @@ const JobCard: React.FC<JobCardProps> = ({ job }) => {
     );
 };
 
-const darkStyles = StyleSheet.create({
+const styles = StyleSheet.create({
     cardContainer: {
         backgroundColor: '#1E1E1E',
         padding: 16,
@@ -88,28 +62,32 @@ const darkStyles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
+    userDetailsContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    avatar: {
+        width: 30,
+        height: 30,
+        borderRadius: 15,
+        marginRight: 8,
+    },
+    userName: {
+        fontSize: 14,
+        color: '#E0E0E0',
+        fontWeight: 'bold',
+    },
     title: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 6,
         color: '#E0E0E0',
     },
-    locationContainer: {
-        marginVertical: 6,
-    },
-    locationLabel: {
+    description: {
         fontSize: 14,
         color: '#B0B0B0',
-        marginBottom: 4,
-    },
-    locationText: {
-        fontSize: 14,
-        color: '#B0B0B0',
-    },
-    map: {
-        width: '100%',
-        height: 150,
-        borderRadius: 5,
+        marginBottom: 6,
     },
     budget: {
         fontSize: 14,
