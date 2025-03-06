@@ -32,7 +32,6 @@ const SupportChatsList: React.FC<SupportChatsListProps> = ({ token, onConversati
       try {
         const convs = await getSupportConversations(token);
         setConversations(convs);
-        console.log(convs);
 
       } catch (error: any) {
         Alert.alert("Error", error.message);

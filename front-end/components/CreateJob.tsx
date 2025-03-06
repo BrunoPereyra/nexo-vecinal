@@ -40,14 +40,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
   // Al tocar el mapa se guarda la coordenada
   const handleMapPress = (e: MapPressEvent) => {
     const { coordinate } = e.nativeEvent;
-    console.log('Map pressed at:', coordinate);
     setLocation(coordinate);
   };
 
   // Permite mover el marcador manualmente
   const handleMarkerDragEnd = (e: MarkerDragStartEndEvent) => {
     const { coordinate } = e.nativeEvent;
-    console.log('Marker dragged to:', coordinate);
     setLocation(coordinate);
   };
 

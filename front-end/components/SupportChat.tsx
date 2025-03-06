@@ -47,7 +47,6 @@ const SupportChat: React.FC<SupportChatProps> = ({ visible, onClose, token, user
         if (visible && token && userProfile.id && !supportAgent) {
             GetSupportAgent(token)
                 .then((agentResponse) => {
-                    console.log(agentResponse);
 
                     // Se espera que el endpoint retorne: { supportAgent: { id: "xxx", NameUser: "Soporte" } }
                     if (agentResponse && agentResponse.supportAgent) {

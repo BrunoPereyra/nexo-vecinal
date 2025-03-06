@@ -117,7 +117,7 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 
             {showAdvanced && (
                 <>
-                    {tags.length > 0 && (
+                    {tags?.length > 0 && (
                         <>
                             <Text style={styles.label}>Selecciona Etiquetas:</Text>
                             <View style={styles.tagsContainer}>

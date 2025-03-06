@@ -23,14 +23,12 @@ export const SignupService = async (email: string, password: string, nameUser: s
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password, nameUser, fullName: nameUser })
         });
-        console.log(res);
 
         if (!res.ok) {
             throw new Error(`Error ${res.status}: ${res.statusText}`);
         }
 
         const data = await res.json(); // Convertimos la respuesta a JSON
-        console.log(data); // Mostramos la respuesta en consola
         return data; // Devolvemos la respuesta
 
     } catch (error) {

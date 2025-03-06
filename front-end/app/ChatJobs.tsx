@@ -77,7 +77,6 @@ export default function ChatJobs() {
     setLoading(true);
     try {
       const data = await getMessagesBetween(currentUser.id, chatPartner.id, token);
-      console.log(data);
       setMessages(data || []);
     } catch (err) {
       console.error('Error al cargar mensajes:', err);
@@ -97,11 +96,9 @@ export default function ChatJobs() {
       if (!currentUser || !chatPartner) return;
       ws.current = new WebSocket(`${API}/chat/subscribe/${jobIdStr}`);
       ws.current.onopen = () => {
-        console.log('WebSocket conectado');
         pingInterval = setInterval(() => {
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify({ type: 'ping' }));
-            console.log('Ping enviado');
           }
         }, 30000);
       };
@@ -110,7 +107,6 @@ export default function ChatJobs() {
           const message = JSON.parse(event.data);
           // Ignorar mensajes tipo "pong"
           if (message.type && message.type === 'pong') {
-            console.log('Pong recibido');
             return;
           }
           // Verificar que el mensaje pertenezca a la conversación actual
@@ -118,7 +114,6 @@ export default function ChatJobs() {
             (message.senderId === chatPartner.id && message.receiverId === currentUser.id) ||
             (message.senderId === currentUser.id && message.receiverId === chatPartner.id)
           ) {
-            console.log('Mensaje recibido:', message);
             setMessages(prevMessages => [...prevMessages, message]);
           }
         } catch (error) {
@@ -129,7 +124,6 @@ export default function ChatJobs() {
         console.error('WebSocket error');
       };
       ws.current.onclose = () => {
-        console.log('WebSocket desconectado');
         if (pingInterval) clearInterval(pingInterval);
       };
     };
@@ -150,10 +144,8 @@ export default function ChatJobs() {
         jobId: jobIdStr,
         text: newMessage.trim(),
       };
-      console.log('Enviando mensaje:', messageData);
       const res = await sendChatMessage(messageData, token);
       if (res) {
-        console.log(res);
         if (res.data === "no se puede chatear: el trabajo está completado") {
           Alert.alert('No se puede chatear: el trabajo está completado');
         }

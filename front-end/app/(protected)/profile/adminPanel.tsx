@@ -97,7 +97,6 @@ export default function AdminPanelScreen() {
 
     // Cuando se toca una conversación, se guarda la info del otro usuario y se abre el modal del chat.
     const handleConversationPress = (conversation: Conversation) => {
-        console.log(conversation.User);
 
         setSelectedUserProfile(conversation.User);
         setChatDetailVisible(true);

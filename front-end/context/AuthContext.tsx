@@ -1,8 +1,11 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 interface AuthContextProps {
     token: string | null;
+    pushToken: string | null;
     isLoading: boolean;
     login: (token: string, id: string, avatar: string, nameUser: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -13,6 +16,7 @@ interface AuthContextProps {
 
 const AuthContext = createContext<AuthContextProps>({
     token: null,
+    pushToken: null,
     isLoading: true,
     login: async () => { },
     logout: async () => { },
@@ -23,7 +27,6 @@ const AuthContext = createContext<AuthContextProps>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [token, setToken] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
     // Estado para las etiquetas, inicializado con algunas por defecto
     const [tags, setTags] = useState<string[]>([
         'Plomería',
@@ -33,7 +36,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         'Carpintería',
         'Limpieza',
     ]);
+    const [pushToken, setPushToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    // Función para registrar notificaciones y obtener el token push
+    async function registerForPushNotificationsAsync() {
+        if (Device.isDevice) {
+            const { status: existingStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = existingStatus;
+            if (existingStatus !== 'granted') {
+                const { status } = await Notifications.requestPermissionsAsync();
+                finalStatus = status;
+            }
+            if (finalStatus !== 'granted') {
+                alert('No se han otorgado permisos para recibir notificaciones.');
+                return;
+            }
+            const tokenData = await Notifications.getExpoPushTokenAsync();
+            setPushToken(tokenData.data);
+            console.log('Expo Push Token:', tokenData.data);
+        } else {
+            alert('Debe usar un dispositivo físico para recibir notificaciones push.');
+        }
+
+        if (Platform.OS === 'android') {
+            Notifications.setNotificationChannelAsync('default', {
+                name: 'default',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#FF231F7C',
+            });
+        }
+    }
     // Cargar el token almacenado
     const loadToken = async () => {
         try {
@@ -49,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
+        registerForPushNotificationsAsync()
         loadToken();
     }, []);
 
@@ -93,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ token, isLoading, login, logout, loadCurrentUser, tags, addTag }}>
+        <AuthContext.Provider value={{ token, pushToken, isLoading, login, logout, loadCurrentUser, tags, addTag }}>
             {children}
         </AuthContext.Provider>
     );

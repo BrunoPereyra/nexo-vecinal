@@ -12,28 +12,23 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/context/AuthContext';
-import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getUserByid } from '@/services/userService';
+import { ProfileHeader } from '@/components/ProfileHeader';
 import {
     GetJobsUserIDForEmployeProfilevist,
     GetJobsUserCompleted,
     GetLatestJobsForWorkervist,
     GetLatestJobsForEmployervist,
 } from '@/services/JobsService';
-import { ProfileHeader } from '@/components/ProfileHeader';
-import { createReports } from '@/services/admin';
 
-type Job = {
-    id: string;
-    title: string;
-    status: string;
-};
+interface VisitedProfileModalProps {
+    visible: boolean;
+    onClose: () => void;
+    userId: string;
+}
 
-export default function VisitedProfileScreen() {
+const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onClose, userId }) => {
     const { token, logout } = useAuth();
-    const router = useRouter();
-    const { id } = useLocalSearchParams<{ id: string }>();
-
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalLoading, setGlobalLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
@@ -44,16 +39,12 @@ export default function VisitedProfileScreen() {
     const [currentPageWorker, setCurrentPageWorker] = useState(1);
     const [loadingEmployer, setLoadingEmployer] = useState(false);
     const [loadingWorker, setLoadingWorker] = useState(false);
-    // Estado para guardar la calificación (rating) más reciente
     const [latestRating, setLatestRating] = useState<number | null>(null);
-    // Estado para la descripción expandida
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-    // Estados para el modal de reporte
-    const [reportModalVisible, setReportModalVisible] = useState(false);
-    const [reportMessage, setReportMessage] = useState('');
 
-    // Cargar el perfil del usuario visitado
+    // Cargar perfil del usuario visitado
     useEffect(() => {
+        if (!visible) return;
         const fetchProfile = async () => {
             if (!token) {
                 setError('Token no proporcionado');
@@ -61,35 +52,35 @@ export default function VisitedProfileScreen() {
                 return;
             }
             try {
-                // Si se tiene guardada la sección activa, la usamos
                 const cachedSection = await AsyncStorage.getItem('activeSection');
                 if (cachedSection === 'jobFeed' || cachedSection === 'employer') {
                     setActiveSection(cachedSection as 'jobFeed' | 'employer');
                 }
-                const data = await getUserByid(id as string);
+                const data = await getUserByid(userId);
                 if (data?.data) {
                     setUserProfile(data.data);
                 }
             } catch (err: any) {
                 setError('Error al obtener la información del usuario');
+                console.error(err);
             } finally {
                 setGlobalLoading(false);
             }
         };
         fetchProfile();
-    }, [token, id]);
+    }, [token, userId, visible]);
 
-    // Guardar la sección activa en AsyncStorage
+    // Guardar la sección activa
     useEffect(() => {
         AsyncStorage.setItem('activeSection', activeSection);
     }, [activeSection]);
 
-    // Cargar "Trabajos realizados" (trabajos asignados al usuario, como trabajador)
+    // Cargar "Trabajos realizados"
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'jobFeed' && workerJobs.length === 0) {
             setLoadingWorker(true);
-            GetJobsUserCompleted(id as string)
+            GetJobsUserCompleted(userId)
                 .then((jobsData) => {
                     setWorkerJobs(jobsData?.data || []);
                     setCurrentPageWorker(1);
@@ -97,14 +88,14 @@ export default function VisitedProfileScreen() {
                 .catch((error) => console.error(error))
                 .finally(() => setLoadingWorker(false));
         }
-    }, [activeSection, token, id]);
+    }, [activeSection, token, userId]);
 
-    // Cargar "Trabajos creados" (trabajos publicados por el usuario)
+    // Cargar "Trabajos creados"
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'employer' && employerJobs.length === 0) {
             setLoadingEmployer(true);
-            GetJobsUserIDForEmployeProfilevist(1, id as string)
+            GetJobsUserIDForEmployeProfilevist(1, userId)
                 .then((feedData) => {
                     setEmployerJobs(feedData?.jobs || []);
                     setCurrentPageEmployer(1);
@@ -112,35 +103,31 @@ export default function VisitedProfileScreen() {
                 .catch((error) => console.error(error))
                 .finally(() => setLoadingEmployer(false));
         }
-    }, [activeSection, token, id]);
+    }, [activeSection, token, userId]);
 
+    // Obtener rating más reciente
     useEffect(() => {
         const fetchRating = async () => {
-            if (!id) return;
+            if (!userId) return;
             let res;
             if (activeSection === 'employer') {
-                res = await GetLatestJobsForEmployervist(id);
+                res = await GetLatestJobsForEmployervist(userId);
             } else {
-                res = await GetLatestJobsForWorkervist(id);
+                res = await GetLatestJobsForWorkervist(userId);
             }
             if (res && res.Rating !== undefined) {
                 setLatestRating(res.Rating);
             }
         };
         fetchRating();
-    }, [activeSection, id]);
+    }, [activeSection, userId]);
 
-    const handleLogout = async () => {
-        await logout();
-        router.replace('/login');
-    };
-
-    // Función para cargar más trabajos en "Trabajos creados"
+    // Funciones para paginación
     const loadMoreEmployerJobs = async () => {
         if (!token) return;
         const nextPage = currentPageEmployer + 1;
         try {
-            const newData = await GetJobsUserIDForEmployeProfilevist(nextPage, id as string);
+            const newData = await GetJobsUserIDForEmployeProfilevist(nextPage, userId);
             if (newData?.jobs) {
                 setEmployerJobs((prev) => [...prev, ...newData.jobs]);
                 setCurrentPageEmployer(nextPage);
@@ -150,12 +137,11 @@ export default function VisitedProfileScreen() {
         }
     };
 
-    // Función para cargar más trabajos en "Trabajos realizados"
     const loadMoreWorkerJobs = async () => {
         if (!token) return;
         const nextPage = currentPageWorker + 1;
         try {
-            const newData = await GetJobsUserCompleted(id as string);
+            const newData = await GetJobsUserCompleted(userId);
             if (newData?.jobs) {
                 setWorkerJobs((prev) => [...prev, ...newData.jobs]);
                 setCurrentPageWorker(nextPage);
@@ -165,39 +151,60 @@ export default function VisitedProfileScreen() {
         }
     };
 
-    // Encabezado de la lista
+    if (globalLoading) {
+        return (
+            <Modal visible={visible} transparent animationType="slide">
+                <View style={styles.center}>
+                    <ActivityIndicator size="large" color="#03DAC5" />
+                </View>
+            </Modal>
+        );
+    }
+
+    if (error) {
+        return (
+            <Modal visible={visible} transparent animationType="slide">
+                <View style={styles.center}>
+                    <Text style={styles.errorText}>{error}</Text>
+                    <Button
+                        title="Cerrar sesión"
+                        onPress={async () => {
+                            await logout();
+                        }}
+                        color="#03DAC5"
+                    />
+                    <Button title="Cerrar" onPress={onClose} color="#03DAC5" />
+                </View>
+            </Modal>
+        );
+    }
+
+    // Encabezado con la información del perfil
     const ListHeader = () => (
         <View>
-            {userProfile && (
-                <>
-                    <ProfileHeader user={userProfile} />
-                    {userProfile.description && (
-                        <View style={styles.descriptionContainer}>
-                            <Text style={styles.userDescription}>
-                                {descriptionExpanded || userProfile.description.length <= 100
-                                    ? userProfile.description
-                                    : `${userProfile.description.substring(0, 100)}... `}
+            {userProfile && <ProfileHeader user={userProfile} />}
+            {userProfile?.description && (
+                <View style={styles.descriptionContainer}>
+                    <Text style={styles.userDescription}>
+                        {descriptionExpanded || userProfile.description.length <= 100
+                            ? userProfile.description
+                            : `${userProfile.description.substring(0, 100)}... `}
+                    </Text>
+                    {userProfile.description.length > 100 && (
+                        <TouchableOpacity onPress={() => setDescriptionExpanded(!descriptionExpanded)}>
+                            <Text style={styles.seeMoreText}>
+                                {descriptionExpanded ? 'Ver menos' : 'Ver más'}
                             </Text>
-                            {userProfile.description.length > 100 && (
-                                <TouchableOpacity onPress={() => setDescriptionExpanded(!descriptionExpanded)}>
-                                    <Text style={styles.seeMoreText}>
-                                        {descriptionExpanded ? 'Ver menos' : 'Ver más'}
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
+                        </TouchableOpacity>
                     )}
-                </>
+                </View>
             )}
             {latestRating !== null && (
                 <View style={styles.starContainer}>
                     {[1, 2, 3, 4, 5].map((star) => (
                         <Text
                             key={star}
-                            style={[
-                                styles.star,
-                                star <= latestRating ? styles.selectedStar : styles.unselectedStar,
-                            ]}
+                            style={[styles.star, star <= latestRating ? styles.selectedStar : styles.unselectedStar]}
                         >
                             ★
                         </Text>
@@ -207,10 +214,7 @@ export default function VisitedProfileScreen() {
                     </Text>
                 </View>
             )}
-            <TouchableOpacity style={styles.reportButton} onPress={() => setReportModalVisible(true)}>
-                <Text style={styles.reportButtonText}>Reportar</Text>
-            </TouchableOpacity>
-            {/* Si se desea permitir la creación de trabajos en perfil de visita, se podría habilitar */}
+
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
                     style={[styles.toggleButton, activeSection === 'jobFeed' && styles.activeToggle]}
@@ -232,11 +236,9 @@ export default function VisitedProfileScreen() {
         </View>
     );
 
-    const renderItem = ({ item }: { item: Job }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push(`/JobDetailVisited?id=${item.id}`)}
-        >
+    // Renderizado de cada item (trabajo)
+    const renderItem = ({ item }: { item: { id: string; title: string; status: string } }) => (
+        <TouchableOpacity style={styles.card}>
             <Text style={styles.cardTitle}>{item.title}</Text>
             <Text style={styles.cardStatus}>Estado: {item.status}</Text>
         </TouchableOpacity>
@@ -245,104 +247,62 @@ export default function VisitedProfileScreen() {
     const data = activeSection === 'jobFeed' ? workerJobs : employerJobs;
     const onEndReached = activeSection === 'jobFeed' ? loadMoreWorkerJobs : loadMoreEmployerJobs;
 
-    if (globalLoading) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color="#03DAC5" />
-            </View>
-        );
-    }
-
-    if (error) {
-        return (
-            <View style={styles.center}>
-                <Text style={styles.errorText}>{error}</Text>
-                <Button title="Cerrar sesión" onPress={handleLogout} color="#03DAC5" />
-            </View>
-        );
-    }
-
     return (
-        <View style={{ flex: 1, backgroundColor: '#121212' }}>
-            <FlatList
-                data={data}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={renderItem}
-                ListHeaderComponent={ListHeader}
-                onEndReached={onEndReached}
-                onEndReachedThreshold={0.5}
-                contentContainerStyle={styles.listContainer}
-            />
-            <Modal
-                visible={reportModalVisible}
-                animationType="slide"
-                transparent
-                onRequestClose={() => setReportModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Enviar Reporte</Text>
-                        <TextInput
-                            style={styles.modalInput}
-                            placeholder="Escribe tu reporte..."
-                            placeholderTextColor="#888"
-                            value={reportMessage}
-                            onChangeText={setReportMessage}
-                            multiline
-                        />
-                        <View style={styles.modalButtons}>
-                            <Button
-                                title="Enviar"
-                                onPress={async () => {
-                                    if (!reportMessage.trim() || !token || !id) {
-                                        alert('El reporte no puede estar vacío');
-                                        return;
-                                    }
-                                    try {
-                                        const reportData = {
-                                            reportedUserId: id,
-                                            text: reportMessage,
-                                        };
-                                        const res = await createReports(reportData, token);
-                                        if (res && res.reporterUserId) {
-                                            alert('Reporte enviado exitosamente');
-                                            setReportMessage('');
-                                            setReportModalVisible(false);
-                                        } else {
-                                            alert('No se pudo enviar el reporte');
-                                        }
-                                    } catch (error) {
-                                        console.error('Error enviando reporte:', error);
-                                        alert('Ocurrió un error al enviar el reporte');
-                                    }
-                                }}
-                                color="#03DAC5"
-                            />
-                            <Button title="Cancelar" onPress={() => setReportModalVisible(false)} color="#03DAC5" />
-                        </View>
-                    </View>
+        <>
+            <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
+                <View style={styles.fullScreenContainer}>
+                    <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                        <Text style={styles.closeButtonText}>X</Text>
+                    </TouchableOpacity>
+                    <FlatList
+                        data={data}
+                        keyExtractor={(item) => item.id}
+                        renderItem={renderItem}
+                        ListHeaderComponent={ListHeader}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={0.5}
+                        contentContainerStyle={styles.listContainer}
+                    />
                 </View>
             </Modal>
-        </View>
+
+
+        </>
     );
-}
+};
 
 const styles = StyleSheet.create({
+    fullScreenContainer: {
+        flex: 1,
+        backgroundColor: '#121212',
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 30,
+        right: 20,
+        zIndex: 10,
+        padding: 10,
+    },
+    closeButtonText: {
+        fontSize: 24,
+        color: '#03DAC5',
+    },
     listContainer: {
         flexGrow: 1,
         padding: 16,
         backgroundColor: '#121212',
+        paddingTop: 60, // Espacio para que no tape el botón de cerrar
     },
     center: {
         flex: 1,
+        backgroundColor: '#121212',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#121212',
     },
     errorText: {
         color: '#CF6679',
-        marginBottom: 20,
         fontSize: 16,
+        marginBottom: 20,
     },
     descriptionContainer: {
         backgroundColor: '#1E1E1E',
@@ -379,9 +339,21 @@ const styles = StyleSheet.create({
     ratingText: {
         fontSize: 16,
         color: '#03DAC5',
-        textAlign: 'center',
         marginLeft: 8,
         fontWeight: '600',
+    },
+    reportButton: {
+        alignSelf: 'flex-end',
+        backgroundColor: '#03DAC5',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 5,
+        marginBottom: 12,
+    },
+    reportButtonText: {
+        color: '#121212',
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     toggleContainer: {
         flexDirection: 'row',
@@ -408,30 +380,12 @@ const styles = StyleSheet.create({
         color: '#121212',
         fontWeight: 'bold',
     },
-    reportButton: {
-        position: 'absolute',
-        top: 16,
-        right: 16,
-        backgroundColor: '#03DAC5',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 5,
-        zIndex: 10,
-    },
-    reportButtonText: {
-        color: '#121212',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
     card: {
         backgroundColor: '#1E1E1E',
         padding: 16,
         borderRadius: 12,
         marginVertical: 8,
         elevation: 3,
-        shadowColor: '#000',
-        shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 2 },
     },
     cardTitle: {
         fontSize: 18,
@@ -477,25 +431,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-around',
     },
-    fab: {
-        position: 'absolute',
-        bottom: 30,
-        right: 30,
-        backgroundColor: '#03DAC5',
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 6,
-        shadowColor: '#000',
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-    },
-    fabText: {
-        color: '#121212',
-        fontSize: 30,
-        fontWeight: 'bold',
-    },
 });
+
+export default VisitedProfileModal;

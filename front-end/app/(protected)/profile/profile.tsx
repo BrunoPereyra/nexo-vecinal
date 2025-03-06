@@ -81,7 +81,6 @@ export default function ProfileScreen() {
             try {
                 const data = await getUserToken(token);
                 if (data?.data) {
-                    console.log(data.data);
                     setUserProfile(data.data);
                     setBiografia(data.data.Biography || "");
                 }
@@ -115,7 +114,6 @@ export default function ProfileScreen() {
         const fetchEmployer = async () => {
             try {
                 const feedData = await getCreateJobsProfile(1, token);
-                console.log(feedData);
                 setEmployerJobs(feedData?.jobs || []);
                 setCurrentPageJobFeed(1);
             } catch (error) {

@@ -39,8 +39,6 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
         try {
             if (job.assignedTo && job.assignedTo.applicantId !== "000000000000000000000000") {
                 const res = await reassignJob(job.id, workerId, token);
-                console.log(res);
-
             } else {
                 await assignJob(job.id, workerId, token);
             }

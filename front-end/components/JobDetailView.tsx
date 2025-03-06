@@ -7,11 +7,13 @@ import {
     TouchableOpacity,
     TextInput,
     Alert,
-    ScrollView
+    ScrollView,
+    Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { applyToJob } from '../services/JobsService';
 import { useAuth } from '@/context/AuthContext';
+import VisitedProfileModal from './modalProfilevisited/VisitedProfileModa';
 
 export interface JobUserDetails {
     avatar: string;
@@ -36,10 +38,13 @@ interface JobDetailViewProps {
 
 const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
     const router = useRouter();
+    const { token } = useAuth();
     const [proposal, setProposal] = useState('');
     const [price, setPrice] = useState('');
     const [showInputs, setShowInputs] = useState(false);
-    const { token, } = useAuth();
+    // Estado para controlar el modal del perfil
+    const [showProfileModal, setShowProfileModal] = useState(false);
+
     const handleApply = async () => {
         if (!showInputs) {
             setShowInputs(true);
@@ -54,11 +59,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
             Alert.alert("Error", "El precio debe estar entre 100 y 10,000,000");
             return;
         }
-        // Llamamos a la función applyToJob con los datos correctos
         const res = await applyToJob(job.id, proposal, numericPrice, token as string);
-        // Asegúrate de pasar el token correcto en producción
-        console.log(res);
-
         if (res && res.message === 'Applied to job successfully') {
             Alert.alert("Postulación enviada", "Has postulado exitosamente a este trabajo.");
             onClose();
@@ -69,11 +70,11 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            {/* Perfil del Empleador en la parte superior: Avatar y nombre como botón */}
+            {/* Al tocar el área del empleador se abre el modal del perfil en lugar de enrutar */}
             {job.userDetails && (
                 <TouchableOpacity
                     style={styles.employerContainer}
-                    onPress={() => router.push(`/ProfileVisited?id=${job.userDetails.id}`)}
+                    onPress={() => setShowProfileModal(true)}
                     activeOpacity={0.7}
                 >
                     <View style={styles.avatarPlaceholder}>
@@ -138,6 +139,23 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>Cerrar</Text>
             </TouchableOpacity>
+
+            {/* Modal para mostrar el perfil del empleador */}
+            <Modal
+                visible={showProfileModal}
+                animationType="slide"
+                transparent
+                onRequestClose={() => setShowProfileModal(false)}
+            >
+                <View style={styles.profileModalContainer}>
+                    <VisitedProfileModal
+                        visible={showProfileModal}
+                        onClose={() => setShowProfileModal(false)}
+                        userId={job.userDetails.id} // Se pasa el id del usuario
+                    />
+                </View>
+            </Modal>
+
         </ScrollView>
     );
 };
@@ -262,6 +280,38 @@ const styles = StyleSheet.create({
     closeButtonText: {
         color: '#03DAC5',
         fontSize: 16,
+    },
+    profileModalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    profileModalContent: {
+        backgroundColor: '#121212',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    closeProfileButton: {
+        alignSelf: 'flex-end',
+    },
+    closeProfileText: {
+        color: '#03DAC5',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    profileAvatar: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        marginVertical: 10,
+    },
+    profileName: {
+        fontSize: 20,
+        color: '#E0E0E0',
+        fontWeight: 'bold',
     },
 });
 

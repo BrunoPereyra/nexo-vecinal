@@ -13,7 +13,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   GetJobTokenAdmin,
   assignJob,
-  reassignJob,
   updateJobStatusToCompleted,
   provideEmployerFeedback
 } from '@/services/JobsService';
@@ -63,33 +62,6 @@ export default function EmployerJobDetail() {
     fetchJobDetail();
   }, [jobId, token]);
 
-  const handleAssign = async (candidateId: string) => {
-    if (!jobDetail || !token) return;
-    setActionLoading(true);
-    try {
-      const res = await assignJob(jobDetail.id, candidateId, token);
-      setJobDetail(res);
-      alert('Trabajador asignado exitosamente');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleReassign = async (candidateId: string) => {
-    if (!jobDetail || !token) return;
-    setActionLoading(true);
-    try {
-      const res = await reassignJob(jobDetail.id, candidateId, token);
-      setJobDetail(res);
-      alert('Reasignación exitosa');
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   const handleComplete = async () => {
     if (!jobDetail || !token) return;
@@ -223,7 +195,7 @@ export default function EmployerJobDetail() {
         mode="employer"
       />
 
-      <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
+      {/* <Button title="Volver" onPress={() => router.back()} color="#03DAC5" /> */}
     </ScrollView >
   );
 }

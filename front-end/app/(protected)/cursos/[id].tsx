@@ -61,10 +61,8 @@ export default function CursoDetailScreen() {
 
     useEffect(() => {
         if (id) {
-            console.log(id);
             getCourseById(id)
                 .then((data: Course) => {
-                    console.log(data);
 
                     setCourse(data);
                 })

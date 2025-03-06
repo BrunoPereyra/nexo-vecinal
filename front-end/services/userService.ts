@@ -18,6 +18,21 @@ export const getUserToken = async (token: string) => {
         console.error(error);
     }
 };
+export const savePushToken = async (token: string, pushToken: string) => {
+    try {
+        const res = await fetch(`${API}/user/save-push-token?pushToken=${encodeURIComponent(pushToken)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+        });
+        return await res.json();
+    } catch (error) {
+        console.error("Error saving push token:", error);
+        throw error;
+    }
+};
 export const getUserByid = async (id: string) => {
     try {
         const res = await fetch(`${API}/user/get-user-by-id?id=${id}`, {

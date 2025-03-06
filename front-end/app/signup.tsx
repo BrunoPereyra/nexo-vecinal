@@ -31,7 +31,6 @@ export default function SignupScreen() {
     try {
       const data = await SignupService(email, password, nameUser);
       if (data) {
-        console.log(data);
         if (data.message === "email to confirm") {
           setShowCodeInput(true);
         }

@@ -14,8 +14,6 @@ export const sendSupportMessage = async (
     message: SupportMessage,
     token: string
 ): Promise<any> => {
-    console.log(message);
-
     try {
         const res = await fetch(`${API}/support/messages`, {
             method: "POST",

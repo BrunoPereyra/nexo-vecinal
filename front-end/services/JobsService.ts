@@ -296,7 +296,6 @@ export const getJobsProfileVist = async (page: number, id: string) => {
     try {
         // Construimos la URL usando el parámetro page
         const url = `${API}/job/get-jobs-profile-vist?page=${page}&id=${id}`;
-        console.log(url);
 
         const res = await fetch(url, {
             method: 'GET',
@@ -314,7 +313,6 @@ export const getJobsProfileVist = async (page: number, id: string) => {
 };
 // obtiene los trabajos creados del perfil visitado
 export const GetJobsUserIDForEmployeProfilevist = async (page: number, id: string) => {
-    console.log("Page:", page);
 
     try {
         // Construimos la URL usando el parámetro page
@@ -328,7 +326,6 @@ export const GetJobsUserIDForEmployeProfilevist = async (page: number, id: strin
 
         return await res.json();
     } catch (error) {
-        console.log("OENE");
 
         console.error("Error en getJobsProfile 3:", error);
     }
@@ -476,7 +473,6 @@ export const GetJobsUserCompleted = async (id: string, page: number = 1) => {
 export const GetJobDetailvisited = async (id: string) => {
     try {
         const url = `${API}/job/get-job-detaild-user-visited?id=${id}`;
-        console.log(url);
 
         const res = await fetch(url, {
             method: 'GET',
@@ -484,7 +480,6 @@ export const GetJobDetailvisited = async (id: string) => {
                 'Content-Type': 'application/json',
             },
         });
-        console.log(res);
         if (!res.ok) {
             throw new Error(`Error HTTP: ${res.status}`);
         }

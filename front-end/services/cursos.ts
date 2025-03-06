@@ -43,8 +43,6 @@ export async function createCourse(
     data: CreateCourseRequest,
     token: string
 ): Promise<Course> {
-    console.log(token);
-    console.log(data);
 
     const response = await fetch(`${API_BASE}/cursos/`, {
         method: "POST",
@@ -55,7 +53,6 @@ export async function createCourse(
         body: JSON.stringify(data),
     });
     if (!response.ok) {
-        console.log(response);
 
         throw new Error(`Error creating course: ${response.statusText}`);
     }

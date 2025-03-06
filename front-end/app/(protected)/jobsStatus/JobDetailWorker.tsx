@@ -7,6 +7,7 @@ import {
     ScrollView,
     StyleSheet,
     TouchableOpacity,
+    Image,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -43,7 +44,6 @@ export default function JobDetailWorker() {
             setLoading(true);
             try {
                 const data = await GetJobDetailvisited(jobId);
-                console.log(data);
                 if (data.job) {
                     setJobDetail(data.job);
                 } else {
@@ -67,7 +67,6 @@ export default function JobDetailWorker() {
         try {
             const feedbackData = { comment: feedback.trim(), rating };
             const res = await provideWorkerFeedback(jobDetail.id, feedbackData, token);
-            console.log(res);
             if (res && res.message === "Worker feedback provided successfully") {
                 alert('Feedback enviado exitosamente');
                 setJobDetail({ ...jobDetail, workerFeedback: res.feedback });
@@ -103,18 +102,42 @@ export default function JobDetailWorker() {
         );
     }
 
-    // Mostramos al candidato asignado, si existe
-    const assignedCandidate = jobDetail.assignedCandidate || null;
+    // Mostramos al empleador; al tocar, se redirige al perfil visitado
+    const { userDetails } = jobDetail;
 
     return (
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
+            {/* Área del empleador */}
+            {userDetails && (
+                <TouchableOpacity
+                    style={styles.employerContainer}
+                    // onPress={() => router.push(`/ProfileVisited?id=${userDetails.id}`)}
+                    activeOpacity={0.7}
+                >
+                    <View style={styles.avatarPlaceholder}>
+                        {userDetails.avatar ? (
+                            <Image source={{ uri: userDetails.avatar }} style={styles.avatar} />
+                        ) : (
+                            <Text style={styles.avatarText}>
+                                {userDetails.nameUser.charAt(0).toUpperCase()}
+                            </Text>
+                        )}
+                    </View>
+                    <Text style={styles.employerName}>{userDetails.nameUser}</Text>
+                </TouchableOpacity>
+            )}
+
             {/* Información principal del trabajo */}
             <Text style={styles.title}>{jobDetail.title}</Text>
             <Text style={styles.description}>{jobDetail.description}</Text>
-            <Text style={styles.detail}>Precio: ${jobDetail.budget || jobDetail.price}</Text>
+            <Text style={styles.detail}>
+                Precio: ${jobDetail.budget || jobDetail.price}
+            </Text>
             <Text style={styles.detail}>Estado: {jobDetail.status}</Text>
-            {assignedCandidate && (
-                <Text style={styles.detail}>Asignado a: {assignedCandidate.nameUser}</Text>
+            {jobDetail.assignedCandidate && (
+                <Text style={styles.detail}>
+                    Asignado a: {jobDetail.assignedCandidate.nameUser}
+                </Text>
             )}
 
             {/* Botón para abrir el chat */}
@@ -226,4 +249,38 @@ const styles = StyleSheet.create({
         color: '#CF6679',
         marginBottom: 16,
     },
+    // Estilos para el área del empleador
+    employerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+        padding: 12,
+        backgroundColor: '#1E1E1E',
+        borderRadius: 8,
+    },
+    avatarPlaceholder: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#03DAC5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    avatar: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+    },
+    avatarText: {
+        color: '#121212',
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
+    employerName: {
+        fontSize: 18,
+        color: '#E0E0E0',
+        fontWeight: 'bold',
+    },
 });
+

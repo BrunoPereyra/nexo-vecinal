@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { GetJobsAssignedNoCompleted, GetJobsAssignedCompleted } from '@/services/JobsService';
-
+import * as Notifications from 'expo-notifications';
 const JobsStatusScreen: React.FC = () => {
 
   const { token } = useAuth();
@@ -21,7 +21,20 @@ const JobsStatusScreen: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [selectedTab, setSelectedTab] = useState<'assigned' | 'completed'>('assigned');
+  // Estado para resaltar el trabajo asignado (por ejemplo, usando el título de trabajo)
+  const [highlightedJobTitle, setHighlightedJobTitle] = useState<string | null>(null);
 
+  // Suscribirse a notificaciones push y capturar el jobTitle
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener(notification => {
+      const data = notification.request.content.data;
+      if (data.jobTitle) {
+        // Por ejemplo, si la notificación indica que "Trabajo X" fue asignado
+        setHighlightedJobTitle(data.jobTitle as string);
+      }
+    });
+    return () => subscription.remove();
+  }, []);
   useEffect(() => {
     const fetchJobs = async () => {
       if (!token) return;
@@ -48,7 +61,9 @@ const JobsStatusScreen: React.FC = () => {
 
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity
-      style={styles.card}
+      style={[styles.card,
+      item.title === highlightedJobTitle && styles.highlightedCard,
+      ]}
       onPress={() => router.push(`/jobsStatus/JobDetailWorker?id=${item.id}`)}
     >
       <Text style={styles.title}>{item.title}</Text>
@@ -153,6 +168,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     color: '#777',
+  },
+  highlightedCard: {
+    borderWidth: 2,
+    borderColor: 'red',
   },
   card: {
     backgroundColor: '#1E1E1E',
