@@ -550,3 +550,31 @@ func (h *UserHandler) UpdateUserBiography(c *fiber.Ctx) error {
 		"message": "StatusOK",
 	})
 }
+func (h *UserHandler) SavePushToken(c *fiber.Ctx) error {
+	IdUserToken := c.Context().UserValue("_id").(string)
+
+	IdUserTokenP, errinObjectID := primitive.ObjectIDFromHex(IdUserToken)
+	if errinObjectID != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+			"data":    errinObjectID.Error(),
+		})
+	}
+
+	pushToken := c.Query("pushToken", "")
+	if pushToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "User id is required in query",
+		})
+	}
+	err := h.userService.SavePushToken(IdUserTokenP, pushToken)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+			"data":    err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "StatusOK",
+	})
+}

@@ -1,9 +1,12 @@
 package chatinfrastructure
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"back-end/internal/chat/chatdomain"
@@ -38,7 +41,6 @@ func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMes
 	msg.ID = primitive.NewObjectID()
 	msg.CreatedAt = time.Now()
 	msg.IsRead = false
-	fmt.Println(msg.JobID)
 	// Insertar en MongoDB.
 	_, err := collection.InsertOne(ctx, msg)
 	if err != nil {
@@ -50,17 +52,20 @@ func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMes
 		channel := fmt.Sprintf("chat:job:%s", msg.JobID.Hex())
 		messageBytes, err := json.Marshal(msg)
 		if err != nil {
-			fmt.Printf("Error serializing message: %v\n", err)
+			return chatdomain.ChatMessage{}, fmt.Errorf("error serializing message")
 		} else {
 			if err := r.redisClient.Publish(ctx, channel, messageBytes).Err(); err != nil {
-				fmt.Printf("Error publishing message: %v\n", err)
+				return chatdomain.ChatMessage{}, fmt.Errorf("error publishing message: %v\n", err)
 			}
 		}
 	} else {
 		// Opcional: si el mensaje no tiene JobID, se puede manejar de otra forma o no publicarlo.
-		fmt.Println("Mensaje sin JobID, no se publica en un canal de trabajo.")
+		return chatdomain.ChatMessage{}, fmt.Errorf("mensaje sin JobID, no se publica en un canal de trabajo.")
 	}
-
+	// Luego, enviar notificación al trabajador
+	if err := r.notifyMessage(msg.ReceiverID, msg.Text); err != nil {
+		return chatdomain.ChatMessage{}, errors.New("error sending push notification:")
+	}
 	return msg, nil
 }
 
@@ -116,4 +121,47 @@ func (r *ChatRepository) MarkMessageAsRead(ctx context.Context, messageID string
 func (r *ChatRepository) SubscribeMessages(ctx context.Context, jobID string) *redis.PubSub {
 	channel := fmt.Sprintf("chat:job:%s", jobID)
 	return r.redisClient.Subscribe(ctx, channel)
+}
+func (j *ChatRepository) notifyMessage(user primitive.ObjectID, jobTitle string) error {
+	// Supongamos que tienes una función que obtiene el push token del usuario
+	pushToken, err := j.getPushTokenUser(user)
+	if err != nil {
+		return err
+	}
+	// Construir payload para notificación push de Expo
+	payload := map[string]interface{}{
+		"to":    pushToken,
+		"title": "Trabajo asignado",
+		"body":  fmt.Sprintf(jobTitle),
+		"data":  map[string]string{"jobTitle": jobTitle},
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	// Enviar la notificación push
+	resp, err := http.Post("https://exp.host/--/api/v2/push/send", "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error enviando notificación, status: %d", resp.StatusCode)
+	}
+	return nil
+}
+func (j *ChatRepository) getPushTokenUser(workerID primitive.ObjectID) (string, error) {
+	userColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	var user struct {
+		PushToken string `bson:"pushToken"`
+	}
+	filter := bson.M{"_id": workerID}
+	err := userColl.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		return "", err
+	}
+	if user.PushToken == "" {
+		return "", errors.New("el trabajador no tiene push token")
+	}
+	return user.PushToken, nil
 }

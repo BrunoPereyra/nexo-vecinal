@@ -3,11 +3,13 @@ package jobinfrastructure
 import (
 	jobdomain "back-end/internal/Job/Job-domain"
 	userdomain "back-end/internal/user/user-domain"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -167,6 +169,54 @@ func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
 	if result.MatchedCount == 0 {
 		return errors.New("job no encontrado")
 	}
+	// Luego, enviar notificación al trabajador
+	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
+		return errors.New("Error sending push notification:")
+	}
+	return nil
+}
+
+// ReassignJob permite al empleador reasignar el job a un nuevo trabajador en caso de inconvenientes.
+func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error {
+	// Primero se obtiene el job para buscar la postulación del newWorkerID.
+	job, err := j.GetJobByID(jobID)
+	if err != nil {
+		return err
+	}
+
+	var selectedApp jobdomain.Application
+	found := false
+	for _, app := range job.Applicants {
+		if app.ApplicantID == newWorkerID {
+			selectedApp = app
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("no se encontró la postulación del usuario")
+	}
+
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+	filter := bson.M{"_id": jobID}
+	update := bson.M{
+		"$set": bson.M{
+			"assignedApplication": selectedApp,
+			"status":              jobdomain.JobStatusInProgress, // Se mantiene el estado "in_progress"
+			"updatedAt":           time.Now(),
+		},
+	}
+	result, err := jobColl.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("job not found")
+	}
+	// Luego, enviar notificación al trabajador
+	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
+		return errors.New("Error sending push notification:")
+	}
 	return nil
 }
 
@@ -228,46 +278,6 @@ func (j *JobRepository) incrementUserJobCount(userID primitive.ObjectID) error {
 	}
 	if result.MatchedCount == 0 {
 		return errors.New("user not found")
-	}
-	return nil
-}
-
-// ReassignJob permite al empleador reasignar el job a un nuevo trabajador en caso de inconvenientes.
-func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error {
-	// Primero se obtiene el job para buscar la postulación del newWorkerID.
-	job, err := j.GetJobByID(jobID)
-	if err != nil {
-		return err
-	}
-
-	var selectedApp jobdomain.Application
-	found := false
-	for _, app := range job.Applicants {
-		if app.ApplicantID == newWorkerID {
-			selectedApp = app
-			found = true
-			break
-		}
-	}
-	if !found {
-		return errors.New("no se encontró la postulación del usuario")
-	}
-
-	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-	filter := bson.M{"_id": jobID}
-	update := bson.M{
-		"$set": bson.M{
-			"assignedApplication": selectedApp,
-			"status":              jobdomain.JobStatusInProgress, // Se mantiene el estado "in_progress"
-			"updatedAt":           time.Now(),
-		},
-	}
-	result, err := jobColl.UpdateOne(context.Background(), filter, update)
-	if err != nil {
-		return err
-	}
-	if result.MatchedCount == 0 {
-		return errors.New("job not found")
 	}
 	return nil
 }
@@ -1143,4 +1153,47 @@ func (j *JobRepository) GetJobsAssignedNoCompleted(employerID primitive.ObjectID
 	}
 
 	return jobs, nil
+}
+func (j *JobRepository) notifyWorker(workerID primitive.ObjectID, jobTitle string) error {
+	// Supongamos que tienes una función que obtiene el push token del usuario
+	pushToken, err := j.getPushTokenUser(workerID)
+	if err != nil {
+		return err
+	}
+	// Construir payload para notificación push de Expo
+	payload := map[string]interface{}{
+		"to":    pushToken,
+		"title": "Trabajo asignado",
+		"body":  fmt.Sprintf("Has sido asignado al trabajo '%s'", jobTitle),
+		"data":  map[string]string{"jobTitle": jobTitle},
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	// Enviar la notificación push
+	resp, err := http.Post("https://exp.host/--/api/v2/push/send", "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error enviando notificación, status: %d", resp.StatusCode)
+	}
+	return nil
+}
+func (j *JobRepository) getPushTokenUser(workerID primitive.ObjectID) (string, error) {
+	userColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	var user struct {
+		PushToken string `bson:"pushToken"`
+	}
+	filter := bson.M{"_id": workerID}
+	err := userColl.FindOne(context.Background(), filter).Decode(&user)
+	if err != nil {
+		return "", err
+	}
+	if user.PushToken == "" {
+		return "", errors.New("el trabajador no tiene push token")
+	}
+	return user.PushToken, nil
 }

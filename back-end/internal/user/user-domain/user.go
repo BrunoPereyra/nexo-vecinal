@@ -66,6 +66,7 @@ type User struct {
 	Location        GeoPoint           `json:"location" bson:"location"`
 	Soporte         string             `json:"Soporte" bson:"Soporte"`
 	SoporteAssigned primitive.ObjectID `bson:"soporteassigned"`
+	PushToken       string             `json:"pushToken" bson:"pushToken"`
 }
 
 type Prime struct {

@@ -96,7 +96,14 @@ func (u *UserRepository) SetTOTPSecret(ctx context.Context, userID primitive.Obj
 	_, err = usersCollection.UpdateOne(ctx, filter, update)
 	return err
 }
-
+func (u *UserRepository) SavePushToken(userID primitive.ObjectID, pushToken string) error {
+	ctx := context.Background()
+	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	filter := bson.M{"_id": userID}
+	update := bson.M{"$set": bson.M{"pushToken": pushToken}}
+	_, err := usersCollection.UpdateOne(ctx, filter, update)
+	return err
+}
 func (u *UserRepository) GetTOTPSecret(ctx context.Context, userID primitive.ObjectID) (string, error) {
 	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	filter := bson.M{"_id": userID}
