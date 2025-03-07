@@ -155,3 +155,8 @@ func (u *UserService) UpdateUserBiography(id primitive.ObjectID, req domain.Edit
 	context := context.Background()
 	return u.roomRepository.UpdateUserBiography(context, id, req.Biography)
 }
+func (u *UserService) EditAvatar(avatarUrl string, IdUserTokenP primitive.ObjectID) error {
+
+	err := u.roomRepository.EditAvatar(avatarUrl, IdUserTokenP)
+	return err
+}

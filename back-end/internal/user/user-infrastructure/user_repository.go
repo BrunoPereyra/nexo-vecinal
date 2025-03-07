@@ -810,7 +810,6 @@ func (u *UserRepository) EditPasswordHast(passwordHash string, id primitive.Obje
 func (u *UserRepository) EditAvatar(avatar string, id primitive.ObjectID) error {
 	GoMongoDB := u.mongoClient.Database("NEXO-VECINAL")
 	GoMongoDBCollUsers := GoMongoDB.Collection("Users")
-	GoMongoDBCollStreams := GoMongoDB.Collection("Streams")
 
 	filter := bson.M{"_id": id}
 	update := bson.M{
@@ -822,15 +821,7 @@ func (u *UserRepository) EditAvatar(avatar string, id primitive.ObjectID) error 
 	if err != nil {
 		return err
 	}
-	filterStream := bson.M{"StreamerID": id}
-	updateStream := bson.M{
-		"$set": bson.M{
-			"StreamerAvatar": avatar,
-		},
-	}
-
-	_, err = GoMongoDBCollStreams.UpdateOne(context.TODO(), filterStream, updateStream)
-
+	fmt.Println(avatar)
 	return err
 }
 func (u *UserRepository) EditBanner(Banner string, id primitive.ObjectID) error {

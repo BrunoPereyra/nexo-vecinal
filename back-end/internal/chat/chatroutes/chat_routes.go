@@ -25,5 +25,5 @@ func ChatRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *mongo.Cl
 	chatGroup.Get("/messages", middleware.UseExtractor(), chatHandler.GetMessagesBetween)
 	chatGroup.Post("/messages/:id/read", middleware.UseExtractor(), chatHandler.MarkMessageAsRead)
 	// Nueva ruta para suscripción vía WebSocket
-	chatGroup.Get("/subscribe/:jobID", middleware.UseExtractor(), websocket.New(chatHandler.SubscribeMessages))
+	chatGroup.Get("/subscribe/:jobID", websocket.New(chatHandler.SubscribeMessages))
 }

@@ -578,3 +578,39 @@ func (h *UserHandler) SavePushToken(c *fiber.Ctx) error {
 		"message": "StatusOK",
 	})
 }
+func (h *UserHandler) EditAvatar(c *fiber.Ctx) error {
+	fileHeader, _ := c.FormFile("avatar")
+	PostImageChanel := make(chan string)
+	errChanel := make(chan error)
+
+	go helpers.ProcessImage(fileHeader, PostImageChanel, errChanel)
+
+	IdUserToken := c.Context().UserValue("_id").(string)
+	IdUserTokenP, errinObjectID := primitive.ObjectIDFromHex(IdUserToken)
+	if errinObjectID != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+		})
+	}
+	for {
+		select {
+		case avatarUrl := <-PostImageChanel:
+			errUpdateUserFollow := h.userService.EditAvatar(avatarUrl, IdUserTokenP)
+			if errUpdateUserFollow != nil {
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+					"message": "StatusInternalServerError",
+				})
+			}
+			return c.Status(fiber.StatusOK).JSON(fiber.Map{
+				"message": "StatusOK",
+				"avatar":  avatarUrl,
+			})
+		case <-errChanel:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "avatarUrl error",
+			})
+		}
+
+	}
+
+}

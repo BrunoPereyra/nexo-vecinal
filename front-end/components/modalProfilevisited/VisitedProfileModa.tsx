@@ -13,7 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/context/AuthContext';
 import { getUserByid } from '@/services/userService';
-import { ProfileHeader } from '@/components/ProfileHeader';
+import { ProfileVisitedHeader } from '@/components/headersProfile/ProfileVisitedHeader';
 import {
     GetJobsUserIDForEmployeProfilevist,
     GetJobsUserCompleted,
@@ -182,7 +182,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     // Encabezado con la información del perfil
     const ListHeader = () => (
         <View>
-            {userProfile && <ProfileHeader user={userProfile} />}
+            {userProfile && <ProfileVisitedHeader user={userProfile} />}
             {userProfile?.description && (
                 <View style={styles.descriptionContainer}>
                     <Text style={styles.userDescription}>

@@ -44,6 +44,7 @@ export default function JobDetailWorker() {
             setLoading(true);
             try {
                 const data = await GetJobDetailvisited(jobId);
+
                 if (data.job) {
                     setJobDetail(data.job);
                 } else {

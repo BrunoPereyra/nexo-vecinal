@@ -109,12 +109,11 @@ export const CreateJob: React.FC<CreateJobProps> = ({
     };
     try {
       const response = await createJob(jobData, token as string);
-      if (response && response.success) {
+      if (response && response.message === "Job created successfully") {
         Alert.alert('Éxito', 'Trabajo creado exitosamente.');
         if (onJobCreated) {
           onJobCreated(response.job);
         }
-        // Limpiar formulario y cerrar modal
         setTitle('');
         setDescription('');
         setLocation(null);

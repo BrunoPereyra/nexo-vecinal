@@ -155,11 +155,17 @@ func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
 
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{"_id": jobID}
+	// Usamos $set para actualizar los campos y $pull para eliminar la postulación asignada
 	update := bson.M{
 		"$set": bson.M{
 			"assignedApplication": selectedApp,
 			"status":              jobdomain.JobStatusInProgress,
 			"updatedAt":           time.Now(),
+		},
+		"$pull": bson.M{
+			"applicants": bson.M{
+				"applicantId": applicantID,
+			},
 		},
 	}
 	result, err := jobColl.UpdateOne(context.Background(), filter, update)
@@ -169,9 +175,10 @@ func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
 	if result.MatchedCount == 0 {
 		return errors.New("job no encontrado")
 	}
-	// Luego, enviar notificación al trabajador
+
+	// Enviar notificación push al trabajador asignado
 	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
-		return errors.New("Error sending push notification:")
+		return fmt.Errorf("error sending push notification: %v", err)
 	}
 	return nil
 }
@@ -199,11 +206,17 @@ func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error
 
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{"_id": jobID}
+	// Actualizamos y removemos la postulación asignada
 	update := bson.M{
 		"$set": bson.M{
 			"assignedApplication": selectedApp,
-			"status":              jobdomain.JobStatusInProgress, // Se mantiene el estado "in_progress"
+			"status":              jobdomain.JobStatusInProgress,
 			"updatedAt":           time.Now(),
+		},
+		"$pull": bson.M{
+			"applicants": bson.M{
+				"applicantId": newWorkerID,
+			},
 		},
 	}
 	result, err := jobColl.UpdateOne(context.Background(), filter, update)
@@ -213,9 +226,10 @@ func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error
 	if result.MatchedCount == 0 {
 		return errors.New("job not found")
 	}
-	// Luego, enviar notificación al trabajador
+
+	// Enviar notificación push al trabajador reasignado
 	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
-		return errors.New("Error sending push notification:")
+		return fmt.Errorf("error sending push notification: %v", err)
 	}
 	return nil
 }
@@ -1196,4 +1210,113 @@ func (j *JobRepository) getPushTokenUser(workerID primitive.ObjectID) (string, e
 		return "", errors.New("el trabajador no tiene push token")
 	}
 	return user.PushToken, nil
+}
+func (j *JobRepository) GetJobDetailChat(jobID primitive.ObjectID) (*jobdomain.JobDetailsUsers, error) {
+	ctx := context.Background()
+	cacheKey := fmt.Sprintf("jobDetailChat:%s", jobID.Hex())
+
+	// Intentar obtener el resultado de Redis
+	cached, err := j.redisClient.Get(ctx, cacheKey).Result()
+	if err == nil {
+		var cachedDetail jobdomain.JobDetailsUsers
+		if err := json.Unmarshal([]byte(cached), &cachedDetail); err == nil {
+			return &cachedDetail, nil
+		}
+		// Si ocurre error al deserializar, se continúa y se obtiene de la BD.
+	} else if err != redis.Nil {
+		// Si ocurre otro error, se puede loguear y continuar.
+		fmt.Printf("Error obteniendo cache: %v\n", err)
+	}
+
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
+	// Pipeline de agregación para traer solo los campos necesarios para el chat, incluyendo la información completa del usuario asignado (userData)
+	pipeline := mongo.Pipeline{
+		// 1. Filtrar el job por _id
+		{{
+			Key: "$match", Value: bson.D{
+				{Key: "_id", Value: jobID},
+			},
+		}},
+		// 2. Lookup para el usuario asignado, usando assignedApplication.applicantId
+		{{
+			Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "Users"},
+				{Key: "localField", Value: "assignedApplication.applicantId"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "assignedToArr"},
+			},
+		}},
+		// 3. Extraer los campos mínimos del usuario asignado y además incluir toda su data en "userData"
+		{{
+			Key: "$addFields", Value: bson.D{
+				{Key: "assignedTo", Value: bson.D{
+					{Key: "applicantId", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr._id", 0}}}},
+					{Key: "NameUser", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr.NameUser", 0}}}},
+					{Key: "Avatar", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr.Avatar", 0}}}},
+					// Se agrega el objeto completo como userData
+					{Key: "userData", Value: bson.D{{Key: "$arrayElemAt", Value: bson.A{"$assignedToArr", 0}}}},
+				}},
+			},
+		}},
+		// 4. Lookup para traer los detalles del creador (empleador)
+		{{
+			Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "Users"},
+				{Key: "localField", Value: "userId"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "userDetailsArr"},
+			},
+		}},
+		// 5. Extraer el primer elemento de userDetailsArr para userDetails
+		{{
+			Key: "$addFields", Value: bson.D{
+				{Key: "userDetails", Value: bson.D{
+					{Key: "$arrayElemAt", Value: bson.A{"$userDetailsArr", 0}},
+				}},
+			},
+		}},
+		// 6. Proyectar únicamente los campos necesarios para el chat
+		{{
+			Key: "$project", Value: bson.D{
+				{Key: "_id", Value: 1},
+				{Key: "userId", Value: 1},
+				{Key: "status", Value: 1},
+				{Key: "assignedTo.applicantId", Value: 1},
+				{Key: "assignedTo.NameUser", Value: 1},
+				{Key: "assignedTo.Avatar", Value: 1},
+				{Key: "assignedTo.userData", Value: 1},
+				{Key: "userDetails._id", Value: 1},
+				{Key: "userDetails.NameUser", Value: 1},
+				{Key: "userDetails.Avatar", Value: 1},
+			},
+		}},
+	}
+
+	cursor, err := jobColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var jobDetails []jobdomain.JobDetailsUsers
+	if err := cursor.All(ctx, &jobDetails); err != nil {
+		return nil, err
+	}
+	if len(jobDetails) == 0 {
+		return nil, errors.New("job not found")
+	}
+
+	result := &jobDetails[0]
+
+	// Serializar el resultado a JSON para almacenarlo en Redis
+	resultJSON, err := json.Marshal(result)
+	if err == nil {
+		// Guardar en Redis con expiración de 2 minutos
+		j.redisClient.Set(ctx, cacheKey, resultJSON, 2*time.Minute)
+	} else {
+		fmt.Printf("Error serializando el resultado: %v\n", err)
+	}
+
+	return result, nil
 }

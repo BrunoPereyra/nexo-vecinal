@@ -34,7 +34,7 @@ func NewChatRepository(mongoClient *mongo.Client, redisClient *redis.Client) *Ch
 
 // SendMessage guarda un mensaje en la colección "chat_messages" y lo publica en Redis.
 // Se publicará en un canal nombrado según el job, por ejemplo "chat:job:<jobID>".
-func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMessage) (chatdomain.ChatMessage, error) {
+func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMessage, nameUser string) (chatdomain.ChatMessage, error) {
 	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_messages")
 
 	// Establecer ID, fecha de creación y flag de lectura.
@@ -63,7 +63,7 @@ func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMes
 		return chatdomain.ChatMessage{}, fmt.Errorf("mensaje sin JobID, no se publica en un canal de trabajo.")
 	}
 	// Luego, enviar notificación al trabajador
-	if err := r.notifyMessage(msg.ReceiverID, msg.Text); err != nil {
+	if err := r.notifyMessage(msg.ReceiverID, msg.Text, nameUser); err != nil {
 		return chatdomain.ChatMessage{}, errors.New("error sending push notification:")
 	}
 	return msg, nil
@@ -122,7 +122,7 @@ func (r *ChatRepository) SubscribeMessages(ctx context.Context, jobID string) *r
 	channel := fmt.Sprintf("chat:job:%s", jobID)
 	return r.redisClient.Subscribe(ctx, channel)
 }
-func (j *ChatRepository) notifyMessage(user primitive.ObjectID, jobTitle string) error {
+func (j *ChatRepository) notifyMessage(user primitive.ObjectID, jobTitle, nameUser string) error {
 	// Supongamos que tienes una función que obtiene el push token del usuario
 	pushToken, err := j.getPushTokenUser(user)
 	if err != nil {
@@ -131,8 +131,8 @@ func (j *ChatRepository) notifyMessage(user primitive.ObjectID, jobTitle string)
 	// Construir payload para notificación push de Expo
 	payload := map[string]interface{}{
 		"to":    pushToken,
-		"title": "Trabajo asignado",
-		"body":  fmt.Sprintf(jobTitle),
+		"title": nameUser,
+		"body":  jobTitle,
 		"data":  map[string]string{"jobTitle": jobTitle},
 	}
 	payloadBytes, err := json.Marshal(payload)

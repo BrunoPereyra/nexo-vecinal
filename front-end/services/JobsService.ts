@@ -45,6 +45,7 @@ export const GetJobTokenAdmin = async (JobId: any, token: string) => {
  * @returns La respuesta de la API en formato JSON.
  */
 export const getCreateJobsProfile = async (page: number, token: string) => {
+    console.log(page);
 
     try {
         // Construimos la URL usando el parámetro page

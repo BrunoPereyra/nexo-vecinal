@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { assignJob, reassignJob } from '../services/JobsService';
 import { useRouter } from 'expo-router';
@@ -13,7 +13,6 @@ interface User {
 interface Applicant {
     applicantId: string;
     appliedAt: string;
-    // Se admite que la información del precio venga de dos formas:
     price?: number;
     priceObject?: { price?: number };
     proposal: string;
@@ -34,11 +33,13 @@ interface ApplicantsListProps {
 
 const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
     const router = useRouter();
+    // Estado para controlar si se muestran todos los postulantes o solo algunos
+    const [expanded, setExpanded] = useState(false);
 
     const handleAssign = async (workerId: string) => {
         try {
             if (job.assignedTo && job.assignedTo.applicantId !== "000000000000000000000000") {
-                const res = await reassignJob(job.id, workerId, token);
+                await reassignJob(job.id, workerId, token);
             } else {
                 await assignJob(job.id, workerId, token);
             }
@@ -60,10 +61,13 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                 (applicant) => applicant.applicantId === job.assignedTo?.applicantId
             )?.userData);
 
+    // Mostrar solo los primeros 3 postulantes si no está expandido
+    const visibleApplicants = expanded ? job.applicants : job.applicants.slice(0, 3);
+
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Postulantes</Text>
-            {job.applicants.map((applicant) => {
+            {visibleApplicants.map((applicant) => {
                 // Extraer el precio, ya sea que venga directamente o desde priceObject
                 const price =
                     applicant.price !== undefined
@@ -71,7 +75,13 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                         : applicant.priceObject?.price;
                 return (
                     <View key={applicant.applicantId} style={styles.applicantContainer}>
-                        <TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (applicant.userData && applicant.userData.id) {
+                                    router.push(`/profile/ProfileVisited?id=${applicant.userData.id}`);
+                                }
+                            }}
+                        >
                             {applicant.userData && applicant.userData.avatar ? (
                                 <Image source={{ uri: applicant.userData.avatar }} style={styles.avatar} />
                             ) : (
@@ -102,15 +112,31 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                     </View>
                 );
             })}
+            {job.applicants.length > 3 && (
+                <TouchableOpacity onPress={() => setExpanded(!expanded)} style={styles.expandButton}>
+                    <Text style={styles.expandButtonText}>
+                        {expanded ? 'Ver menos postulantes' : 'Ver más postulantes'}
+                    </Text>
+                </TouchableOpacity>
+            )}
+
             {job.assignedTo && (
                 <View style={styles.assignedContainer}>
                     <Text style={styles.assignedTitle}>Trabajador asignado</Text>
                     <View style={styles.applicantContainer}>
-                        {assignedUserData && assignedUserData.avatar ? (
-                            <Image source={{ uri: assignedUserData.avatar }} style={styles.avatar} />
-                        ) : (
-                            <View style={styles.placeholderAvatar} />
-                        )}
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (assignedUserData && assignedUserData.id) {
+                                    router.push(`/profile/ProfileVisited?id=${assignedUserData.id}`);
+                                }
+                            }}
+                        >
+                            {assignedUserData && assignedUserData.avatar ? (
+                                <Image source={{ uri: assignedUserData.avatar }} style={styles.avatar} />
+                            ) : (
+                                <View style={styles.placeholderAvatar} />
+                            )}
+                        </TouchableOpacity>
                         <View style={styles.infoContainer}>
                             <Text style={styles.applicantName}>
                                 {assignedUserData ? assignedUserData.nameUser : 'Información no disponible'}
@@ -125,7 +151,6 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                     </View>
                 </View>
             )}
-
         </View>
     );
 };
@@ -195,6 +220,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 8,
         color: '#CF6679',
+    },
+    expandButton: {
+        marginTop: 8,
+        alignSelf: 'center',
+    },
+    expandButtonText: {
+        color: '#03DAC5',
+        fontSize: 16,
     },
 });
 

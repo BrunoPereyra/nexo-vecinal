@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { sendChatMessage, getMessagesBetween } from '@/services/chatService';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, } from 'expo-router';
 
 const API = process.env.EXPO_URL_APIWS || "ws://192.168.0.28:8084";
 
@@ -28,7 +28,6 @@ interface Message {
 
 export default function ChatJobs() {
   const { token } = useAuth();
-  const router = useRouter();
   const [chatPartner, setChatPartner] = useState<any>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -94,6 +93,7 @@ export default function ChatJobs() {
     let pingInterval: NodeJS.Timeout;
     const subscribeWebSocket = async () => {
       if (!currentUser || !chatPartner) return;
+
       ws.current = new WebSocket(`${API}/chat/subscribe/${jobIdStr}`);
       ws.current.onopen = () => {
         pingInterval = setInterval(() => {
@@ -143,13 +143,16 @@ export default function ChatJobs() {
         receiverId: chatPartner.id,
         jobId: jobIdStr,
         text: newMessage.trim(),
+
       };
+      setNewMessage('');
+
       const res = await sendChatMessage(messageData, token);
+
       if (res) {
         if (res.data === "no se puede chatear: el trabajo está completado") {
           Alert.alert('No se puede chatear: el trabajo está completado');
         }
-        setNewMessage('');
         scrollViewRef.current?.scrollToEnd({ animated: true });
       }
     } catch (err) {

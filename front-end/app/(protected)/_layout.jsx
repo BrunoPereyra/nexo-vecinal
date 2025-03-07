@@ -1,46 +1,34 @@
 import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Tabs } from 'expo-router';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
-import { useColorScheme } from 'react-native';
 
 export default function ProtectedLayout() {
-  const colorScheme = useColorScheme(); // Detecta si el sistema está en modo oscuro o claro
-  const isDarkMode = colorScheme === 'dark';
-
   return (
     <ProtectedRoute>
-      <Tabs
-      initialRouteName="home"
-        screenOptions={{
-          tabBarStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#FFFFFF', // Fondo oscuro
-            borderTopColor: isDarkMode ? '#1E1E1E' : '#E0E0E0', // Color del borde
-          },
-          tabBarActiveTintColor: isDarkMode ? '#FFFFFF' : '#000000', // Color de ítems activos
-          tabBarInactiveTintColor: isDarkMode ? '#A0A0A0' : '#808080', // Color de ítems inactivos
-          headerStyle: {
-            backgroundColor: isDarkMode ? '#121212' : '#FFFFFF', // Fondo del header
-          },
-          headerTintColor: isDarkMode ? '#FFFFFF' : '#000000', // Color del texto del header
-        }}
-      >
-        <Tabs.Screen
-          name="profile"
-          options={{ title: 'Perfil', tabBarIcon: () => null }}
-        />
-        <Tabs.Screen
-          name="home"
-          options={{ title: 'Home', tabBarIcon: () => null }}
-        />
-          <Tabs.Screen
-          name="jobsStatus"
-          options={{ title: 'jobs Status', tabBarIcon: () => null }}
-        />
-         <Tabs.Screen
-          name="cursos"
-          options={{ title: 'cursos', tabBarIcon: () => null }}
-        />
-      </Tabs>
+      {/* SafeAreaView se asegura de que el contenido no quede tapado por el status bar */}
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#121212' }}>
+        {/* Configuramos el StatusBar: style "light" para textos claros, y translucent false */}
+        <StatusBar style="light" translucent={false} backgroundColor="#121212" />
+        <Tabs
+          initialRouteName="home"
+          screenOptions={{
+            headerShown: false,
+            tabBarStyle: {
+              backgroundColor: '#121212',
+              borderTopColor: '#1E1E1E',
+            },
+            tabBarActiveTintColor: '#FFFFFF',
+            tabBarInactiveTintColor: '#A0A0A0',
+          }}
+        >
+          <Tabs.Screen name="profile" options={{ title: 'Perfil', tabBarIcon: () => null }} />
+          <Tabs.Screen name="home" options={{ title: 'Home', tabBarIcon: () => null }} />
+          <Tabs.Screen name="jobsStatus" options={{ title: 'jobs Status', tabBarIcon: () => null }} />
+          <Tabs.Screen name="cursos" options={{ title: 'cursos', tabBarIcon: () => null }} />
+        </Tabs>
+      </SafeAreaView>
     </ProtectedRoute>
   );
 }

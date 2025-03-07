@@ -22,7 +22,7 @@ import {
     GetLatestJobsForEmployer,
     GetLatestJobsForWorker,
 } from "@/services/JobsService";
-import { ProfileHeader } from "@/components/ProfileHeader";
+import { ProfileAdminHeader } from "@/components/headersProfile/ProfileAdminHeader";
 import { CreateJob } from "@/components/CreateJob";
 import { useAuth } from "@/context/AuthContext";
 import SupportChat from '@/components/chatsupport/SupportChat';
@@ -80,6 +80,7 @@ export default function ProfileScreen() {
             }
             try {
                 const data = await getUserToken(token);
+
                 if (data?.data) {
                     setUserProfile(data.data);
                     setBiografia(data.data.Biography || "");
@@ -190,7 +191,7 @@ export default function ProfileScreen() {
 
     const ListHeader = () => (
         <View style={styles.headerContainer}>
-            {userProfile && <ProfileHeader user={userProfile} />}
+            {userProfile && <ProfileAdminHeader user={userProfile} />}
             {latestRating !== null && (
                 <View style={styles.starContainer}>
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -239,12 +240,17 @@ export default function ProfileScreen() {
             </View>
         </View>
     );
+    const data = activeSection === "employer" ? employerJobs : workerJobs;
 
     const renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
             style={styles.card}
             onPress={() => {
-                router.push(`/profile/EmployerJobDetail?id=${item.id}`);
+                if (activeSection !== "employer") {
+                    router.push(`/jobsStatus/JobDetailWorker?id=${item.id}`);
+                } else {
+                    router.push(`/profile/EmployerJobDetail?id=${item.id}`);
+                }
             }}
         >
             <Text style={styles.cardTitle}>{item.title}</Text>
@@ -252,7 +258,6 @@ export default function ProfileScreen() {
         </TouchableOpacity>
     );
 
-    const data = activeSection === "employer" ? employerJobs : workerJobs;
 
     if (loading) {
         return (
@@ -306,12 +311,15 @@ export default function ProfileScreen() {
                     >
                         <Text style={styles.dropdownButtonText}>Chat de Soporte</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => router.push("/profile/adminPanel")}
-                        style={styles.dropdownButton}
-                    >
-                        <Text style={styles.dropdownButtonText}>Administrador</Text>
-                    </TouchableOpacity>
+                    {
+                        userProfile?.PanelAdminNexoVecinal.Level > 0 &&
+                        <TouchableOpacity
+                            onPress={() => router.push("/profile/adminPanel")}
+                            style={styles.dropdownButton}
+                        >
+                            <Text style={styles.dropdownButtonText}>Administrador</Text>
+                        </TouchableOpacity>
+                    }
                     <TouchableOpacity
                         onPress={handleLogoutOption}
                         style={[styles.dropdownButton, styles.dropdownLogout]}
