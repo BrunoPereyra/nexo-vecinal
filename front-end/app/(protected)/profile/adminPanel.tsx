@@ -142,7 +142,7 @@ export default function AdminPanelScreen() {
                             contentContainerStyle={styles.listContainer}
                         />
                     )}
-                    <TouchableOpacity style={styles.fab} onPress={() => router.push('/CreateCourseScreen')}>
+                    <TouchableOpacity style={styles.fab} onPress={() => router.push('/profile/CreateCourseScreen')}>
                         <Text style={styles.fabText}>+</Text>
                     </TouchableOpacity>
                 </View>

@@ -20,6 +20,7 @@ import {
     GetLatestJobsForWorkervist,
     GetLatestJobsForEmployervist,
 } from '@/services/JobsService';
+import { JobCardProfiles } from '../jobCards/JobCardProfiles';
 
 interface VisitedProfileModalProps {
     visible: boolean;
@@ -199,7 +200,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                     )}
                 </View>
             )}
-            {latestRating !== null && (
+            {/* {latestRating !== null && (
                 <View style={styles.starContainer}>
                     {[1, 2, 3, 4, 5].map((star) => (
                         <Text
@@ -213,7 +214,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                         {latestRating} {latestRating === 1 ? 'estrella' : 'estrellas'}
                     </Text>
                 </View>
-            )}
+            )} */}
 
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
@@ -237,12 +238,10 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     );
 
     // Renderizado de cada item (trabajo)
-    const renderItem = ({ item }: { item: { id: string; title: string; status: string } }) => (
-        <TouchableOpacity style={styles.card}>
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardStatus}>Estado: {item.status}</Text>
-        </TouchableOpacity>
-    );
+    const renderItem = ({ item }: { item: any }) => {
+        return <JobCardProfiles item={item} activeSection={activeSection} />
+    }
+
 
     const data = activeSection === 'jobFeed' ? workerJobs : employerJobs;
     const onEndReached = activeSection === 'jobFeed' ? loadMoreWorkerJobs : loadMoreEmployerJobs;

@@ -1,5 +1,5 @@
 import { Slot } from 'expo-router';
 
-export default function CursosLayout() {
+export default function ProfileLayout() {
     return <Slot />;
 }

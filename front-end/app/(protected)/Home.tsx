@@ -3,8 +3,8 @@ import { View, FlatList, StyleSheet, Modal } from 'react-native';
 import { getJobsByFilters } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import JobCard from '@/components/JobCardHome';
-import JobSearchFilters, { FilterParams } from '@/components/JobSearchFilters';
-import JobDetailView, { Job } from '@/components/JobDetailView';
+import JobSearchFilters, { FilterParams } from '@/components/jobCards/JobSearchFilters';
+import JobDetailView, { Job } from '@/components/jobCards/JobDetailView';
 
 let savedScrollOffset = 0;
 

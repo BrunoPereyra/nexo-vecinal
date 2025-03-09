@@ -23,9 +23,10 @@ import {
     GetLatestJobsForWorker,
 } from "@/services/JobsService";
 import { ProfileAdminHeader } from "@/components/headersProfile/ProfileAdminHeader";
-import { CreateJob } from "@/components/CreateJob";
+import { CreateJob } from "@/components/jobCards/CreateJob";
 import { useAuth } from "@/context/AuthContext";
 import SupportChat from '@/components/chatsupport/SupportChat';
+import { JobCardProfiles } from "@/components/jobCards/JobCardProfiles";
 
 // Interfaz de usuario (ajústala según tu modelo de datos)
 interface User {
@@ -189,27 +190,11 @@ export default function ProfileScreen() {
         }
     };
 
+
     const ListHeader = () => (
         <View style={styles.headerContainer}>
             {userProfile && <ProfileAdminHeader user={userProfile} />}
-            {latestRating !== null && (
-                <View style={styles.starContainer}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <Text
-                            key={star}
-                            style={[
-                                styles.star,
-                                star <= latestRating ? styles.selectedStar : styles.unselectedStar,
-                            ]}
-                        >
-                            ★
-                        </Text>
-                    ))}
-                    <Text style={styles.ratingText}>
-                        {latestRating} {latestRating === 1 ? "estrella" : "estrellas"}
-                    </Text>
-                </View>
-            )}
+
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
                     style={[styles.toggleButton, activeSection === "jobFeed" && styles.activeToggle]}
@@ -238,25 +223,31 @@ export default function ProfileScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
+            {/* {latestRating !== null && (
+                <View style={styles.ratingContainer}>
+                    {[1, 2, 3, 4, 5].map((star, index) => (
+                        <Ionicons
+                            key={index}
+                            name={star <= latestRating ? "star" : "star-outline"}
+                            size={24}
+                            color={star <= latestRating ? "#F1C40F" : "#444"}
+                            style={styles.starIcon}
+                        />
+                    ))}
+                    <Text style={styles.ratingText}>
+                        {latestRating} {latestRating === 1 ? "estrella" : "estrellas"}
+                    </Text>
+                </View>
+            )} */}
         </View>
     );
     const data = activeSection === "employer" ? employerJobs : workerJobs;
+    const renderItem = ({ item }: { item: any }) => {
 
-    const renderItem = ({ item }: { item: any }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => {
-                if (activeSection !== "employer") {
-                    router.push(`/jobsStatus/JobDetailWorker?id=${item.id}`);
-                } else {
-                    router.push(`/profile/EmployerJobDetail?id=${item.id}`);
-                }
-            }}
-        >
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardStatus}>Estado: {item.status}</Text>
-        </TouchableOpacity>
-    );
+        return <JobCardProfiles item={item} activeSection={activeSection} />
+    }
+
+
 
 
     if (loading) {
@@ -280,10 +271,10 @@ export default function ProfileScreen() {
         <View style={{ flex: 1, backgroundColor: "#121212" }}>
             <FlatList
                 data={data}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => item?.id.toString()}
                 renderItem={renderItem}
-                ListHeaderComponent={ListHeader}
                 onEndReached={activeSection === "employer" ? loadMoreEmployerJobs : loadMoreJobFeed}
+                ListHeaderComponent={ListHeader}
                 onEndReachedThreshold={0.5}
                 contentContainerStyle={styles.listContainer}
             />
@@ -354,13 +345,15 @@ export default function ProfileScreen() {
             </Modal>
 
             {/* Modal de Chat de Soporte mediante el componente modular */}
-            <SupportChat
-                visible={supportChatVisible}
-                onClose={() => setSupportChatVisible(false)}
-                token={token as string}
-                userProfile={userProfile}
-            />
-
+            {
+                userProfile &&
+                <SupportChat
+                    visible={supportChatVisible}
+                    onClose={() => setSupportChatVisible(false)}
+                    token={token as string}
+                    userProfile={userProfile}
+                />
+            }
             {/* Floating Action Button para "Crear Trabajo" */}
             <TouchableOpacity style={styles.fab} onPress={() => setCreateJobVisible(true)}>
                 <Text style={styles.fabText}>+</Text>
@@ -389,12 +382,24 @@ const styles = StyleSheet.create({
     },
     headerContainer: {
         marginBottom: 16,
+        alignItems: "center",
+    },
+    ratingContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#1E1E1E",
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 20,
+        marginBottom: 16,
+    },
+    starIcon: {
+        marginHorizontal: 2,
     },
     ratingText: {
         fontSize: 16,
         color: "#03DAC5",
-        textAlign: "center",
-        marginVertical: 8,
+        marginLeft: 8,
         fontWeight: "600",
     },
     toggleContainer: {

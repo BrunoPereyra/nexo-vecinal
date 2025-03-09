@@ -22,6 +22,7 @@ import {
 } from '@/services/JobsService';
 import { ProfileVisitedHeader } from '@/components/headersProfile/ProfileVisitedHeader';
 import { createReports } from '@/services/admin';
+import { JobCardProfiles } from '@/components/jobCards/JobCardProfiles';
 
 type Job = {
     id: string;
@@ -189,7 +190,7 @@ export default function VisitedProfileScreen() {
                     )}
                 </>
             )}
-            {latestRating !== null && (
+            {/* {latestRating !== null && (
                 <View style={styles.starContainer}>
                     {[1, 2, 3, 4, 5].map((star) => (
                         <Text
@@ -206,7 +207,7 @@ export default function VisitedProfileScreen() {
                         {latestRating} {latestRating === 1 ? 'estrella' : 'estrellas'}
                     </Text>
                 </View>
-            )}
+            )} */}
             <TouchableOpacity style={styles.reportButton} onPress={() => setReportModalVisible(true)}>
                 <Text style={styles.reportButtonText}>Reportar</Text>
             </TouchableOpacity>
@@ -232,15 +233,20 @@ export default function VisitedProfileScreen() {
         </View>
     );
 
-    const renderItem = ({ item }: { item: Job }) => (
-        <TouchableOpacity
-            style={styles.card}
-            onPress={() => router.push(`/JobDetailVisited?id=${item.id}`)}
-        >
-            <Text style={styles.cardTitle}>{item.title}</Text>
-            <Text style={styles.cardStatus}>Estado: {item.status}</Text>
-        </TouchableOpacity>
-    );
+    // const renderItem = ({ item }: { item: Job }) => (
+    //     <TouchableOpacity
+    //         style={styles.card}
+    //         onPress={() => router.push(`/JobDetailVisited?id=${item.id}`)}
+    //     >
+    //         <Text style={styles.cardTitle}>{item.title}</Text>
+    //         <Text style={styles.cardStatus}>Estado: {item.status}</Text>
+    //     </TouchableOpacity>
+    // );
+    const renderItem = ({ item }: { item: any }) => {
+        console.log(item);
+
+        return <JobCardProfiles item={item} activeSection={activeSection} />
+    }
 
     const data = activeSection === 'jobFeed' ? workerJobs : employerJobs;
     const onEndReached = activeSection === 'jobFeed' ? loadMoreWorkerJobs : loadMoreEmployerJobs;
