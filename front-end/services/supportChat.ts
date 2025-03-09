@@ -2,6 +2,7 @@ const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084";
 
 // Interfaz que define la estructura de un mensaje de soporte.
 export interface SupportMessage {
+    id: string;
     senderId: string;
     receiverId: string;
     text: string;
@@ -12,7 +13,8 @@ export interface SupportMessage {
 // Se espera un objeto de tipo SupportMessage y un token (string).
 export const sendSupportMessage = async (
     message: SupportMessage,
-    token: string
+    token: string,
+
 ): Promise<any> => {
     try {
         const res = await fetch(`${API}/support/messages`, {

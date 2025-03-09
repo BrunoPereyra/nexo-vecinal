@@ -15,6 +15,7 @@ import { GetJobDetailvisited, provideWorkerFeedback } from '@/services/JobsServi
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedbackSection } from '@/components/FeedbackSection';
 import { useAuth } from '@/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function JobDetailWorker() {
     // Obtenemos el parámetro "id" de la URL
@@ -44,7 +45,6 @@ export default function JobDetailWorker() {
             setLoading(true);
             try {
                 const data = await GetJobDetailvisited(jobId);
-
                 if (data.job) {
                     setJobDetail(data.job);
                 } else {
@@ -103,47 +103,94 @@ export default function JobDetailWorker() {
         );
     }
 
-    // Mostramos al empleador; al tocar, se redirige al perfil visitado
     const { userDetails } = jobDetail;
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
-            {/* Área del empleador */}
-            {userDetails && (
-                <TouchableOpacity
-                    style={styles.employerContainer}
+        <View style={{ flex: 1, backgroundColor: '#121212' }}>
+            <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+                {/* Card del Empleador */}
+                {userDetails && (
+                    <TouchableOpacity
+                        style={styles.employerCard}
+                        activeOpacity={0.7}
                     // onPress={() => router.push(`/ProfileVisited?id=${userDetails.id}`)}
-                    activeOpacity={0.7}
-                >
-                    <View style={styles.avatarPlaceholder}>
-                        {userDetails.avatar ? (
-                            <Image source={{ uri: userDetails.avatar }} style={styles.avatar} />
-                        ) : (
-                            <Text style={styles.avatarText}>
-                                {userDetails.nameUser.charAt(0).toUpperCase()}
-                            </Text>
-                        )}
+                    >
+                        <View style={styles.avatarWrapper}>
+                            {userDetails.avatar ? (
+                                <Image source={{ uri: userDetails.avatar }} style={styles.employerAvatar} />
+                            ) : (
+                                <Text style={styles.avatarPlaceholderText}>
+                                    {userDetails.nameUser.charAt(0).toUpperCase()}
+                                </Text>
+                            )}
+                        </View>
+                        <Text style={styles.employerName}>{userDetails.nameUser}</Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* Card de Detalle del Trabajo */}
+                <View style={styles.jobCard}>
+                    <Text style={styles.jobTitle}>{jobDetail.title}</Text>
+                    <Text style={styles.jobDescription}>{jobDetail.description}</Text>
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Precio:</Text>
+                        <Text style={styles.detailValue}>${jobDetail.budget || jobDetail.price}</Text>
                     </View>
-                    <Text style={styles.employerName}>{userDetails.nameUser}</Text>
-                </TouchableOpacity>
-            )}
+                    <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Estado:</Text>
+                        <Text style={styles.detailValue}>{jobDetail.status}</Text>
+                    </View>
+                    {jobDetail.assignedCandidate && (
+                        <View style={styles.detailRow}>
+                            <Text style={styles.detailLabel}>Asignado a:</Text>
+                            <Text style={styles.detailValue}>{jobDetail.assignedCandidate.nameUser}</Text>
+                        </View>
+                    )}
+                </View>
 
-            {/* Información principal del trabajo */}
-            <Text style={styles.title}>{jobDetail.title}</Text>
-            <Text style={styles.description}>{jobDetail.description}</Text>
-            <Text style={styles.detail}>
-                Precio: ${jobDetail.budget || jobDetail.price}
-            </Text>
-            <Text style={styles.detail}>Estado: {jobDetail.status}</Text>
-            {jobDetail.assignedCandidate && (
-                <Text style={styles.detail}>
-                    Asignado a: {jobDetail.assignedCandidate.nameUser}
-                </Text>
-            )}
+                {/* Mapa con la ubicación del trabajo */}
+                {jobDetail.location && jobDetail.location.coordinates && (
+                    <View style={styles.mapCard}>
+                        <MapView
+                            style={styles.map}
+                            initialRegion={{
+                                latitude: jobDetail.location.coordinates[1],
+                                longitude: jobDetail.location.coordinates[0],
+                                latitudeDelta: 0.01,
+                                longitudeDelta: 0.01,
+                            }}
+                        >
+                            <Marker
+                                coordinate={{
+                                    latitude: jobDetail.location.coordinates[1],
+                                    longitude: jobDetail.location.coordinates[0],
+                                }}
+                                title={jobDetail.title}
+                                description={jobDetail.description}
+                            />
+                        </MapView>
+                    </View>
+                )}
 
-            {/* Botón para abrir el chat */}
+                {/* Sección de Feedback */}
+                <FeedbackSection
+                    jobDetail={jobDetail}
+                    currentUserId={currentUserId || ''}
+                    rating={rating}
+                    feedback={feedback}
+                    actionLoading={actionLoading}
+                    setRating={setRating}
+                    setFeedback={setFeedback}
+                    handleLeaveFeedback={handleLeaveFeedback}
+                    mode="worker"
+                />
+
+                <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
+            </ScrollView>
+
+            {/* Botón flotante para abrir el chat */}
             <TouchableOpacity
-                style={styles.chatButton}
+                style={styles.fab}
                 onPress={() =>
                     router.push(
                         `/ChatJobs?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
@@ -152,114 +199,45 @@ export default function JobDetailWorker() {
                     )
                 }
             >
-                <Text style={styles.chatButtonText}>Abrir Chat</Text>
+                <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
             </TouchableOpacity>
-
-            {/* Mapa con la ubicación del trabajo */}
-            {jobDetail.location && jobDetail.location.coordinates && (
-                <View style={styles.mapContainer}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: jobDetail.location.coordinates[1],
-                            longitude: jobDetail.location.coordinates[0],
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }}
-                    >
-                        <Marker
-                            coordinate={{
-                                latitude: jobDetail.location.coordinates[1],
-                                longitude: jobDetail.location.coordinates[0],
-                            }}
-                            title={jobDetail.title}
-                            description={jobDetail.description}
-                        />
-                    </MapView>
-                </View>
-            )}
-
-            <FeedbackSection
-                jobDetail={jobDetail}
-                currentUserId={currentUserId || ''}
-                rating={rating}
-                feedback={feedback}
-                actionLoading={actionLoading}
-                setRating={setRating}
-                setFeedback={setFeedback}
-                handleLeaveFeedback={handleLeaveFeedback}
-                mode="worker"
-            />
-
-            <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
-        </ScrollView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
         backgroundColor: '#121212',
     },
-    title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 8,
-        color: '#E0E0E0',
-    },
-    description: {
-        fontSize: 16,
-        marginBottom: 8,
-        color: '#E0E0E0',
-    },
-    detail: {
-        fontSize: 16,
-        marginBottom: 4,
-        color: '#E0E0E0',
-    },
-    mapContainer: {
-        height: 200,
-        width: '100%',
-        marginVertical: 16,
-        borderRadius: 8,
-        overflow: 'hidden',
-    },
-    map: {
-        flex: 1,
-    },
-    chatButton: {
-        backgroundColor: '#03DAC5',
-        paddingVertical: 10,
-        borderRadius: 5,
-        marginVertical: 16,
-        alignItems: 'center',
-    },
-    chatButtonText: {
-        color: '#121212',
-        fontWeight: 'bold',
-        fontSize: 16,
+    contentContainer: {
+        padding: 16,
+        paddingBottom: 30,
     },
     center: {
         flex: 1,
+        backgroundColor: '#121212',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#121212',
     },
     errorText: {
         color: '#CF6679',
         marginBottom: 16,
     },
-    // Estilos para el área del empleador
-    employerContainer: {
+    // Card del Empleador
+    employerCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 16,
-        padding: 12,
         backgroundColor: '#1E1E1E',
-        borderRadius: 8,
+        padding: 12,
+        borderRadius: 10,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
     },
-    avatarPlaceholder: {
+    avatarWrapper: {
         width: 60,
         height: 60,
         borderRadius: 30,
@@ -268,20 +246,87 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginRight: 12,
     },
-    avatar: {
+    employerAvatar: {
         width: 60,
         height: 60,
         borderRadius: 30,
     },
-    avatarText: {
+    avatarPlaceholderText: {
         color: '#121212',
         fontSize: 24,
         fontWeight: 'bold',
     },
     employerName: {
         fontSize: 18,
-        color: '#E0E0E0',
         fontWeight: 'bold',
+        color: '#E0E0E0',
+    },
+    // Card de Detalle del Trabajo
+    jobCard: {
+        backgroundColor: '#1E1E1E',
+        borderRadius: 10,
+        padding: 16,
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
+    },
+    jobTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#E0E0E0',
+        marginBottom: 8,
+    },
+    jobDescription: {
+        fontSize: 16,
+        color: '#E0E0E0',
+        marginBottom: 12,
+    },
+    detailRow: {
+        flexDirection: 'row',
+        marginBottom: 4,
+    },
+    detailLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: '#03DAC5',
+        marginRight: 8,
+    },
+    detailValue: {
+        fontSize: 16,
+        color: '#E0E0E0',
+    },
+    // Mapa
+    mapCard: {
+        height: 200,
+        borderRadius: 10,
+        overflow: 'hidden',
+        marginBottom: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
+    },
+    map: {
+        flex: 1,
+    },
+    // Botón flotante de Chat
+    fab: {
+        position: 'absolute',
+        bottom: 30,
+        right: 20,
+        backgroundColor: '#03DAC5',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
     },
 });
 

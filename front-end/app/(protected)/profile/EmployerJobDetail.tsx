@@ -20,6 +20,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApplicantsList from '@/components/ApplicantsList';
 import { FeedbackSection } from '@/components/FeedbackSection';
 import { useAuth } from '@/context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
+
 export default function EmployerJobDetail() {
   const { id: jobId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -47,7 +49,6 @@ export default function EmployerJobDetail() {
       try {
         const data = await GetJobTokenAdmin(jobId, token);
         console.log("data", data);
-
         if (data.job) {
           setJobDetail(data.job);
         } else {
@@ -61,7 +62,6 @@ export default function EmployerJobDetail() {
     };
     fetchJobDetail();
   }, [jobId, token]);
-
 
   const handleComplete = async () => {
     if (!jobDetail || !token) return;
@@ -109,7 +109,7 @@ export default function EmployerJobDetail() {
 
   if (loading) {
     return (
-      <View style={darkStyles.center}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" color="#03DAC5" />
       </View>
     );
@@ -117,8 +117,8 @@ export default function EmployerJobDetail() {
 
   if (error || !jobDetail) {
     return (
-      <View style={darkStyles.center}>
-        <Text style={darkStyles.errorText}>{error || 'No se encontró el detalle del trabajo'}</Text>
+      <View style={styles.center}>
+        <Text style={styles.errorText}>{error || 'No se encontró el detalle del trabajo'}</Text>
         <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
       </View>
     );
@@ -128,32 +128,33 @@ export default function EmployerJobDetail() {
   const assignedCandidate = jobDetail.assignedCandidate || null;
 
   return (
-    <ScrollView style={darkStyles.container} contentContainerStyle={{ paddingBottom: 20 }}>
-      <Text style={darkStyles.title}>{jobDetail.title}</Text>
-      <Text style={darkStyles.description}>{jobDetail.description}</Text>
-      <Text style={darkStyles.detail}>Precio: ${jobDetail.price || jobDetail.budget}</Text>
-      <Text style={darkStyles.detail}>Estado: {jobDetail.status}</Text>
-      {assignedCandidate && (
-        <Text style={darkStyles.detail}>Asignado a: {assignedCandidate.nameUser}</Text>
-      )}
-      <TouchableOpacity
-        style={darkStyles.chatButton}
-        onPress={() =>
-          router.push(
-            `/ChatJobs?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
-              JSON.stringify(jobDetail.assignedTo.userData)
-            )}`
-          )
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        {/* Card de Detalle del Trabajo */}
+        <View style={styles.jobCard}>
+          <Text style={styles.jobTitle}>{jobDetail.title}</Text>
+          <Text style={styles.jobDescription}>{jobDetail.description}</Text>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Precio:</Text>
+            <Text style={styles.detailValue}>${jobDetail.price || jobDetail.budget}</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>Estado:</Text>
+            <Text style={styles.detailValue}>{jobDetail.status}</Text>
+          </View>
+          {assignedCandidate && (
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Asignado a:</Text>
+              <Text style={styles.detailValue}>{assignedCandidate.nameUser}</Text>
+            </View>
+          )}
+        </View>
 
-        }
-      >
-        <Text style={darkStyles.chatButtonText}>Abrir Chat</Text>
-      </TouchableOpacity>
-      {
-        jobDetail.location && jobDetail.location.coordinates && (
-          <View style={darkStyles.mapContainer}>
+        {/* Mapa */}
+        {jobDetail.location && jobDetail.location.coordinates && (
+          <View style={styles.mapCard}>
             <MapView
-              style={darkStyles.map}
+              style={styles.map}
               initialRegion={{
                 latitude: jobDetail.location.coordinates[1],
                 longitude: jobDetail.location.coordinates[0],
@@ -171,114 +172,144 @@ export default function EmployerJobDetail() {
               />
             </MapView>
           </View>
-        )
-      }
-      <ApplicantsList job={jobDetail} token={token as string} />
+        )}
+
+        <ApplicantsList job={jobDetail} token={token as string} />
+
+        <TouchableOpacity
+          style={styles.completeButton}
+          onPress={handleComplete}
+          disabled={actionLoading}
+        >
+          <Text style={styles.completeButtonText}>Marcar como completado</Text>
+        </TouchableOpacity>
+
+        <FeedbackSection
+          jobDetail={jobDetail}
+          currentUserId={currentUserId || ''}
+          rating={rating}
+          feedback={feedback}
+          actionLoading={actionLoading}
+          setRating={setRating}
+          setFeedback={setFeedback}
+          handleLeaveFeedback={handleLeaveFeedback}
+          mode="employer"
+        />
+      </ScrollView>
+
+      {/* Botón flotante para abrir el chat */}
       <TouchableOpacity
-        style={darkStyles.completeButton}
-        onPress={handleComplete}
-        disabled={actionLoading}
+        style={styles.fab}
+        onPress={() =>
+          router.push(
+            `/ChatJobs?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
+              JSON.stringify(jobDetail.assignedTo.userData)
+            )}`
+          )
+        }
       >
-        <Text style={darkStyles.completeButtonText}>Marcar como completado</Text>
+        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
       </TouchableOpacity>
-
-      {/* Uso del componente FeedbackSection */}
-      <FeedbackSection
-        jobDetail={jobDetail}
-        currentUserId={currentUserId || ''}
-        rating={rating}
-        feedback={feedback}
-        actionLoading={actionLoading}
-        setRating={setRating}
-        setFeedback={setFeedback}
-        handleLeaveFeedback={handleLeaveFeedback}
-        mode="employer"
-      />
-
-      {/* <Button title="Volver" onPress={() => router.back()} color="#03DAC5" /> */}
-    </ScrollView >
+    </View>
   );
 }
 
-const darkStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#121212'
+    backgroundColor: '#121212',
   },
-  title: {
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 30,
+  },
+  center: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#CF6679',
+    marginBottom: 16,
+  },
+  // Card de Detalle del Trabajo
+  jobCard: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+  jobTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#E0E0E0',
     marginBottom: 8,
-    color: '#E0E0E0'
   },
-  description: {
+  jobDescription: {
     fontSize: 16,
-    marginBottom: 8,
-    color: '#E0E0E0'
+    color: '#E0E0E0',
+    marginBottom: 12,
   },
-  detail: {
-    fontSize: 16,
+  detailRow: {
+    flexDirection: 'row',
     marginBottom: 4,
-    color: '#E0E0E0'
   },
-  mapContainer: {
+  detailLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#03DAC5',
+    marginRight: 8,
+  },
+  detailValue: {
+    fontSize: 16,
+    color: '#E0E0E0',
+  },
+  // Mapa
+  mapCard: {
     height: 200,
-    width: '100%',
-    marginVertical: 16,
-    borderRadius: 8,
-    overflow: 'hidden'
+    borderRadius: 10,
+    overflow: 'hidden',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   map: {
-    flex: 1
-  },
-  chatButton: {
-    backgroundColor: '#03DAC5',
-    paddingVertical: 10,
-    borderRadius: 5,
-    marginVertical: 16,
-    alignItems: 'center'
-  },
-  chatButtonText: {
-    color: '#121212',
-    fontWeight: 'bold',
-    fontSize: 16
+    flex: 1,
   },
   completeButton: {
     backgroundColor: '#03DAC5',
     paddingVertical: 10,
     borderRadius: 5,
     marginTop: 16,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   completeButtonText: {
     color: '#121212',
     fontWeight: 'bold',
-    fontSize: 16
+    fontSize: 16,
   },
-  errorText: {
-    color: '#CF6679',
-    marginBottom: 16
-  },
-  center: {
-    flex: 1,
+  // Botón flotante de Chat
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    backgroundColor: '#03DAC5',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#121212'
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
-  reportButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
-    backgroundColor: '#03DAC5',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 5,
-    zIndex: 10
-  },
-  reportButtonText: {
-    color: '#121212',
-    fontWeight: 'bold',
-    fontSize: 14
-  }
 });

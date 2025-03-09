@@ -30,24 +30,20 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
     handleLeaveFeedback,
     mode,
 }) => {
-    // Estados para controlar la expansión de cada feedback
     const [employerFeedbackExpanded, setEmployerFeedbackExpanded] = useState(false);
     const [workerFeedbackExpanded, setWorkerFeedbackExpanded] = useState(false);
-    // Estado para mostrar/ocultar el formulario de feedback
     const [showFeedbackInput, setShowFeedbackInput] = useState(false);
 
-    // Determinar si se debe permitir dejar feedback según el rol
     const canLeaveFeedback = mode === 'worker' || (mode === 'employer' && currentUserId === jobDetail.userId);
 
-    // Títulos y textos del formulario según si ya existe feedback
     const formTitle =
         mode === 'employer'
             ? jobDetail.employerFeedback
                 ? 'Actualizar tu Feedback:'
-                : 'Dejar tu Feedback:'
+                : 'Deja tu Feedback:'
             : jobDetail.workerFeedback
                 ? 'Actualizar tu Feedback:'
-                : 'Dejar tu Feedback:';
+                : 'Deja tu Feedback:';
 
     const buttonText =
         mode === 'employer'
@@ -58,125 +54,94 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
                 ? 'Actualizar Feedback'
                 : 'Enviar Feedback';
 
-    // Función para renderizar las estrellas
     const renderStars = (starCount: number) => {
         return (
             <View style={styles.ratingContainer}>
                 {[1, 2, 3, 4, 5].map((star) => (
-                    <Text
-                        key={star}
-                        style={[styles.star, star <= starCount ? styles.selectedStar : styles.unselectedStar]}
-                    >
-                        ★
-                    </Text>
+                    <TouchableOpacity key={star} onPress={() => setRating(star)}>
+                        <Text style={[styles.star, star <= starCount ? styles.selectedStar : styles.unselectedStar]}>
+                            ★
+                        </Text>
+                    </TouchableOpacity>
                 ))}
             </View>
         );
     };
 
     return (
-        <View style={styles.feedbackContainer}>
-            {/* Se muestra la sección de Feedback del Empleador solo si existe */}
+        <View style={styles.feedbackCard}>
+            {/* Sección de feedback existente */}
             {jobDetail.employerFeedback && (
                 <>
-                    <Text style={styles.sectionTitle}>Feedback del Empleador:</Text>
-                    <View style={styles.existingFeedbackContainer}>
+                    <View style={styles.existingFeedback}>
                         <View style={styles.feedbackHeader}>
                             {renderStars(jobDetail.employerFeedback.rating)}
-                            <Text style={styles.uploaderText}>Subido por: Empleador</Text>
-                            <TouchableOpacity
-                                onPress={() => setEmployerFeedbackExpanded(!employerFeedbackExpanded)}
-                            >
-                                <Text style={styles.toggleText}>
-                                    {employerFeedbackExpanded ? '▲' : '▼'}
-                                </Text>
+                            <Text style={styles.uploader}>Empleador</Text>
+                            <TouchableOpacity onPress={() => setEmployerFeedbackExpanded(!employerFeedbackExpanded)}>
+                                <Text style={styles.toggleText}>{employerFeedbackExpanded ? 'Ocultar' : 'Ver más'}</Text>
                             </TouchableOpacity>
                         </View>
                         {employerFeedbackExpanded && (
-                            <>
-                                <Text style={styles.feedbackText}>
-                                    Comentario: {jobDetail.employerFeedback.comment}
+                            <View style={styles.feedbackContent}>
+                                <Text style={styles.feedbackComment}>
+                                    {jobDetail.employerFeedback.comment}
                                 </Text>
-                                <Text style={styles.feedbackText}>
-                                    Fecha: {new Date(jobDetail.employerFeedback.createdAt).toLocaleDateString()}
+                                <Text style={styles.feedbackDate}>
+                                    {new Date(jobDetail.employerFeedback.createdAt).toLocaleDateString()}
                                 </Text>
-                            </>
+                            </View>
                         )}
                     </View>
                 </>
             )}
 
-            {/* Se muestra la sección de Feedback del Trabajador solo si existe */}
             {jobDetail.workerFeedback && (
                 <>
-                    <Text style={styles.sectionTitle}>Feedback del Trabajador:</Text>
-                    <View style={styles.existingFeedbackContainer}>
+                    <View style={styles.existingFeedback}>
                         <View style={styles.feedbackHeader}>
                             {renderStars(jobDetail.workerFeedback.rating)}
-                            <Text style={styles.uploaderText}>Subido por: Trabajador</Text>
-                            <TouchableOpacity
-                                onPress={() => setWorkerFeedbackExpanded(!workerFeedbackExpanded)}
-                            >
-                                <Text style={styles.toggleText}>
-                                    {workerFeedbackExpanded ? '▲' : '▼'}
-                                </Text>
+                            <Text style={styles.uploader}>Trabajador</Text>
+                            <TouchableOpacity onPress={() => setWorkerFeedbackExpanded(!workerFeedbackExpanded)}>
+                                <Text style={styles.toggleText}>{workerFeedbackExpanded ? 'Ocultar' : 'Ver más'}</Text>
                             </TouchableOpacity>
                         </View>
                         {workerFeedbackExpanded && (
-                            <>
-                                <Text style={styles.feedbackText}>
-                                    Comentario: {jobDetail.workerFeedback.comment}
+                            <View style={styles.feedbackContent}>
+                                <Text style={styles.feedbackComment}>
+                                    {jobDetail.workerFeedback.comment}
                                 </Text>
-                                <Text style={styles.feedbackText}>
-                                    Fecha: {new Date(jobDetail.workerFeedback.createdAt).toLocaleDateString()}
+                                <Text style={styles.feedbackDate}>
+                                    {new Date(jobDetail.workerFeedback.createdAt).toLocaleDateString()}
                                 </Text>
-                            </>
+                            </View>
                         )}
                     </View>
                 </>
             )}
 
-            {/* Formulario para dejar/actualizar feedback */}
+            {/* Formulario para dejar o actualizar feedback */}
             {canLeaveFeedback && (
-                <View style={styles.feedbackFormContainer}>
+                <View style={styles.feedbackForm}>
                     {!showFeedbackInput ? (
-                        <TouchableOpacity
-                            style={styles.feedbackButton}
-                            onPress={() => setShowFeedbackInput(true)}
-                        >
+                        <TouchableOpacity style={styles.feedbackButton} onPress={() => setShowFeedbackInput(true)}>
                             <Text style={styles.feedbackButtonText}>Dejar Feedback</Text>
                         </TouchableOpacity>
                     ) : (
                         <>
-                            <Text style={styles.sectionTitle}>{formTitle}</Text>
-                            <View style={styles.ratingContainer}>
+                            <Text style={styles.formTitle}>{formTitle}</Text>
+                            <View style={styles.ratingSection}>
                                 <Text style={styles.ratingLabel}>Calificación:</Text>
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                    <TouchableOpacity key={star} onPress={() => setRating(star)}>
-                                        <Text
-                                            style={[
-                                                styles.star,
-                                                star <= rating ? styles.selectedStar : styles.unselectedStar,
-                                            ]}
-                                        >
-                                            ★
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
+                                {renderStars(rating)}
                             </View>
                             <TextInput
-                                style={styles.feedbackInput}
+                                style={styles.input}
                                 placeholder="Escribe tu feedback..."
                                 placeholderTextColor="#888"
                                 value={feedback}
                                 onChangeText={setFeedback}
                                 multiline
                             />
-                            <TouchableOpacity
-                                style={styles.feedbackButton}
-                                onPress={handleLeaveFeedback}
-                                disabled={actionLoading}
-                            >
+                            <TouchableOpacity style={styles.feedbackButton} onPress={handleLeaveFeedback} disabled={actionLoading}>
                                 <Text style={styles.feedbackButtonText}>{buttonText}</Text>
                             </TouchableOpacity>
                         </>
@@ -188,23 +153,27 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 };
 
 const styles = StyleSheet.create({
-    feedbackContainer: {
-        marginTop: 16,
-        padding: 12,
+    feedbackCard: {
         backgroundColor: '#1E1E1E',
-        borderRadius: 8,
+        borderRadius: 10,
+        padding: 16,
+        marginVertical: 16,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
     },
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
-        marginVertical: 8,
         color: '#03DAC5',
+        marginBottom: 8,
     },
-    existingFeedbackContainer: {
-        marginBottom: 16,
-        padding: 8,
+    existingFeedback: {
         backgroundColor: '#121212',
-        borderRadius: 5,
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 12,
         borderWidth: 1,
         borderColor: '#03DAC5',
     },
@@ -213,30 +182,31 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
     },
-    uploaderText: {
+    uploader: {
         fontSize: 16,
         color: '#E0E0E0',
-        marginLeft: 8,
         flex: 1,
+        marginHorizontal: 8,
     },
     toggleText: {
-        fontSize: 20,
+        fontSize: 14,
         color: '#03DAC5',
-        paddingHorizontal: 8,
     },
-    feedbackText: {
+    feedbackContent: {
+        marginTop: 8,
+    },
+    feedbackComment: {
         fontSize: 16,
-        marginTop: 4,
         color: '#E0E0E0',
+    },
+    feedbackDate: {
+        fontSize: 14,
+        color: '#888',
+        marginTop: 4,
     },
     ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    ratingLabel: {
-        fontSize: 16,
-        marginRight: 8,
-        color: '#E0E0E0',
     },
     star: {
         fontSize: 24,
@@ -248,30 +218,45 @@ const styles = StyleSheet.create({
     unselectedStar: {
         color: '#444',
     },
-    feedbackFormContainer: {
-        marginTop: 16,
+    feedbackForm: {
+        marginTop: 12,
     },
-    feedbackInput: {
+    formTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#E0E0E0',
+        marginBottom: 8,
+    },
+    ratingSection: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    ratingLabel: {
+        fontSize: 16,
+        color: '#E0E0E0',
+        marginRight: 8,
+    },
+    input: {
         borderWidth: 1,
         borderColor: '#444',
-        borderRadius: 5,
-        padding: 8,
+        borderRadius: 8,
+        padding: 10,
         minHeight: 60,
-        marginBottom: 10,
-        backgroundColor: '#121212',
         color: '#E0E0E0',
+        backgroundColor: '#121212',
+        marginBottom: 12,
     },
     feedbackButton: {
         backgroundColor: '#03DAC5',
-        paddingVertical: 10,
-        borderRadius: 5,
+        paddingVertical: 12,
+        borderRadius: 8,
         alignItems: 'center',
-        marginVertical: 8,
     },
     feedbackButtonText: {
-        color: '#121212',
-        fontWeight: 'bold',
         fontSize: 16,
+        fontWeight: 'bold',
+        color: '#121212',
     },
 });
 

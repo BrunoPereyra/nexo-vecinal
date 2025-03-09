@@ -20,7 +20,7 @@ import {
     GetLatestJobsForWorkervist,
     GetLatestJobsForEmployervist,
 } from '@/services/JobsService';
-import { ProfileHeader } from '@/components/headersProfile/ProfileVisitedHeader';
+import { ProfileVisitedHeader } from '@/components/headersProfile/ProfileVisitedHeader';
 import { createReports } from '@/services/admin';
 
 type Job = {
@@ -170,7 +170,7 @@ export default function VisitedProfileScreen() {
         <View>
             {userProfile && (
                 <>
-                    <ProfileHeader user={userProfile} />
+                    <ProfileVisitedHeader user={userProfile} />
                     {userProfile.description && (
                         <View style={styles.descriptionContainer}>
                             <Text style={styles.userDescription}>

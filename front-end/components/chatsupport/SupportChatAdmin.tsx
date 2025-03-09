@@ -9,6 +9,7 @@ import {
     Alert,
     Modal,
     TextInput,
+    Image,
 } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -17,21 +18,19 @@ import {
     subscribeSupportMessages,
     SupportMessage,
 } from "@/services/supportChat";
+import { useRouter } from "expo-router";
 
-// Interfaz para el usuario (ajústala según tu modelo)
 export interface User {
     id: string;
     NameUser: string;
     Avatar?: string;
 }
 
-// Props que recibe el componente de chat de soporte
-// userProfile es el usuario al que se le enviarán mensajes
 interface SupportChatProps {
     visible: boolean;
     onClose: () => void;
     token: string;
-    userProfile: User;
+    userProfile: User; // Usuario al que se le enviarán mensajes
 }
 
 const SupportChatAdmin: React.FC<SupportChatProps> = ({
@@ -41,19 +40,18 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
     userProfile,
 }) => {
     const { loadCurrentUser } = useAuth();
+    const router = useRouter();
     const [supportMessages, setSupportMessages] = useState<SupportMessage[]>([]);
     const [supportNewMessage, setSupportNewMessage] = useState<string>("");
     const [loadingSupport, setLoadingSupport] = useState<boolean>(false);
-    // supportAgent es la información del agente de soporte (obtenida con loadCurrentUser)
     const [supportAgent, setSupportAgent] = useState<User | null>(null);
     const supportWsRef = useRef<WebSocket | null>(null);
 
-    // Obtener la información del agente de soporte desde loadCurrentUser (solo se ejecuta una vez)
+    // Obtener información del agente de soporte (usando loadCurrentUser)
     useEffect(() => {
         if (visible && token && !supportAgent) {
             loadCurrentUser()
                 .then((agentData) => {
-                    // Se valida que agentData y sus propiedades sean válidas
                     if (agentData && agentData.id && agentData.NameUser && agentData.Avatar) {
                         setSupportAgent({
                             id: agentData.id,
@@ -71,8 +69,7 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
         }
     }, [visible, token, supportAgent, loadCurrentUser]);
 
-    // Establecer la conexión WebSocket una vez que se tenga el agente de soporte y el usuario con el que se conversa.
-    // Aquí se suscribe a la sala utilizando la concatenación de IDs (supportAgent.id + userProfile.id)
+    // Conexión WebSocket
     useEffect(() => {
         if (visible && token && supportAgent) {
             loadSupportChatMessages();
@@ -80,8 +77,6 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
             const ws = subscribeSupportMessages(roomKey, (data: string) => {
                 try {
                     const message: SupportMessage = JSON.parse(data);
-                    // Se filtra para mostrar solo mensajes entre el agente de soporte y el usuario
-
                     if (
                         (message.senderId === supportAgent.id && message.receiverId === userProfile.id) ||
                         (message.senderId === userProfile.id && message.receiverId === supportAgent.id)
@@ -99,7 +94,6 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
         }
     }, [visible, token, userProfile, supportAgent]);
 
-    // Función para cargar el historial de mensajes
     const loadSupportChatMessages = async () => {
         if (!token || !userProfile || !supportAgent) return;
         setLoadingSupport(true);
@@ -113,11 +107,9 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
         }
     };
 
-    // Función para enviar un mensaje de soporte
     const handleSendSupportMessage = async () => {
         if (!supportNewMessage.trim() || !token || !userProfile || !supportAgent) return;
         try {
-            // El agente de soporte envía el mensaje (senderId es el agente y receiverId es el usuario)
             const messageData = {
                 senderId: supportAgent.id,
                 receiverId: userProfile.id,
@@ -132,14 +124,43 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
         }
     };
 
+    // Renderizado de cada mensaje con burbuja y estilo condicional
+    const renderMessage = ({ item }: { item: SupportMessage }) => {
+        const isMyMessage = item.senderId === supportAgent?.id;
+        return (
+            <View
+                style={[
+                    styles.messageBubble,
+                    isMyMessage ? styles.myMessage : styles.partnerMessage,
+                ]}
+            >
+                <Text style={[
+                    isMyMessage ? styles.messageTextParner : styles.messageText,
+                ]}>{item.text}</Text>
+            </View>
+        );
+    };
+
     return (
         <Modal visible={visible} transparent animationType="slide">
             <View style={styles.modalContainer}>
                 <View style={[styles.modalContent, { maxHeight: "80%" }]}>
+                    {/* Cabecera con información del usuario: al tocar se dirige al perfil */}
                     <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>
-                            Chat con {userProfile.NameUser}
-                        </Text>
+                        <TouchableOpacity
+                            style={styles.profileInfo}
+                            onPress={() => {
+                                if (userProfile && userProfile.id) {
+                                    router.push(`/profile/ProfileVisited?id=${userProfile.id}`);
+                                }
+                            }}
+                        >
+                            <Image
+                                source={{ uri: userProfile.Avatar || "https://via.placeholder.com/40" }}
+                                style={styles.headerAvatar}
+                            />
+                            <Text style={styles.headerName}>{userProfile.NameUser}</Text>
+                        </TouchableOpacity>
                         <TouchableOpacity onPress={onClose}>
                             <Text style={styles.modalClose}>Cerrar</Text>
                         </TouchableOpacity>
@@ -150,16 +171,7 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
                         <FlatList
                             data={supportMessages}
                             keyExtractor={(_, index) => index.toString()}
-                            renderItem={({ item }) => (
-                                <View style={styles.messageContainer}>
-                                    <Text style={styles.messageSender}>
-                                        {item.senderId === supportAgent?.id
-                                            ? supportAgent?.NameUser
-                                            : userProfile.NameUser}
-                                    </Text>
-                                    <Text style={styles.messageText}>{item.text}</Text>
-                                </View>
-                            )}
+                            renderItem={renderMessage}
                             contentContainerStyle={{ padding: 10 }}
                         />
                     )}
@@ -201,30 +213,24 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 12,
     },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: "bold",
+    profileInfo: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+    headerAvatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        marginRight: 8,
+    },
+    headerName: {
+        fontSize: 18,
         color: "#E0E0E0",
+        fontWeight: "bold",
     },
     modalClose: {
         fontSize: 16,
         color: "#03DAC5",
-    },
-    messageContainer: {
-        backgroundColor: "#1E1E1E",
-        borderRadius: 8,
-        padding: 10,
-        marginVertical: 4,
-    },
-    messageSender: {
-        fontSize: 14,
-        color: "#BB86FC",
-        fontWeight: "bold",
-    },
-    messageText: {
-        fontSize: 16,
-        color: "#E0E0E0",
-        marginVertical: 4,
     },
     inputContainer: {
         flexDirection: "row",
@@ -249,6 +255,29 @@ const styles = StyleSheet.create({
     sendButtonText: {
         color: "#121212",
         fontWeight: "bold",
+    },
+    // Estilos para las burbujas de mensaje
+    messageBubble: {
+        maxWidth: "75%",
+        borderRadius: 16,
+        padding: 12,
+        marginVertical: 4,
+    },
+    myMessage: {
+        alignSelf: "flex-end",
+        backgroundColor: "#03DAC5",
+    },
+    partnerMessage: {
+        alignSelf: "flex-start",
+        backgroundColor: "#333",
+    },
+    messageText: {
+        fontSize: 16,
+        color: "#ffff",
+    },
+    messageTextParner: {
+        fontSize: 16,
+        color: "#333",
     },
 });
 
