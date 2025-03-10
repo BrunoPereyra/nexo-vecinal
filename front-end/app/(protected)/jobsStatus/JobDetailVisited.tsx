@@ -13,7 +13,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../../context/AuthContext';
 import { GetJobDetailvisited, GetJobTokenAdmin } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ApplicantsList from '@/components/ApplicantsList';
 import { FeedbackSection } from '@/components/FeedbackSection';
 
 export default function JobDetailVisited() {
@@ -61,7 +60,6 @@ export default function JobDetailVisited() {
             return (
                 <View style={darkStyles.center}>
                     <Text style={darkStyles.errorText}>No se encontró el detalle del trabajo</Text>
-                    <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
                 </View>
             );
         }
@@ -113,7 +111,7 @@ export default function JobDetailVisited() {
             )}
 
             {/* Sección de postulados */}
-            {/* <ApplicantsList job={jobDetail} token={token as string} /> */}
+            {/* < job={jobDetail} token={token as string} /> */}
 
             {/* Sección de feedback: mostramos ambos feedbacks sin condición */}
 
@@ -128,7 +126,6 @@ export default function JobDetailVisited() {
                 handleLeaveFeedback={() => { }}
                 mode="employer"
             />
-            <Button title="Volver" onPress={() => router.back()} color="#bb86fc" />
         </ScrollView>)
     }
 }

@@ -98,7 +98,6 @@ export default function JobDetailWorker() {
                 <Text style={styles.errorText}>
                     {error || 'No se encontró el detalle del trabajo'}
                 </Text>
-                <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
             </View>
         );
     }
@@ -185,7 +184,6 @@ export default function JobDetailWorker() {
                     mode="worker"
                 />
 
-                <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
             </ScrollView>
 
             {/* Botón flotante para abrir el chat */}
@@ -211,7 +209,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#121212',
     },
     contentContainer: {
-        padding: 16,
+        padding: 6,
         paddingBottom: 30,
     },
     center: {

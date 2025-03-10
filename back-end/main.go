@@ -8,6 +8,7 @@ import (
 	"back-end/internal/cursos/cursosroutes"
 	supportroutes "back-end/internal/support/support_routes"
 	userroutes "back-end/internal/user/user-routes"
+	"strings"
 	"time"
 
 	"context"
@@ -18,6 +19,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/websocket/v2"
 	"github.com/redis/go-redis/v9"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -103,7 +105,37 @@ func setupMongoDB() *mongo.Client {
 	if err = client.Ping(ctx, nil); err != nil {
 		log.Fatalf("Error al hacer ping a MongoDB: %v", err)
 	}
+	collectionChat := client.Database("NEXO-VECINAL").Collection("chat_messages")
+	if err := createTTLIndex(ctx, collectionChat, 1000); err != nil {
+		log.Printf("Error al crear el índice TTL para chat_messages: %v", err)
+	}
+
+	collectionSupport := client.Database("NEXO-VECINAL").Collection("support_messages")
+	if err := createTTLIndex(ctx, collectionSupport, 1000); err != nil {
+		log.Printf("Error al crear el índice TTL para support_messages: %v", err)
+	}
 
 	fmt.Println("Conexión a MongoDB establecida")
+
 	return client
+}
+func createTTLIndex(ctx context.Context, collection *mongo.Collection, ttlSeconds int32) error {
+	// Intentar eliminar el índice existente, pero si no se encuentra, se ignora.
+	_, err := collection.Indexes().DropOne(ctx, "createdAt_1")
+	if err != nil {
+		if !strings.Contains(err.Error(), "index not found") {
+			return fmt.Errorf("error dropping existing TTL index: %v", err)
+		}
+	}
+
+	// Crear el índice nuevo con el TTL deseado.
+	indexModel := mongo.IndexModel{
+		Keys:    bson.M{"createdAt": 1},
+		Options: options.Index().SetExpireAfterSeconds(ttlSeconds),
+	}
+	_, err = collection.Indexes().CreateOne(ctx, indexModel)
+	if err != nil {
+		return fmt.Errorf("error creating new TTL index: %v", err)
+	}
+	return nil
 }

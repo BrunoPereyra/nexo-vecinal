@@ -44,22 +44,41 @@ const Home: React.FC = () => {
   useEffect(() => {
     const loadSavedFilters = async () => {
       try {
-        // Ajusta la key según donde guardes tus filtros
-        const saved = await AsyncStorage.getItem('mySavedFilters');
-        if (saved) {
-          const filters: FilterParams = JSON.parse(saved);
-          // Llama a handleSearch si existe una ubicación
-          if (filters.location) {
-            await handleSearch(filters);
-          }
+        console.log("Cargando filtros guardados...");
+
+        // Recuperar valores desde AsyncStorage
+        const cachedTitle = await AsyncStorage.getItem('searchTitle');
+        const cachedTags = await AsyncStorage.getItem('selectedTags');
+        const cachedLocation = await AsyncStorage.getItem('location');
+        const cachedRadius = await AsyncStorage.getItem('radius');
+
+        // Convertir a formato JSON si no son nulos
+        const parsedTags = cachedTags ? JSON.parse(cachedTags) : [];
+        const parsedLocation = cachedLocation ? JSON.parse(cachedLocation) : null;
+        const parsedRadius = cachedRadius ? JSON.parse(cachedRadius) : null;
+
+        // Construir el objeto de filtros
+        const filters: FilterParams = {
+          searchTitle: cachedTitle || '',
+          selectedTags: parsedTags,
+          location: parsedLocation,
+          radius: parsedRadius || 10, // Valor por defecto si no hay radio guardado
+        };
+
+        console.log("Filtros recuperados:", filters);
+
+        // Ejecutar búsqueda si hay una ubicación guardada
+        if (filters.location) {
+          await handleSearch(filters);
         }
       } catch (error) {
-        console.error('Error loading saved filters:', error);
+        console.error('Error cargando los filtros guardados:', error);
       }
     };
 
     loadSavedFilters();
   }, [token]);
+
 
   return (
     <View style={styles.container}>

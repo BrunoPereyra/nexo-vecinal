@@ -6,13 +6,13 @@ import {
   Button,
   ScrollView,
   StyleSheet,
-  TouchableOpacity
+  TouchableOpacity,
+  Alert
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   GetJobTokenAdmin,
-  assignJob,
   updateJobStatusToCompleted,
   provideEmployerFeedback
 } from '@/services/JobsService';
@@ -118,8 +118,9 @@ export default function EmployerJobDetail() {
   if (error || !jobDetail) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>{error || 'No se encontró el detalle del trabajo'}</Text>
-        <Button title="Volver" onPress={() => router.back()} color="#03DAC5" />
+        <Text style={styles.errorText}>
+          {error || 'No se encontró el detalle del trabajo'}
+        </Text>
       </View>
     );
   }
@@ -136,7 +137,9 @@ export default function EmployerJobDetail() {
           <Text style={styles.jobDescription}>{jobDetail.description}</Text>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Precio:</Text>
-            <Text style={styles.detailValue}>${jobDetail.price || jobDetail.budget}</Text>
+            <Text style={styles.detailValue}>
+              ${jobDetail.price || jobDetail.budget}
+            </Text>
           </View>
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Estado:</Text>
@@ -176,13 +179,25 @@ export default function EmployerJobDetail() {
 
         <ApplicantsList job={jobDetail} token={token as string} />
 
+        {/* Botón para marcar como completado con confirmación */}
         <TouchableOpacity
           style={styles.completeButton}
-          onPress={handleComplete}
+          onPress={() =>
+            Alert.alert(
+              "Confirmar acción",
+              "¿Estás seguro de marcar este trabajo como completado?",
+              [
+                { text: "Cancelar", style: "cancel" },
+                { text: "Sí, completar", onPress: handleComplete }
+              ]
+            )
+          }
           disabled={actionLoading}
         >
+          <Ionicons name="checkmark-circle-outline" size={24} color="#fff" />
           <Text style={styles.completeButtonText}>Marcar como completado</Text>
         </TouchableOpacity>
+
 
         <FeedbackSection
           jobDetail={jobDetail}
@@ -220,7 +235,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#121212',
   },
   contentContainer: {
-    padding: 16,
+    padding: 6,
     paddingBottom: 30,
   },
   center: {
@@ -284,17 +299,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   completeButton: {
-    backgroundColor: '#03DAC5',
-    paddingVertical: 10,
-    borderRadius: 5,
-    marginTop: 16,
+    backgroundColor: '#2ECC71', // Un tono verde para transmitir éxito o finalización
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    marginTop: 0,
+    margin: 15,
+    flexDirection: 'row', // Permite que el ícono y el texto se muestren en línea
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
   },
   completeButtonText: {
-    color: '#121212',
-    fontWeight: 'bold',
+    color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8, // Separación entre el ícono y el texto
   },
+
   // Botón flotante de Chat
   fab: {
     position: 'absolute',

@@ -10,7 +10,6 @@ import {
     ScrollView,
     Modal,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { applyToJob } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
@@ -36,7 +35,6 @@ interface JobDetailViewProps {
 }
 
 const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
-    const router = useRouter();
     const { token } = useAuth();
     const [proposal, setProposal] = useState('');
     const [price, setPrice] = useState('');
@@ -161,7 +159,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
+        padding: 6,
         backgroundColor: '#121212',
         flexGrow: 1,
     },

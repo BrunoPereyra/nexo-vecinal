@@ -3,6 +3,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from "react-na
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "@/context/AuthContext";
 import { EditAvatar } from "@/services/userService";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type ProfileAdminHeaderProps = {
     user: {
@@ -10,7 +11,6 @@ type ProfileAdminHeaderProps = {
         FullName: string;
         NameUser: string;
         biography: string;
-        // Otros campos si es necesario
     };
 };
 
@@ -19,7 +19,6 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
     const [avatar, setAvatar] = useState(user.Avatar);
 
     const handleAvatarEdit = async () => {
-        // Pedir permisos si es necesario
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
             Alert.alert("Permiso denegado", "Se necesitan permisos para acceder a la galería.");
@@ -34,7 +33,6 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
         });
 
         if (!result.canceled) {
-            // Llamada al servicio para editar avatar
             const response = await EditAvatar(result.assets[0].uri, token as string);
             if (response && response.avatar) {
                 setAvatar(response.avatar);
@@ -42,14 +40,16 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
                 Alert.alert("Error", "No se pudo actualizar el avatar");
             }
         }
-
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.topRow}>
-                <TouchableOpacity onPress={handleAvatarEdit}>
+                <TouchableOpacity onPress={handleAvatarEdit} style={styles.avatarContainer}>
                     <Image source={{ uri: avatar }} style={styles.avatar} />
+                    <View style={styles.editIcon}>
+                        <MaterialIcons name="edit" size={20} color="#fff" />
+                    </View>
                 </TouchableOpacity>
                 <View style={styles.infoContainer}>
                     <Text style={styles.fullName}>{user.FullName}</Text>
@@ -78,12 +78,23 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 12,
     },
+    avatarContainer: {
+        position: "relative",
+    },
     avatar: {
         width: 100,
         height: 100,
         borderRadius: 50,
         borderWidth: 2,
         borderColor: "#03DAC5",
+    },
+    editIcon: {
+        position: "absolute",
+        top: 5,
+        right: 5,
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        borderRadius: 10,
+        padding: 4,
     },
     infoContainer: {
         flex: 1,

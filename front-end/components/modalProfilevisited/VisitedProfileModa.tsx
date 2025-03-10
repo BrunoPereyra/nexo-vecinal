@@ -21,6 +21,7 @@ import {
     GetLatestJobsForEmployervist,
 } from '@/services/JobsService';
 import { JobCardProfiles } from '../jobCards/JobCardProfiles';
+import { Ionicons } from '@expo/vector-icons';
 
 interface VisitedProfileModalProps {
     visible: boolean;
@@ -251,7 +252,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
             <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
                 <View style={styles.fullScreenContainer}>
                     <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                        <Text style={styles.closeButtonText}>X</Text>
+                        <Ionicons name="close-circle-outline" size={32} color="#03DAC5" />
                     </TouchableOpacity>
                     <FlatList
                         data={data}
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
     },
     closeButton: {
         position: 'absolute',
-        top: 30,
+        top: 10,
         right: 20,
         zIndex: 10,
         padding: 10,
@@ -288,9 +289,9 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         flexGrow: 1,
-        padding: 16,
+        padding: 6,
         backgroundColor: '#121212',
-        paddingTop: 60, // Espacio para que no tape el botón de cerrar
+        paddingTop: 10, // Espacio para que no tape el botón de cerrar
     },
     center: {
         flex: 1,

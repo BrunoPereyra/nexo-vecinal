@@ -21,6 +21,7 @@ export const createJob = async (jobData: any, token: string) => {
         console.error("Error en createJob:", error);
     }
 };
+
 export const GetJobTokenAdmin = async (JobId: any, token: string) => {
     try {
         const res = await fetch(`${API}/job/get-job-token-admin`, {
@@ -489,4 +490,7 @@ export const GetJobDetailvisited = async (id: string) => {
     } catch (error) {
         console.error('Error en GetJobDetailvisited:', error);
     }
+};
+export const getRecommendedWorkers = async (page: number, token: string) => {
+    return null
 };

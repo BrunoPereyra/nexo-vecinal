@@ -154,7 +154,7 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
 const styles = StyleSheet.create({
     feedbackCard: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#1A1A1A',
         borderRadius: 10,
         padding: 16,
         marginVertical: 16,
@@ -174,8 +174,8 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 12,
         marginBottom: 12,
-        borderWidth: 1,
-        borderColor: '#03DAC5',
+
+
     },
     feedbackHeader: {
         flexDirection: 'row',
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     },
     uploader: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: '#CCCCCC',
         flex: 1,
         marginHorizontal: 8,
     },
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     },
     feedbackComment: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: '#CCCCCC',
     },
     feedbackDate: {
         fontSize: 14,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
     formTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#E0E0E0',
+        color: '#CCCCCC',
         marginBottom: 8,
     },
     ratingSection: {
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     },
     ratingLabel: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: '#CCCCCC',
         marginRight: 8,
     },
     input: {
@@ -243,20 +243,22 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 10,
         minHeight: 60,
-        color: '#E0E0E0',
+        color: '#CCCCCC',
         backgroundColor: '#121212',
         marginBottom: 12,
     },
     feedbackButton: {
-        backgroundColor: '#03DAC5',
+        backgroundColor: '#121212',
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#03DAC5',
     },
     feedbackButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#121212',
+        color: '#CCCCCC',
     },
 });
 

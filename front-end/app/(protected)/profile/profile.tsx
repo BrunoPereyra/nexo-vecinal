@@ -366,7 +366,7 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
     listContainer: {
-        padding: 16,
+        padding: 6,
         backgroundColor: "#121212",
     },
     center: {
