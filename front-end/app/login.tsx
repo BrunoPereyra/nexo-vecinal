@@ -24,7 +24,7 @@ export default function LoginScreen() {
       await login(data.token, data._id, data.avatar, data.nameUser,);
       // Guarda el pushToken en el backend
       await savePushToken(data.token, pushToken);
-      router.replace("/profile/profile");
+      router.replace("/profile/Profile");
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Ocurrió un error desconocido');
     }

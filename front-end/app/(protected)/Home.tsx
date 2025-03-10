@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, FlatList, StyleSheet, Modal } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getJobsByFilters } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import JobCard from '@/components/JobCardHome';
@@ -14,6 +15,7 @@ const Home: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const flatListRef = useRef<FlatList<any>>(null);
 
+  // 1. Función para buscar trabajos según los filtros
   const handleSearch = async (filters: FilterParams) => {
     if (!token || !filters.location) return;
     const apiFilters = {
@@ -31,16 +33,40 @@ const Home: React.FC = () => {
     }
   };
 
+  // 2. Efecto para restaurar la posición del scroll
   useEffect(() => {
     if (flatListRef.current && savedScrollOffset > 0) {
       flatListRef.current.scrollToOffset({ offset: savedScrollOffset, animated: false });
     }
   }, []);
 
+  // 3. Efecto para cargar y usar los filtros guardados
+  useEffect(() => {
+    const loadSavedFilters = async () => {
+      try {
+        // Ajusta la key según donde guardes tus filtros
+        const saved = await AsyncStorage.getItem('mySavedFilters');
+        if (saved) {
+          const filters: FilterParams = JSON.parse(saved);
+          // Llama a handleSearch si existe una ubicación
+          if (filters.location) {
+            await handleSearch(filters);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading saved filters:', error);
+      }
+    };
+
+    loadSavedFilters();
+  }, [token]);
+
   return (
     <View style={styles.container}>
-      {/* Filtros de búsqueda, colocados en la parte superior y con mayor presencia */}
+      {/* Componente de filtros */}
       <JobSearchFilters onSearch={handleSearch} />
+
+      {/* Lista de trabajos */}
       <FlatList
         ref={flatListRef}
         data={jobs}
@@ -50,6 +76,8 @@ const Home: React.FC = () => {
         )}
         contentContainerStyle={styles.listContainer}
       />
+
+      {/* Modal con detalle de un trabajo */}
       <Modal visible={!!selectedJob} animationType="slide">
         {selectedJob && (
           <JobDetailView job={selectedJob} onClose={() => setSelectedJob(null)} />

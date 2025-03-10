@@ -5,10 +5,12 @@ import {
     TouchableOpacity,
     Text,
     StyleSheet,
-    Alert,
+    Modal,
+    ScrollView,
 } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
 
 export interface FilterParams {
@@ -25,11 +27,13 @@ interface JobSearchFiltersProps {
 const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     const { tags } = useAuth();
     const [searchTitle, setSearchTitle] = useState('');
+    // Estado para mostrar el modal de filtros avanzados
+    const [modalVisible, setModalVisible] = useState(false);
+
+    // Estados avanzados
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-    // Radio en metros; por defecto 5000 m (5 km)
-    const [radius, setRadius] = useState<number>(5000);
-    const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
+    const [radius, setRadius] = useState<number>(5000); // 5 km por defecto
 
     useEffect(() => {
         const loadCachedFilters = async () => {
@@ -39,22 +43,10 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                 const cachedLocation = await AsyncStorage.getItem('location');
                 const cachedRadius = await AsyncStorage.getItem('radius');
 
-                const loadedTitle = cachedTitle || '';
-                const loadedTags = cachedTags ? JSON.parse(cachedTags) : [];
-                const loadedLocation = cachedLocation ? JSON.parse(cachedLocation) : null;
-                const loadedRadius = cachedRadius ? Number(cachedRadius) : 5000;
-
-                setSearchTitle(loadedTitle);
-                setSelectedTags(loadedTags);
-                setLocation(loadedLocation);
-                setRadius(loadedRadius);
-
-                onSearch({
-                    searchTitle: loadedTitle,
-                    selectedTags: loadedTags,
-                    location: loadedLocation,
-                    radius: loadedRadius,
-                });
+                setSearchTitle(cachedTitle || '');
+                setSelectedTags(cachedTags ? JSON.parse(cachedTags) : []);
+                setLocation(cachedLocation ? JSON.parse(cachedLocation) : null);
+                setRadius(cachedRadius ? Number(cachedRadius) : 5000);
             } catch (error) {
                 console.error('Error loading cached filters:', error);
             }
@@ -62,6 +54,20 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 
         loadCachedFilters();
     }, []);
+
+    // Función para guardar filtros en caché y ejecutar la búsqueda
+    const applyFilters = async () => {
+        try {
+            await AsyncStorage.setItem('searchTitle', searchTitle);
+            await AsyncStorage.setItem('selectedTags', JSON.stringify(selectedTags));
+            await AsyncStorage.setItem('location', JSON.stringify(location));
+            await AsyncStorage.setItem('radius', radius.toString());
+        } catch (error) {
+            console.error('Error saving filters in cache:', error);
+        }
+        setModalVisible(false);
+        onSearch({ searchTitle, selectedTags, location, radius });
+    };
 
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {
@@ -71,113 +77,128 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
         }
     };
 
-    // Al tocar el mapa se define el centro de búsqueda.
     const handleMapPress = (e: any) => {
         const { coordinate } = e.nativeEvent;
         setLocation(coordinate);
     };
 
-    // Funciones para incrementar o decrementar el radio en 10 km (5000 m)
-    const increaseRadius = () => setRadius(prev => prev + 5000);
-    const decreaseRadius = () => setRadius(prev => (prev - 5000 >= 0 ? prev - 5000 : 0));
+    const increaseRadius = () => setRadius((prev) => prev + 5000);
+    const decreaseRadius = () => setRadius((prev) => (prev - 5000 >= 0 ? prev - 5000 : 0));
 
-    // Guarda filtros en caché y ejecuta la búsqueda.
-    const handleSearchPress = async () => {
-        try {
-            await AsyncStorage.setItem('searchTitle', searchTitle);
-            await AsyncStorage.setItem('selectedTags', JSON.stringify(selectedTags));
-            await AsyncStorage.setItem('location', JSON.stringify(location));
-            await AsyncStorage.setItem('radius', radius.toString());
-        } catch (error) {
-            console.error('Error saving filters in cache:', error);
-        }
-        setShowAdvanced(false);
+    // Función para ejecutar la búsqueda cuando se pulse "Enter"
+    const handleSubmit = () => {
         onSearch({ searchTitle, selectedTags, location, radius });
     };
 
     return (
         <View style={styles.container}>
-            <TextInput
-                style={styles.input}
-                placeholder="Buscar por título"
-                placeholderTextColor="#888"
-                value={searchTitle}
-                onChangeText={setSearchTitle}
-            />
-            {/* Header para expandir/contraer filtros avanzados */}
-            <TouchableOpacity
-                style={styles.advancedHeader}
-                onPress={() => setShowAdvanced(prev => !prev)}
-            >
-                <Text style={styles.advancedHeaderText}>Filtros Avanzados</Text>
-                <Text style={[styles.arrow, showAdvanced && styles.arrowUp]}>
-                    {showAdvanced ? '▲' : '▼'}
-                </Text>
-            </TouchableOpacity>
+            {/* Input y botón de filtros en línea */}
+            <View style={styles.searchRow}>
+                <TextInput
+                    style={[styles.input, { flex: 1 }]}
+                    placeholder="Buscar por título..."
+                    placeholderTextColor="#888"
+                    value={searchTitle}
+                    onChangeText={setSearchTitle}
+                    returnKeyType="search"
+                    onSubmitEditing={handleSubmit}
+                />
+                <TouchableOpacity
+                    style={styles.filterIconButton}
+                    onPress={() => setModalVisible(true)}
+                >
+                    <Ionicons name="options-outline" size={24} color="#03DAC5" />
+                </TouchableOpacity>
+            </View>
 
-            {showAdvanced && (
-                <>
-                    {tags?.length > 0 && (
-                        <>
-                            <Text style={styles.label}>Selecciona Etiquetas:</Text>
-                            <View style={styles.tagsContainer}>
-                                {tags.map((tag, index) => (
-                                    <TouchableOpacity
-                                        key={index}
-                                        style={[styles.tag, selectedTags.includes(tag) && styles.tagSelected]}
-                                        onPress={() => toggleTag(tag)}
-                                    >
-                                        <Text style={[styles.tagText, selectedTags.includes(tag) && styles.tagTextSelected]}>
-                                            {tag}
-                                        </Text>
-                                    </TouchableOpacity>
-                                ))}
-                            </View>
-                        </>
-                    )}
+            {/* Modal de filtros avanzados */}
+            <Modal visible={modalVisible} animationType="slide" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <ScrollView contentContainerStyle={{ padding: 16 }}>
+                            <Text style={styles.modalTitle}>Filtros Avanzados</Text>
 
-                    <Text style={styles.label}>Alcance de tu trabajo:</Text>
-                    <View style={styles.mapContainer}>
-                        <MapView
-                            style={styles.map}
-                            // customMapStyle={darkMapStyle}
-                            initialRegion={{
-                                latitude: location ? location.latitude : -31.4201,
-                                longitude: location ? location.longitude : -64.1811,
-                                latitudeDelta: 0.05,
-                                longitudeDelta: 0.05,
-                            }}
-                            onPress={handleMapPress}
-                        >
-                            {location && <Marker coordinate={location} />}
-                            {location && (
-                                <Circle
-                                    center={location}
-                                    radius={radius}
-                                    strokeColor="rgba(3, 1, 6, 0.5)"
-                                    fillColor="rgba(18, 7, 30, 0.2)"
-                                    strokeWidth={2}
-                                />
+                            {/* Sección de Etiquetas */}
+                            {tags?.length > 0 && (
+                                <>
+                                    <Text style={styles.label}>Etiquetas:</Text>
+                                    <View style={styles.tagsContainer}>
+                                        {tags.map((tag, index) => (
+                                            <TouchableOpacity
+                                                key={index}
+                                                style={[
+                                                    styles.tag,
+                                                    selectedTags.includes(tag) && styles.tagSelected,
+                                                ]}
+                                                onPress={() => toggleTag(tag)}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        styles.tagText,
+                                                        selectedTags.includes(tag) && styles.tagTextSelected,
+                                                    ]}
+                                                >
+                                                    {tag}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                </>
                             )}
-                        </MapView>
-                    </View>
 
-                    <View style={styles.radiusContainer}>
-                        <Text style={styles.radiusLabel}>Alcance:</Text>
-                        <TouchableOpacity style={styles.radiusButton} onPress={decreaseRadius}>
-                            <Text style={styles.radiusButtonText}>–</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.radiusText}>{(radius / 1000).toFixed(1)} km</Text>
-                        <TouchableOpacity style={styles.radiusButton} onPress={increaseRadius}>
-                            <Text style={styles.radiusButtonText}>+</Text>
-                        </TouchableOpacity>
-                    </View>
-                </>
-            )}
+                            {/* Sección de Ubicación */}
+                            <Text style={styles.label}>Ubicación:</Text>
+                            <View style={styles.mapContainer}>
+                                <MapView
+                                    style={styles.map}
+                                    initialRegion={{
+                                        latitude: location ? location.latitude : -31.4201,
+                                        longitude: location ? location.longitude : -64.1811,
+                                        latitudeDelta: 0.05,
+                                        longitudeDelta: 0.05,
+                                    }}
+                                    onPress={handleMapPress}
+                                >
+                                    {location && <Marker coordinate={location} />}
+                                    {location && (
+                                        <Circle
+                                            center={location}
+                                            radius={radius}
+                                            strokeColor="rgba(3, 1, 6, 0.5)"
+                                            fillColor="rgba(18, 7, 30, 0.2)"
+                                            strokeWidth={2}
+                                        />
+                                    )}
+                                </MapView>
+                            </View>
 
-            <TouchableOpacity style={styles.searchButton} onPress={handleSearchPress}>
-                <Text style={styles.searchButtonText}>Buscar</Text>
-            </TouchableOpacity>
+                            {/* Sección de Alcance */}
+                            <View style={styles.radiusContainer}>
+                                <Text style={styles.radiusLabel}>Alcance:</Text>
+                                <TouchableOpacity style={styles.radiusButton} onPress={decreaseRadius}>
+                                    <Text style={styles.radiusButtonText}>–</Text>
+                                </TouchableOpacity>
+                                <Text style={styles.radiusText}>{(radius / 1000).toFixed(1)} km</Text>
+                                <TouchableOpacity style={styles.radiusButton} onPress={increaseRadius}>
+                                    <Text style={styles.radiusButtonText}>+</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </ScrollView>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={styles.modalButton}
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Text style={styles.modalButtonText}>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.modalButton} onPress={applyFilters}>
+                                <Text style={styles.modalButtonText}>Aplicar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
@@ -185,38 +206,63 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 16,
+        backgroundColor: '#121212',
         borderRadius: 10,
-        marginBottom: 16,
+        marginHorizontal: 5,
+        // marginBottom: 16,
         elevation: 3,
-        marginHorizontal: 15,
         shadowColor: '#000',
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         borderWidth: 2,
-        backgroundColor: '#1E1E1E',
+        borderColor: '#444',
+    },
+    searchRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10,
     },
     input: {
         borderWidth: 1,
         borderColor: '#444',
         borderRadius: 8,
         padding: 10,
-        marginBottom: 10,
-        backgroundColor: '#121212',
+        backgroundColor: '#1E1E1E',
         color: '#E0E0E0',
     },
-    moreFiltersButton: {
-        marginBottom: 10,
-        alignSelf: 'flex-end',
+    filterIconButton: {
+        marginLeft: 8,
+        padding: 8,
+        backgroundColor: '#1E1E1E',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#444',
     },
-    moreFiltersText: {
-        color: '#03DAC5',
-        fontSize: 14,
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '90%',
+        maxHeight: '80%',
+        backgroundColor: '#1E1E1E',
+        borderRadius: 12,
+        overflow: 'hidden',
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#E0E0E0',
+        textAlign: 'center',
+        marginVertical: 10,
     },
     label: {
         fontSize: 16,
         fontWeight: '600',
-        marginBottom: 8,
         color: '#E0E0E0',
+        marginBottom: 8,
     },
     tagsContainer: {
         flexDirection: 'row',
@@ -246,9 +292,9 @@ const styles = StyleSheet.create({
     mapContainer: {
         width: '100%',
         height: 150,
-        marginBottom: 12,
         borderRadius: 8,
         overflow: 'hidden',
+        marginBottom: 12,
     },
     map: {
         width: '100%',
@@ -281,125 +327,21 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#E0E0E0',
     },
-    searchButton: {
-        backgroundColor: '#03DAC5',
-        paddingVertical: 10,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 10,
+    modalButtons: {
+        flexDirection: 'row',
+        borderTopWidth: 1,
+        borderColor: '#444',
     },
-    searchButtonText: {
-        color: '#121212',
+    modalButton: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+    },
+    modalButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
-    },
-    advancedHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#333',
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 8,
-        marginBottom: 10,
-    },
-    advancedHeaderText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#E0E0E0',
-    },
-    arrow: {
-        fontSize: 16,
-        color: '#E0E0E0',
-    },
-    arrowUp: {
-        transform: [{ rotate: '180deg' }],
+        color: '#03DAC5',
     },
 });
-// const darkMapStyle = [
-//     { elementType: 'geometry', stylers: [{ color: '#212121' }] },
-//     { elementType: 'labels.icon', stylers: [{ visibility: 'off' }] },
-//     { elementType: 'labels.text.fill', stylers: [{ color: '#757575' }] },
-//     { elementType: 'labels.text.stroke', stylers: [{ color: '#212121' }] },
-//     {
-//         featureType: 'administrative',
-//         elementType: 'geometry',
-//         stylers: [{ color: '#757575' }],
-//     },
-//     {
-//         featureType: 'administrative.country',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#9e9e9e' }],
-//     },
-//     {
-//         featureType: 'administrative.land_parcel',
-//         stylers: [{ visibility: 'off' }],
-//     },
-//     {
-//         featureType: 'administrative.locality',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#bdbdbd' }],
-//     },
-//     {
-//         featureType: 'poi',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#757575' }],
-//     },
-//     {
-//         featureType: 'poi.park',
-//         elementType: 'geometry',
-//         stylers: [{ color: '#181818' }],
-//     },
-//     {
-//         featureType: 'poi.park',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#616161' }],
-//     },
-//     {
-//         featureType: 'road',
-//         elementType: 'geometry.fill',
-//         stylers: [{ color: '#2c2c2c' }],
-//     },
-//     {
-//         featureType: 'road',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#8a8a8a' }],
-//     },
-//     {
-//         featureType: 'road.arterial',
-//         elementType: 'geometry',
-//         stylers: [{ color: '#373737' }],
-//     },
-//     {
-//         featureType: 'road.highway',
-//         elementType: 'geometry',
-//         stylers: [{ color: '#3c3c3c' }],
-//     },
-//     {
-//         featureType: 'road.highway.controlled_access',
-//         elementType: 'geometry',
-//         stylers: [{ color: '#4e4e4e' }],
-//     },
-//     {
-//         featureType: 'road.local',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#616161' }],
-//     },
-//     {
-//         featureType: 'transit',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#757575' }],
-//     },
-//     {
-//         featureType: 'water',
-//         elementType: 'geometry',
-//         stylers: [{ color: '#000000' }],
-//     },
-//     {
-//         featureType: 'water',
-//         elementType: 'labels.text.fill',
-//         stylers: [{ color: '#3d3d3d' }],
-//     },
-// ];
+
 export default JobSearchFilters;

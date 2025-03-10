@@ -46,6 +46,8 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
     const [loadingSupport, setLoadingSupport] = useState<boolean>(false);
     const [supportAgent, setSupportAgent] = useState<User | null>(null);
     const supportWsRef = useRef<WebSocket | null>(null);
+    // Referencia para el FlatList
+    const flatListRef = useRef<FlatList<SupportMessage>>(null);
 
     // Obtener información del agente de soporte (usando loadCurrentUser)
     useEffect(() => {
@@ -73,17 +75,26 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
     useEffect(() => {
         if (visible && token && supportAgent) {
             loadSupportChatMessages();
-            const roomKey = supportAgent.id + userProfile.id;
+            const roomKey = userProfile.id + supportAgent.id
+            console.log(roomKey);
+            console.log("roomKey");
+
             const ws = subscribeSupportMessages(roomKey, (data: string) => {
                 try {
+                    console.log("xxx");
                     const message: SupportMessage = JSON.parse(data);
+                    console.log("bbb");
                     if (
                         (message.senderId === supportAgent.id && message.receiverId === userProfile.id) ||
                         (message.senderId === userProfile.id && message.receiverId === supportAgent.id)
                     ) {
+                        console.log("AA");
+
                         setSupportMessages((prev) => [...prev, message]);
                     }
                 } catch (error) {
+                    console.log("cccccccc");
+
                     console.error("Error al parsear mensaje de soporte:", error);
                 }
             });
@@ -116,15 +127,27 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
                 text: supportNewMessage.trim(),
             };
             const res = await sendSupportMessage(messageData, token);
+
             if (res) {
                 setSupportNewMessage("");
+                // Opcional: puedes forzar el scroll al final después de enviar\n        flatListRef.current?.scrollToEnd({ animated: true });
             }
         } catch (error) {
             console.error("Error al enviar mensaje de soporte:", error);
         }
     };
 
-    // Renderizado de cada mensaje con burbuja y estilo condicional
+    // Efecto para auto-scroll cuando supportMessages cambie
+    useEffect(() => {
+        if (supportMessages.length > 0) {
+            // Usamos scrollToIndex para desplazar al último mensaje
+            flatListRef.current?.scrollToEnd({ animated: true });
+
+
+
+        }
+    }, [supportMessages]);
+
     const renderMessage = ({ item }: { item: SupportMessage }) => {
         const isMyMessage = item.senderId === supportAgent?.id;
         return (
@@ -134,9 +157,11 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
                     isMyMessage ? styles.myMessage : styles.partnerMessage,
                 ]}
             >
-                <Text style={[
-                    isMyMessage ? styles.messageTextParner : styles.messageText,
-                ]}>{item.text}</Text>
+                <Text
+                    style={isMyMessage ? styles.messageTextParner : styles.messageText}
+                >
+                    {item.text}
+                </Text>
             </View>
         );
     };
@@ -145,7 +170,6 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
         <Modal visible={visible} transparent animationType="slide">
             <View style={styles.modalContainer}>
                 <View style={[styles.modalContent, { maxHeight: "80%" }]}>
-                    {/* Cabecera con información del usuario: al tocar se dirige al perfil */}
                     <View style={styles.modalHeader}>
                         <TouchableOpacity
                             style={styles.profileInfo}
@@ -169,11 +193,13 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
                         <ActivityIndicator size="large" color="#03DAC5" />
                     ) : (
                         <FlatList
+                            ref={flatListRef}
                             data={supportMessages}
                             keyExtractor={(_, index) => index.toString()}
                             renderItem={renderMessage}
                             contentContainerStyle={{ padding: 10 }}
-                        />
+                            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                            onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })} />
                     )}
                     <View style={styles.inputContainer}>
                         <TextInput
@@ -256,7 +282,6 @@ const styles = StyleSheet.create({
         color: "#121212",
         fontWeight: "bold",
     },
-    // Estilos para las burbujas de mensaje
     messageBubble: {
         maxWidth: "75%",
         borderRadius: 16,

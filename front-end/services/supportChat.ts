@@ -2,6 +2,7 @@ const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084";
 
 // Interfaz que define la estructura de un mensaje de soporte.
 export interface SupportMessage {
+    id?: string; // ahora es opcional
     senderId: string;
     receiverId: string;
     text: string;
@@ -137,6 +138,8 @@ export const subscribeSupportMessages = (
     };
 
     ws.onmessage = (event: MessageEvent) => {
+        console.log("AA");
+
         onMessage(event.data);
     };
 

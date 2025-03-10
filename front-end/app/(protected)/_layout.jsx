@@ -35,7 +35,7 @@ export default function ProtectedLayout() {
               tabBarButton: (props) => (
                 <TouchableOpacity
                   {...props}
-                  onPress={() => router.replace('/(protected)/profile/profile')}
+                  onPress={() => router.replace('/(protected)/profile/Profile')}
                 />
               ),
             }}

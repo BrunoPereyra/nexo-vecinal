@@ -44,6 +44,9 @@ const SupportChat: React.FC<SupportChatProps> = ({
     const [loadingSupport, setLoadingSupport] = useState<boolean>(false);
     const [supportAgent, setSupportAgent] = useState<User | null>(null);
     const supportWsRef = useRef<WebSocket | null>(null);
+    const flatListRef = useRef<FlatList<SupportMessage>>(null);
+    // Ref para evitar múltiples suscripciones
+    const subscribedRef = useRef<boolean>(false);
 
     // Obtener información del agente de soporte
     useEffect(() => {
@@ -63,27 +66,31 @@ const SupportChat: React.FC<SupportChatProps> = ({
         }
     }, [visible, token, userProfile, supportAgent]);
 
-    // Conexión WebSocket y suscripción
+    // Conexión WebSocket y suscripción (se suscribe solo una vez)
     useEffect(() => {
-        if (visible && token && userProfile.id && supportAgent) {
+        if (visible && token && userProfile.id && supportAgent && !subscribedRef.current) {
             loadSupportChatMessages();
             const roomKey = supportAgent.id + userProfile.id;
             const ws = subscribeSupportMessages(roomKey, (data: string) => {
                 try {
                     const message: SupportMessage = JSON.parse(data);
-                    if (
-                        (message.senderId === supportAgent.id && message.receiverId === userProfile.id) ||
-                        (message.senderId === userProfile.id && message.receiverId === supportAgent.id)
-                    ) {
-                        setSupportMessages((prev) => [...prev, message]);
-                    }
+                    // Evitamos duplicados verificando por ID (asumiendo que cada mensaje tiene un ID único)
+                    setSupportMessages((prev) => {
+                        if (prev.find((m) => m.id === message.id)) {
+                            return prev;
+                        }
+                        return [...prev, message];
+                    });
                 } catch (error) {
+
                     console.error("Error al parsear mensaje de soporte:", error);
                 }
             });
             supportWsRef.current = ws;
+            subscribedRef.current = true;
             return () => {
                 ws.close();
+                subscribedRef.current = false;
             };
         }
     }, [visible, token, userProfile, supportAgent]);
@@ -98,6 +105,10 @@ const SupportChat: React.FC<SupportChatProps> = ({
             console.error("Error al cargar mensajes de soporte:", error);
         } finally {
             setLoadingSupport(false);
+            // Después de cargar, desplazarse al final con un pequeño retraso
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+            }, 100);
         }
     };
 
@@ -110,33 +121,19 @@ const SupportChat: React.FC<SupportChatProps> = ({
                 text: supportNewMessage.trim(),
             };
             const res = await sendSupportMessage(messageData, token);
-            if (res) {
-                setSupportNewMessage("");
-            }
+            setSupportNewMessage("");
+            // Opcional: Si el WS no envía el mensaje automáticamente, podrías agregarlo manualmente
+            // setSupportMessages(prev => [...prev, { ...messageData, id: Date.now().toString(), createdAt: new Date().toISOString() }]);
         } catch (error) {
             console.error("Error al enviar mensaje de soporte:", error);
         }
     };
 
-    // Mensajes de ejemplo para mostrar mientras carga el historial
-    const dummyMessages: SupportMessage[] = [
-        {
-            id: "dummy-1",
-            senderId: supportAgent ? supportAgent.id : "support",
-            receiverId: userProfile.id,
-            text: "Hola, ¿en qué puedo ayudarte?",
-            createdAt: new Date().toISOString(),
-        },
-        {
-            id: "dummy-2",
-            senderId: userProfile.id,
-            receiverId: supportAgent ? supportAgent.id : "support",
-            text: "Necesito ayuda con mi cuenta.",
-            createdAt: new Date().toISOString(),
-        },
-    ];
+    // Desplaza el scroll al final cada vez que cambia el contenido de la lista
+    const handleContentSizeChange = () => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+    };
 
-    // Renderizado de cada mensaje con burbuja y estilo condicional
     const renderMessage = ({ item }: { item: SupportMessage }) => {
         const isMyMessage = item.senderId === userProfile.id;
         return (
@@ -146,9 +143,9 @@ const SupportChat: React.FC<SupportChatProps> = ({
                     isMyMessage ? styles.myMessage : styles.partnerMessage,
                 ]}
             >
-                <Text style={[
-                    isMyMessage ? styles.messageTextParner : styles.messageText,
-                ]}>{item.text}</Text>
+                <Text style={isMyMessage ? styles.messageTextParner : styles.messageText}>
+                    {item.text}
+                </Text>
             </View>
         );
     };
@@ -158,7 +155,6 @@ const SupportChat: React.FC<SupportChatProps> = ({
             <View style={styles.modalContainer}>
                 <View style={[styles.modalContent, { maxHeight: "80%" }]}>
                     <View style={styles.modalHeader}>
-                        {/* Se muestra el avatar del agente de soporte junto al nombre */}
                         {supportAgent && (
                             <Image
                                 source={{ uri: supportAgent.Avatar || "https://via.placeholder.com/40" }}
@@ -172,13 +168,17 @@ const SupportChat: React.FC<SupportChatProps> = ({
                             <Text style={styles.modalClose}>Cerrar</Text>
                         </TouchableOpacity>
                     </View>
-                    {/* Si se está cargando y aún no hay mensajes, mostramos los dummy messages */}
-                    <FlatList
-                        data={loadingSupport && supportMessages.length === 0 ? dummyMessages : supportMessages}
-                        keyExtractor={(_, index) => index.toString()}
-                        renderItem={renderMessage}
-                        contentContainerStyle={{ padding: 10 }}
-                    />
+                    {loadingSupport ? (
+                        <ActivityIndicator size="large" color="#03DAC5" />
+                    ) : (
+                        <FlatList
+                            ref={flatListRef}
+                            data={supportMessages}
+                            renderItem={renderMessage}
+                            contentContainerStyle={{ padding: 10 }}
+                            onContentSizeChange={handleContentSizeChange}
+                        />
+                    )}
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.input}
@@ -257,7 +257,6 @@ const styles = StyleSheet.create({
         color: "#121212",
         fontWeight: "bold",
     },
-    // Estilos para las burbujas de mensaje
     messageBubble: {
         maxWidth: "75%",
         borderRadius: 16,
@@ -270,7 +269,7 @@ const styles = StyleSheet.create({
     },
     partnerMessage: {
         alignSelf: "flex-start",
-        backgroundColor: "#333", // tono diferente para mensajes del agente
+        backgroundColor: "#333",
     },
     messageText: {
         fontSize: 16,
