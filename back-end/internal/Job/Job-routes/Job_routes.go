@@ -49,5 +49,6 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	// pedir distintos status de trabajos
 	App.Get("/job/get-jobs-assigned-nocompleted", middleware.UseExtractor(), JobHandler.GetJobsAssignedNoCompleted)
 	App.Get("/job/get-jobs-assigned-completed", middleware.UseExtractor(), JobHandler.GetJobsAssignedCompleted)
+	App.Get("/job/recommended", JobHandler.GetRecommendedUsersHandler)
 
 }

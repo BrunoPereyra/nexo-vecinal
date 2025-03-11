@@ -491,6 +491,32 @@ export const GetJobDetailvisited = async (id: string) => {
         console.error('Error en GetJobDetailvisited:', error);
     }
 };
-export const getRecommendedWorkers = async (page: number, token: string) => {
-    return null
+export const getRecommendedWorkers = async (
+    page: number,
+    token: string,
+    categories?: string[]
+) => {
+    try {
+        const queryParams = new URLSearchParams();
+        queryParams.append("page", page.toString());
+        queryParams.append("limit", "10");
+        if (categories && categories.length > 0) {
+            queryParams.append("categories", categories.join(","));
+        }
+        const url = `${API}/job/recommended?${queryParams.toString()}`;
+
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            },
+        });
+        if (!res.ok) {
+            throw new Error(`HTTP error: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error in getRecommendedWorkers:", error);
+    }
 };

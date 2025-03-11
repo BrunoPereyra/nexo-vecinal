@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LayoutAnimation, UIManager, Platform, View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { assignJob, reassignJob } from '../services/JobsService';
+import { assignJob, reassignJob, getRecommendedWorkers } from '../services/JobsService';
 import { useRouter } from 'expo-router';
 
 // Habilitar animaciones en Android
@@ -28,8 +28,9 @@ interface JobDetails {
     id: string;
     status: string;
     applicants: Applicant[];
-    recommended?: Applicant[];
+    // Eliminamos "recommended" ya que la consultaremos mediante el endpoint.
     assignedTo?: Applicant;
+    tags: []
 }
 
 interface ApplicantsListProps {
@@ -59,8 +60,8 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
                 <Text style={styles.sectionHeaderText}>{title}</Text>
                 <Text style={styles.expandIcon}>{expanded ? '-' : '+'}</Text>
             </TouchableOpacity>
-            {expanded && (
-                scrollable ? (
+            {expanded &&
+                (scrollable ? (
                     <ScrollView
                         style={[styles.sectionContent, fixedHeight ? { height: fixedHeight } : {}]}
                         nestedScrollEnabled={true}
@@ -69,24 +70,39 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({ title, children
                     >
                         {children}
                     </ScrollView>
-
                 ) : (
-                    <View style={styles.sectionContent}>
-                        {children}
-                    </View>
-                )
-            )}
+                    <View style={styles.sectionContent}>{children}</View>
+                ))}
         </View>
     );
 };
 
 const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
     const router = useRouter();
+    const [recommendedWorkers, setRecommendedWorkers] = useState<User[]>([]);
+
+    // Consultar recomendados al montar el componente
+    useEffect(() => {
+        async function fetchRecommended() {
+            try {
+                const res = await getRecommendedWorkers(1, token, job.tags);
+                if (res && res.recommendedUsers) {
+                    console.log(res.recommendedUsers);
+
+                    setRecommendedWorkers(res.recommendedUsers);
+                }
+            } catch (error) {
+                console.error('Error fetching recommended workers:', error);
+            }
+        }
+        fetchRecommended();
+    }, [token]);
 
     const handleAssign = async (workerId: string) => {
         try {
             if (job.assignedTo && job.assignedTo.applicantId !== "000000000000000000000000") {
                 await reassignJob(job.id, workerId, token);
+
             } else {
                 await assignJob(job.id, workerId, token);
             }
@@ -95,7 +111,15 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
             console.error('Error al asignar/reasignar el job:', error);
         }
     };
+    const handleAssignforce = async (workerId: string) => {
+        try {
 
+            await assignJob(job.id, workerId, token);
+            // Actualiza datos o estado local si es necesario
+        } catch (error) {
+            console.error('Error al asignar/reasignar el job:', error);
+        }
+    };
     if (!job || !job.applicants) {
         return <Text>Cargando...</Text>;
     }
@@ -108,7 +132,6 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                 (applicant) => applicant.applicantId === job.assignedTo?.applicantId
             )?.userData);
 
-    // Función para renderizar cada item (aplica tanto a postulantes como a recomendados)
     const renderApplicantItem = (applicant: Applicant) => {
         const price =
             applicant.price !== undefined
@@ -147,9 +170,41 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
         );
     };
 
+    // Render for recommended users (modified)
+    const renderRecommendedItem = (user: User) => {
+        return (
+            <View key={user.id} style={styles.applicantContainer}>
+                <TouchableOpacity
+                    onPress={() => {
+                        if (user.id) {
+                            router.push(`/profile/ProfileVisited?id=${user.id}`);
+                        }
+                    }}
+                >
+                    {user.avatar ? (
+                        <Image source={{ uri: user.avatar }} style={styles.avatar} />
+                    ) : (
+                        <View style={styles.placeholderAvatar} />
+                    )}
+                </TouchableOpacity>
+                <View style={styles.infoContainer}>
+                    <Text style={styles.applicantName}>{user.nameUser}</Text>
+                </View>
+                {job.status !== 'completed' && (
+                    <TouchableOpacity style={styles.assignButton} onPress={() => handleAssignforce(user.id)}>
+                        <Text style={styles.assignButtonText}>
+                            Assignar
+                        </Text>
+                    </TouchableOpacity>
+                )}
+            </View>
+        );
+    };
+
+
     return (
         <View style={styles.container}>
-            {/* Sección de Postulantes con contenedor de altura fija (80 unidades) para mostrar 1 elemento a la vez */}
+            {/* Sección de Postulantes */}
             <CollapsibleSection title="Postulantes" fixedHeight={200}>
                 {job.applicants.length > 0 ? (
                     job.applicants.map(renderApplicantItem)
@@ -158,10 +213,10 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                 )}
             </CollapsibleSection>
 
-            {/* Sección de Recomendados con contenedor de altura fija (80 unidades) */}
+            {/* Sección de Recomendados, usando la consulta al endpoint */}
             <CollapsibleSection title="Recomendados" fixedHeight={80}>
-                {job.recommended && job.recommended.length > 0 ? (
-                    job.recommended.map(renderApplicantItem)
+                {recommendedWorkers.length > 0 ? (
+                    recommendedWorkers.map(renderRecommendedItem)
                 ) : (
                     <Text style={styles.noDataText}>No hay recomendados</Text>
                 )}
@@ -192,8 +247,7 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                                 Propuesta: {job.assignedTo.proposal || 'N/A'}
                             </Text>
                             <Text style={styles.priceText}>
-                                Precio: $
-                                {job.assignedTo.price !== undefined
+                                Precio: ${job.assignedTo.price !== undefined
                                     ? job.assignedTo.price
                                     : job.assignedTo.priceObject?.price || 'N/A'}
                             </Text>
@@ -241,7 +295,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 10,
-        marginBottom: 0,
         borderBottomWidth: 1,
         borderBottomColor: '#444',
     },

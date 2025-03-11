@@ -4,6 +4,7 @@ import (
 	Jobapplication "back-end/internal/Job/Job-application"
 	jobdomain "back-end/internal/Job/Job-domain"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -684,5 +685,46 @@ func (j *JobHandler) GetJobDetailvisited(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "ok",
 		"job":     jobs,
+	})
+}
+
+// GetRecommendedUsersHandler maneja la solicitud para obtener usuarios recomendados.
+func (j *JobHandler) GetRecommendedUsersHandler(c *fiber.Ctx) error {
+	// Leer parámetros: categorías separadas por comas, página y límite
+	categoriesParam := c.Query("categories", "")
+	var categories []string
+	if categoriesParam != "" {
+		// Convertir a slice separando por comas y limpiando espacios.
+		for _, cat := range strings.Split(categoriesParam, ",") {
+			trimmed := strings.TrimSpace(cat)
+			if trimmed != "" {
+				categories = append(categories, trimmed)
+			}
+		}
+	}
+
+	pageParam := c.Query("page", "1")
+	limitParam := c.Query("limit", "10")
+
+	page, err := strconv.Atoi(pageParam)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+
+	users, err := j.JobService.GetRecommendedUsers(categories, page, limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Error retrieving recommended users",
+			"error":   err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"recommendedUsers": users,
+		"page":             page,
+		"limit":            limit,
 	})
 }

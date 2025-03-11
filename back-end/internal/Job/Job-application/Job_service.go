@@ -150,3 +150,8 @@ func (js *JobService) GetJobsAssignedCompleted(jobID primitive.ObjectID, page in
 	return js.JobRepository.GetJobsAssignedCompleted(jobID, page)
 
 }
+
+// GetRecommendedUsers obtiene la lista de usuarios recomendados con filtros y paginación.
+func (js *JobService) GetRecommendedUsers(categories []string, page, limit int) ([]jobdomain.User, error) {
+	return js.JobRepository.GetRecommendedUsers(categories, page, limit)
+}

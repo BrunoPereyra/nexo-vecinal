@@ -149,8 +149,14 @@ func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
 			break
 		}
 	}
+	// Si no se encontró la postulación, se crea una con valores por defecto.
 	if !found {
-		return errors.New("no se encontró la postulación del usuario")
+		selectedApp = jobdomain.Application{
+			ApplicantID: applicantID,
+			Proposal:    "usuario asignado de forma forzada", // Valor por defecto; ajusta según convenga.
+			Price:       0.0,                                 // Precio por defecto.
+			AppliedAt:   time.Now(),
+		}
 	}
 
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
@@ -300,23 +306,111 @@ func (j *JobRepository) incrementUserJobCount(userID primitive.ObjectID) error {
 // Se agrega el parámetro employerID y se verifica que el documento tenga paymentStatus "completed".
 func (j *JobRepository) ProvideEmployerFeedback(jobID, employerID primitive.ObjectID, feedback jobdomain.Feedback) error {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
 	filter := bson.M{
 		"_id":    jobID,
 		"userId": employerID,                   // Verifica que el campo UserId coincida con employerID
-		"status": jobdomain.JobStatusCompleted, // Y que el paymentStatus sea "completed"
+		"status": jobdomain.JobStatusCompleted, // Y que el status sea "completed"
 	}
+
 	update := bson.M{
 		"$set": bson.M{
 			"employerFeedback": feedback,
 			"updatedAt":        time.Now(),
 		},
 	}
-	result, err := jobColl.UpdateOne(context.Background(), filter, update)
+
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var job struct {
+		AssignedApplication *jobdomain.Application `bson:"assignedApplication"`
+		Categories          []string               `bson:"tags"`
+	}
+
+	// Esta única operación actualiza el documento y lo retorna
+	err := jobColl.FindOneAndUpdate(context.Background(), filter, update, opts).Decode(&job)
+	if err != nil {
+		return errors.New("job not found or conditions not met")
+	}
+
+	// Actualizar los usuarios recomendados usando la información obtenida
+	fmt.Println(job.AssignedApplication.ApplicantID, job.Categories)
+	err = j.UpdateRecommendedUsers(job.AssignedApplication.ApplicantID, job.Categories)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+// UpdateRecommendedUsers adds a worker to the recommended users collection
+func (j *JobRepository) UpdateRecommendedUsers(workerId primitive.ObjectID, categories []string) error {
+	oneMonthAgo := time.Now().AddDate(0, -1, 0)
+
+	// Obtener jobs completados en el último mes para el trabajador
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+	filter := bson.M{
+		"assignedApplication.applicantId": workerId,
+		"status":                          jobdomain.JobStatusCompleted,
+		"updatedAt":                       bson.M{"$gte": oneMonthAgo},
+	}
+
+	cursor, err := jobColl.Find(context.Background(), filter, options.Find().SetLimit(4))
 	if err != nil {
 		return err
 	}
-	if result.MatchedCount == 0 {
-		return errors.New("job not found or conditions not met")
+	defer cursor.Close(context.Background())
+
+	var totalRatings int
+	var totalJobs int
+	// Mapa para asegurarnos de contar feedback de cada empleador solo una vez
+	// employersCounted := make(map[primitive.ObjectID]bool)
+
+	for cursor.Next(context.Background()) {
+		// Incluimos el campo userId para identificar al empleador
+		var job struct {
+			EmployerFeedback jobdomain.Feedback `bson:"employerFeedback"`
+			UserID           primitive.ObjectID `bson:"userId"`
+		}
+		if err := cursor.Decode(&job); err != nil {
+			continue
+		}
+		// Si ya se contó feedback de este empleador, lo ignoramos
+		// if employersCounted[job.UserID] {
+		// 	continue
+		// }
+		// // Se cuenta el feedback de este empleador
+		// employersCounted[job.UserID] = true
+		totalRatings += job.EmployerFeedback.Rating
+		totalJobs++
+	}
+
+	// Se requiere mínimo 4 empleadores distintos
+	if totalJobs < 4 {
+		return nil
+	}
+	averageRating := float64(totalRatings) / float64(totalJobs)
+	if averageRating < 3.0 {
+		return nil
+	}
+	// Actualizar la colección RecommendedUsers
+	recommendedUsersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedUsers")
+	update := bson.M{
+		"$set": bson.M{
+			"averageRating": averageRating,
+			"totalJobs":     totalJobs,
+			"updatedAt":     time.Now(),
+		},
+		"$addToSet": bson.M{
+			"tags": bson.M{"$each": categories},
+		},
+	}
+	opts := options.Update().SetUpsert(true)
+	_, err = recommendedUsersColl.UpdateOne(context.Background(), bson.M{"workerId": workerId}, update, opts)
+	if err != nil {
+		fmt.Println(err)
+
+		return err
 	}
 	return nil
 }
@@ -1319,4 +1413,59 @@ func (j *JobRepository) GetJobDetailChat(jobID primitive.ObjectID) (*jobdomain.J
 	}
 
 	return result, nil
+}
+
+func (r *JobRepository) GetRecommendedUsers(categories []string, page, limit int) ([]jobdomain.User, error) {
+	recommendedColl := r.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedUsers")
+
+	var pipeline mongo.Pipeline
+
+	// Si se proporcionaron categorías, filtrar los documentos cuya propiedad "categories" contenga al menos una.
+	if len(categories) > 0 {
+		pipeline = append(pipeline, bson.D{
+			{Key: "$match", Value: bson.M{"tags": bson.M{"$in": categories}}},
+		})
+	}
+
+	// Agregar paginación.
+	skip := (page - 1) * limit
+	pipeline = append(pipeline,
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
+	)
+
+	// Realizar un $lookup para unir con la colección "Users"
+	pipeline = append(pipeline, bson.D{
+		{Key: "$lookup", Value: bson.M{
+			"from":         "Users",
+			"localField":   "workerId",
+			"foreignField": "_id",
+			"as":           "userInfo",
+		}},
+	})
+
+	// Deshacer el arreglo resultante
+	pipeline = append(pipeline, bson.D{{Key: "$unwind", Value: "$userInfo"}})
+
+	// Proyectar solo los campos requeridos.
+	pipeline = append(pipeline, bson.D{
+		{Key: "$project", Value: bson.M{
+			"_id":      "$userInfo._id",
+			"NameUser": "$userInfo.NameUser",
+			"Avatar":   "$userInfo.Avatar",
+		}},
+	})
+
+	ctx := context.Background()
+	cursor, err := recommendedColl.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, fmt.Errorf("error executing aggregation: %v", err)
+	}
+
+	var users []jobdomain.User
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, fmt.Errorf("error decoding recommended users: %v", err)
+	}
+	fmt.Println(users)
+	return users, nil
 }
