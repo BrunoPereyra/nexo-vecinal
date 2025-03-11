@@ -425,7 +425,7 @@ func (j *JobHandler) GetJobsUserIDForEmployeProfilevist(c *fiber.Ctx) error {
 		page = 1
 	}
 
-	jobs, err := j.JobService.GetJobsByUserIDForEmploye(userID, page)
+	jobs, err := j.JobService.GetJobsProfile(userID, page)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "StatusBadRequest",

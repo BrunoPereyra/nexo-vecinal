@@ -25,4 +25,5 @@ func AdminReportRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *m
 	adminGroup.Get("/reports/global", reportHandler.GetGlobalReports)                  // Obtener reportes globales
 	adminGroup.Post("/reports/:id/read", reportHandler.MarkReportAsRead)               // Marcar reporte como leído
 	adminGroup.Post("/block", reportHandler.BlockUser)                                 // Bloquear usuario (requiere autorización de admin)
+
 }

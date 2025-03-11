@@ -355,7 +355,9 @@ func (j *JobRepository) UpdateRecommendedUsers(workerId primitive.ObjectID, cate
 		"updatedAt":                       bson.M{"$gte": oneMonthAgo},
 	}
 
-	cursor, err := jobColl.Find(context.Background(), filter, options.Find().SetLimit(4))
+	cursor, err := jobColl.Find(context.Background(), filter, options.Find().
+		SetSort(bson.D{{Key: "createdAt", Value: -1}}).
+		SetLimit(6))
 	if err != nil {
 		return err
 	}
@@ -363,6 +365,7 @@ func (j *JobRepository) UpdateRecommendedUsers(workerId primitive.ObjectID, cate
 
 	var totalRatings int
 	var totalJobs int
+	var oldestFeedbackTime time.Time // Para almacenar el feedback más antiguo
 	// Mapa para asegurarnos de contar feedback de cada empleador solo una vez
 	// employersCounted := make(map[primitive.ObjectID]bool)
 
@@ -381,8 +384,12 @@ func (j *JobRepository) UpdateRecommendedUsers(workerId primitive.ObjectID, cate
 		// }
 		// // Se cuenta el feedback de este empleador
 		// employersCounted[job.UserID] = true
+
 		totalRatings += job.EmployerFeedback.Rating
 		totalJobs++
+		if oldestFeedbackTime.IsZero() || job.EmployerFeedback.CreatedAt.Before(oldestFeedbackTime) {
+			oldestFeedbackTime = job.EmployerFeedback.CreatedAt
+		}
 	}
 
 	// Se requiere mínimo 4 empleadores distintos
@@ -390,21 +397,23 @@ func (j *JobRepository) UpdateRecommendedUsers(workerId primitive.ObjectID, cate
 		return nil
 	}
 	averageRating := float64(totalRatings) / float64(totalJobs)
-	if averageRating < 3.0 {
+	if averageRating < 3.7 {
 		return nil
 	}
 	// Actualizar la colección RecommendedUsers
 	recommendedUsersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedUsers")
 	update := bson.M{
 		"$set": bson.M{
-			"averageRating": averageRating,
-			"totalJobs":     totalJobs,
-			"updatedAt":     time.Now(),
+			"averageRating":  averageRating,
+			"totalJobs":      totalJobs,
+			"updatedAt":      time.Now(),
+			"oldestFeedback": oldestFeedbackTime,
 		},
 		"$addToSet": bson.M{
 			"tags": bson.M{"$each": categories},
 		},
 	}
+	fmt.Println(oldestFeedbackTime)
 	opts := options.Update().SetUpsert(true)
 	_, err = recommendedUsersColl.UpdateOne(context.Background(), bson.M{"workerId": workerId}, update, opts)
 	if err != nil {
@@ -520,7 +529,9 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 			"$options": "i",
 		}
 	}
-
+	filter["status"] = bson.M{
+		"$nin": []jobdomain.JobStatus{jobdomain.JobStatusCompleted},
+	}
 	// Definir el pipeline de agregación
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
@@ -1419,13 +1430,19 @@ func (r *JobRepository) GetRecommendedUsers(categories []string, page, limit int
 	recommendedColl := r.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedUsers")
 
 	var pipeline mongo.Pipeline
+	oneMonthAgo := time.Now().AddDate(0, -1, 0)
 
-	// Si se proporcionaron categorías, filtrar los documentos cuya propiedad "categories" contenga al menos una.
-	if len(categories) > 0 {
-		pipeline = append(pipeline, bson.D{
-			{Key: "$match", Value: bson.M{"tags": bson.M{"$in": categories}}},
-		})
+	// Construir condiciones de $match: siempre filtrar por oldestFeedback y, opcionalmente, por categorías.
+	matchConditions := bson.M{
+		"oldestFeedback": bson.M{"$gte": oneMonthAgo},
 	}
+	if len(categories) > 0 {
+		matchConditions["tags"] = bson.M{"$in": categories}
+	}
+
+	pipeline = append(pipeline, bson.D{
+		{Key: "$match", Value: matchConditions},
+	})
 
 	// Agregar paginación.
 	skip := (page - 1) * limit

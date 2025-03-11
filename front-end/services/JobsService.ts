@@ -84,12 +84,9 @@ export const GetJobsByUserIDForEmploye = async (page: number, token: string) => 
                 'Authorization': `Bearer ${token}` // Asegúrate de que no haya espacios extras
             }
         });
-        if (!res.ok) {
-            throw new Error(`Error HTTP: ${res.status}`);
-        }
+
         return await res.json();
     } catch (error) {
-        console.error("Error en GetJobsByUserIDForEmploye:", error);
     }
 };
 export const jobIdEmployee = async (jobId: string, token: string) => {

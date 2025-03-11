@@ -1,5 +1,5 @@
 // ProfileScreen.tsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
     View,
     Button,
@@ -11,7 +11,6 @@ import {
     Alert,
     Modal,
     TextInput,
-    ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -223,22 +222,7 @@ export default function ProfileScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
-            {/* {latestRating !== null && (
-                <View style={styles.ratingContainer}>
-                    {[1, 2, 3, 4, 5].map((star, index) => (
-                        <Ionicons
-                            key={index}
-                            name={star <= latestRating ? "star" : "star-outline"}
-                            size={24}
-                            color={star <= latestRating ? "#F1C40F" : "#444"}
-                            style={styles.starIcon}
-                        />
-                    ))}
-                    <Text style={styles.ratingText}>
-                        {latestRating} {latestRating === 1 ? "estrella" : "estrellas"}
-                    </Text>
-                </View>
-            )} */}
+
         </View>
     );
     const data = activeSection === "employer" ? employerJobs : workerJobs;

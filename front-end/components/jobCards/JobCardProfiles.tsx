@@ -23,7 +23,11 @@ export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({ item, activeSe
         if (!isInProtectedProfile) return; // Bloquear la navegación si no está en la ruta permitida
 
         if (activeSection !== "employer") {
-            router.push(`/jobsStatus/JobDetailWorker?id=${item?.id}`);
+            if (isInProtectedProfile) {
+                router.push(`/profile/JobDetailWorker?id=${item?.id}`);
+            } else {
+                router.push(`/jobsStatus/JobDetailWorker?id=${item?.id}`);
+            }
         } else {
             router.push(`/profile/EmployerJobDetail?id=${item?.id}`);
         }

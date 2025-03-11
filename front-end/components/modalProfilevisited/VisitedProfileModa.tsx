@@ -7,7 +7,6 @@ import {
     ActivityIndicator,
     TouchableOpacity,
     Modal,
-    TextInput,
     Button,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,8 +16,6 @@ import { ProfileVisitedHeader } from '@/components/headersProfile/ProfileVisited
 import {
     GetJobsUserIDForEmployeProfilevist,
     GetJobsUserCompleted,
-    GetLatestJobsForWorkervist,
-    GetLatestJobsForEmployervist,
 } from '@/services/JobsService';
 import { JobCardProfiles } from '../jobCards/JobCardProfiles';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,9 +36,6 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('jobFeed');
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
     const [currentPageWorker, setCurrentPageWorker] = useState(1);
-    const [loadingEmployer, setLoadingEmployer] = useState(false);
-    const [loadingWorker, setLoadingWorker] = useState(false);
-    const [latestRating, setLatestRating] = useState<number | null>(null);
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
     // Cargar perfil del usuario visitado
@@ -81,14 +75,13 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'jobFeed' && workerJobs.length === 0) {
-            setLoadingWorker(true);
             GetJobsUserCompleted(userId)
                 .then((jobsData) => {
+                    console.log(jobsData);
                     setWorkerJobs(jobsData?.data || []);
                     setCurrentPageWorker(1);
                 })
                 .catch((error) => console.error(error))
-                .finally(() => setLoadingWorker(false));
         }
     }, [activeSection, token, userId]);
 
@@ -96,33 +89,14 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'employer' && employerJobs.length === 0) {
-            setLoadingEmployer(true);
             GetJobsUserIDForEmployeProfilevist(1, userId)
                 .then((feedData) => {
                     setEmployerJobs(feedData?.jobs || []);
                     setCurrentPageEmployer(1);
                 })
                 .catch((error) => console.error(error))
-                .finally(() => setLoadingEmployer(false));
         }
     }, [activeSection, token, userId]);
-
-    // Obtener rating más reciente
-    useEffect(() => {
-        const fetchRating = async () => {
-            if (!userId) return;
-            let res;
-            if (activeSection === 'employer') {
-                res = await GetLatestJobsForEmployervist(userId);
-            } else {
-                res = await GetLatestJobsForWorkervist(userId);
-            }
-            if (res && res.Rating !== undefined) {
-                setLatestRating(res.Rating);
-            }
-        };
-        fetchRating();
-    }, [activeSection, userId]);
 
     // Funciones para paginación
     const loadMoreEmployerJobs = async () => {

@@ -87,8 +87,6 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
             try {
                 const res = await getRecommendedWorkers(1, token, job.tags);
                 if (res && res.recommendedUsers) {
-                    console.log(res.recommendedUsers);
-
                     setRecommendedWorkers(res.recommendedUsers);
                 }
             } catch (error) {
