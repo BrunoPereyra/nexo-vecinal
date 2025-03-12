@@ -177,3 +177,80 @@ export const blockUser = async (userId: string, token: string) => {
         throw error;
     }
 };
+/**
+ * Obtiene todos los tags existentes.
+ * Endpoint: GET /admin/tags
+ */
+export const getTags = async (token: string) => {
+    try {
+        const res = await fetch(`${API}/admin/tags`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en getTags:", error);
+        throw error;
+    }
+};
+
+/**
+ * Agrega un nuevo tag.
+ * Endpoint: POST /admin/tags
+ * @param tag - El tag a agregar.
+ */
+export const addTag = async (tag: string, token: string) => {
+
+    try {
+        const res = await fetch(`${API}/admin/tags`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ tag }),
+        });
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en addTag:", error);
+        throw error;
+    }
+};
+
+/**
+ * Elimina un tag.
+ * Endpoint: DELETE /admin/tags/:tag
+ * @param tag - El tag a eliminar.
+ */
+export const removeTag = async (tag: string, token: string) => {
+    try {
+        const res = await fetch(`${API}/admin/tags/${encodeURIComponent(tag)}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en removeTag:", error);
+        throw error;
+    }
+};

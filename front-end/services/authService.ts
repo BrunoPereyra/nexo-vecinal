@@ -16,26 +16,49 @@ export const loginNameUser = async (NameUser: string, password: string) => {
         console.error(error);
     }
 };
-export const SignupService = async (email: string, password: string, nameUser: string) => {
+
+/**
+ * Procesa la respuesta de la API, verificando el Content-Type.
+ * @param res - Objeto Response obtenido de fetch.
+ * @returns La respuesta en formato JSON o texto.
+ */
+const processResponse = async (res: Response) => {
+    const contentType = res.headers.get("Content-Type") || "";
+    return contentType.includes("application/json")
+        ? await res.json()
+        : await res.text();
+};
+
+/**
+ * Realiza una petición POST para signup.
+ * Se envían: email, password, nameUser, fullName, BirthDate y sex.
+ */
+export const SignupService = async (
+    email: string,
+    password: string,
+    nameUser: string,
+    fullName: string,
+    birthDate: string,
+    sex: string
+) => {
     try {
         const res = await fetch(API + "/user/signupNotConfirmed", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password, nameUser, fullName: nameUser })
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, nameUser, fullName, BirthDate: birthDate, sex }),
         });
 
         if (!res.ok) {
             throw new Error(`Error ${res.status}: ${res.statusText}`);
         }
 
-        const data = await res.json(); // Convertimos la respuesta a JSON
-        return data; // Devolvemos la respuesta
-
+        return await processResponse(res);
     } catch (error) {
         console.error(error);
-        alert('Ocurrió un error');
+        alert("Ocurrió un error");
     }
 };
+
 
 export const SaveUserCodeConfirm = async (code: string) => {
     try {

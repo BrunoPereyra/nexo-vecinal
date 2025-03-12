@@ -3,6 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import { getTags as apiGetTags, addTag as apiAddTag } from '@/services/admin';
+
 interface AuthContextProps {
     token: string | null;
     pushToken: string | null;
@@ -11,7 +13,7 @@ interface AuthContextProps {
     logout: () => Promise<void>;
     loadCurrentUser: () => Promise<{ id: string | null; Avatar: string | null; NameUser: string | null } | undefined>;
     tags: string[];
-    addTag: (tag: string) => void;
+    addTag: (tag: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps>({
@@ -21,21 +23,14 @@ const AuthContext = createContext<AuthContextProps>({
     login: async () => { },
     logout: async () => { },
     loadCurrentUser: async () => undefined,
-    tags: ['Plomería', 'Electricidad', 'Construcción', 'Pintura', 'Carpintería', 'Limpieza'],
-    addTag: () => { },
+    tags: [],
+    addTag: async () => { },
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [token, setToken] = useState<string | null>(null);
-    // Estado para las etiquetas, inicializado con algunas por defecto
-    const [tags, setTags] = useState<string[]>([
-        'Plomería',
-        'Electricidad',
-        'Construcción',
-        'Pintura',
-        'Carpintería',
-        'Limpieza',
-    ]);
+    // Inicialmente vacio; se cargará desde la API si existe token.
+    const [tags, setTags] = useState<string[]>([]);
     const [pushToken, setPushToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -68,6 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
         }
     }
+
     // Cargar el token almacenado
     const loadToken = async () => {
         try {
@@ -82,10 +78,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
+    // Cargar los tags desde la API (si existe token) o usar un valor por defecto.
     useEffect(() => {
-        registerForPushNotificationsAsync()
-        loadToken();
-    }, []);
+        async function loadTags() {
+            if (token) {
+                try {
+                    const response = await apiGetTags(token);
+                    if (response && Array.isArray(response)) {
+                        setTags(response);
+                    } else {
+                        setTags([]); // O dejar un valor por defecto
+                    }
+                } catch (error) {
+                    console.error('Error loading tags from API:', error);
+                    // Si falla, puedes optar por un valor por defecto.
+                    setTags(['Plomería', 'Electricidad', 'Construcción', 'Pintura', 'Carpintería', 'Limpieza']);
+                }
+            }
+        }
+        loadTags();
+    }, [token]);
 
     const login = async (newToken: string, id: string, avatar: string, nameUser: string) => {
         try {
@@ -108,7 +120,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // Cargar información del usuario actual desde AsyncStorage
     const loadCurrentUser = async (): Promise<{ id: string | null; Avatar: string | null; NameUser: string | null } | undefined> => {
         try {
             const id = await AsyncStorage.getItem('id');
@@ -120,12 +131,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     };
 
-    // Función para agregar una nueva etiqueta (si aún no existe)
-    const addTag = (tag: string) => {
+    // Función para agregar una nueva etiqueta usando el servicio.
+    const addTag = async (tag: string) => {
         if (tag && !tags.includes(tag)) {
-            setTags([...tags, tag]);
+            try {
+                // Llamar al servicio para agregar el tag.
+                await apiAddTag(tag, token!);
+                setTags([...tags, tag]);
+            } catch (error) {
+                console.error('Error adding tag:', error);
+            }
         }
     };
+
+    useEffect(() => {
+        registerForPushNotificationsAsync();
+        loadToken();
+    }, []);
 
     return (
         <AuthContext.Provider value={{ token, pushToken, isLoading, login, logout, loadCurrentUser, tags, addTag }}>

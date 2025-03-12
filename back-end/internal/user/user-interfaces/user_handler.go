@@ -337,7 +337,7 @@ func (h *UserHandler) SaveUserCodeConfirm(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":  "token",
-		"data":     tokenRequest,
+		"token":    tokenRequest,
 		"_id":      user.ID,
 		"avatar":   user.Avatar,
 		"nameUser": user.NameUser,
@@ -391,7 +391,6 @@ func (h *UserHandler) SignupSaveUserRedis(c *fiber.Ctx) error {
 							"err":     err,
 						})
 					}
-					fmt.Println(code)
 					// err = helpers.ResendConfirmMail(code, userDomaion.Email)
 					// if err != nil {
 					// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -399,8 +398,10 @@ func (h *UserHandler) SignupSaveUserRedis(c *fiber.Ctx) error {
 					// 		"err":     err,
 					// 	})
 					// }
+					fmt.Println(code)
 					return c.Status(fiber.StatusOK).JSON(fiber.Map{
 						"message": "email to confirm",
+						"code":    code,
 					})
 				case <-errChanel:
 					return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

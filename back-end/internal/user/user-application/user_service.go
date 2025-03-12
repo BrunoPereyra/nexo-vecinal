@@ -52,7 +52,7 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	modelNewUser.FullName = newUser.FullName
 	modelNewUser.NameUser = newUser.NameUser
 	modelNewUser.PasswordHash = passwordHash
-	modelNewUser.Banner = "https://www.pinkker.tv/uploads/assets/banner_user.jpg"
+	modelNewUser.Banner = ""
 	modelNewUser.Pais = newUser.Pais
 	modelNewUser.Ciudad = newUser.Ciudad
 	modelNewUser.Email = newUser.Email
@@ -70,6 +70,7 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	modelNewUser.EditProfiile.Biography = fifteenDaysAgo
 	modelNewUser.EditProfiile.NameUser = time.Now()
 	modelNewUser.Location = domain.GeoPoint{}
+	modelNewUser.Sex = newUser.Sex
 	return &modelNewUser
 }
 

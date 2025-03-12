@@ -53,3 +53,14 @@ func (s *ReportService) BlockUser(ctx context.Context, userID string) error {
 func (s *ReportService) CheckAdminAuthorization(ctx context.Context, adminID string, code string) error {
 	return s.ReportRepository.CheckAdminAuthorization(ctx, adminID, code)
 }
+func (s *ReportService) GetAllTags(ctx context.Context) ([]string, error) {
+	return s.ReportRepository.GetAllTags(ctx)
+}
+
+func (s *ReportService) AddTag(ctx context.Context, tag string) error {
+	return s.ReportRepository.AddTag(ctx, tag)
+}
+
+func (s *ReportService) RemoveTag(ctx context.Context, tag string) error {
+	return s.ReportRepository.RemoveTag(ctx, tag)
+}

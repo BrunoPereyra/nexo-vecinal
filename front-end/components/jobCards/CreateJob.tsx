@@ -30,36 +30,45 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // La ubicación se guarda como un objeto con propiedades "latitude" y "longitude"
+  // La ubicación se guarda como un objeto con properties "latitude" y "longitude"
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [tags, setTags] = useState('');
+  // Usamos un estado para los tags seleccionados (como array de strings)
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [budget, setBudget] = useState('');
 
-  const { token } = useAuth();
+  const { token, tags: availableTags } = useAuth(); // se espera que useAuth provea "tags" disponibles
 
-  // Al tocar el mapa se guarda la coordenada
+  // Al tocar el mapa se guarda la coordenada.
   const handleMapPress = (e: MapPressEvent) => {
     const { coordinate } = e.nativeEvent;
     setLocation(coordinate);
   };
 
-  // Permite mover el marcador manualmente
+  // Permite mover el marcador manualmente.
   const handleMarkerDragEnd = (e: MarkerDragStartEndEvent) => {
     const { coordinate } = e.nativeEvent;
     setLocation(coordinate);
+  };
+
+  const toggleTag = (tag: string) => {
+    if (selectedTags.includes(tag)) {
+      setSelectedTags(selectedTags.filter((t) => t !== tag));
+    } else {
+      setSelectedTags([...selectedTags, tag]);
+    }
   };
 
   const handleSubmit = async () => {
     if (
       !title.trim() ||
       !description.trim() ||
-      !tags.trim() ||
+      selectedTags.length === 0 ||
       !budget.trim() ||
       !location
     ) {
       Alert.alert(
         'Error',
-        'Todos los campos son obligatorios y debes seleccionar una ubicación.'
+        'Todos los campos son obligatorios y debes seleccionar una ubicación y al menos una etiqueta.'
       );
       return;
     }
@@ -81,22 +90,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       );
       return;
     }
-
-    const tagsArray = tags
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter((tag) => tag.length > 0);
-    if (tagsArray.length === 0) {
-      Alert.alert('Error', 'Debe ingresar al menos una etiqueta.');
-      return;
-    }
-
     if (budgetNumber <= 2000) {
       Alert.alert('Error', 'El presupuesto debe ser mayor a 2000.');
       return;
     }
 
-    // Se crea el objeto jobData, enviando la ubicación en formato GeoJSON:
+    // Se crea el objeto jobData, enviando la ubicación en formato GeoJSON.
     const jobData = {
       title,
       description,
@@ -104,7 +103,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
         type: 'Point',
         coordinates: [location.longitude, location.latitude],
       },
-      tags: tagsArray,
+      tags: selectedTags,
       budget: budgetNumber,
     };
     try {
@@ -114,10 +113,11 @@ export const CreateJob: React.FC<CreateJobProps> = ({
         if (onJobCreated) {
           onJobCreated(response.job);
         }
+        // Limpiar campos
         setTitle('');
         setDescription('');
         setLocation(null);
-        setTags('');
+        setSelectedTags([]);
         setBudget('');
         onClose();
       } else {
@@ -150,7 +150,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             placeholderTextColor="#888"
           />
 
-          {/* Sección para seleccionar la ubicación en el mapa */}
+          {/* Sección para seleccionar ubicación */}
           <Text style={styles.label}>Selecciona ubicación en el mapa</Text>
           <MapView
             style={styles.map}
@@ -172,13 +172,34 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             )}
           </MapView>
 
-          <TextInput
-            placeholder="Etiquetas (separadas por coma)"
-            value={tags}
-            onChangeText={setTags}
-            style={styles.input}
-            placeholderTextColor="#888"
-          />
+          {/* Sección de selección de Tags */}
+          <Text style={styles.label}>Selecciona etiquetas:</Text>
+          <View style={styles.tagsContainer}>
+            {availableTags && availableTags.length > 0 ? (
+              availableTags.map((tag: string, index: number) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.tag,
+                    selectedTags.includes(tag) && styles.tagSelected,
+                  ]}
+                  onPress={() => toggleTag(tag)}
+                >
+                  <Text
+                    style={[
+                      styles.tagText,
+                      selectedTags.includes(tag) && styles.tagTextSelected,
+                    ]}
+                  >
+                    {tag}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.label}>No hay etiquetas disponibles</Text>
+            )}
+          </View>
+
           <TextInput
             placeholder="Presupuesto"
             value={budget}
@@ -192,7 +213,10 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Crear</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={onClose}
+            >
               <Text style={styles.buttonText}>Cancelar</Text>
             </TouchableOpacity>
           </View>
@@ -245,6 +269,31 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 5,
     marginBottom: 10,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginBottom: 10,
+  },
+  tag: {
+    backgroundColor: '#121212',
+    borderWidth: 1,
+    borderColor: '#03DAC5',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  tagSelected: {
+    backgroundColor: '#03DAC5',
+  },
+  tagText: {
+    fontSize: 12,
+    color: '#E0E0E0',
+  },
+  tagTextSelected: {
+    color: '#121212',
   },
   buttonContainer: {
     flexDirection: 'row',

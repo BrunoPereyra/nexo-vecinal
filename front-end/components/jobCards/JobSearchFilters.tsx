@@ -25,7 +25,9 @@ interface JobSearchFiltersProps {
 }
 
 const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
-    const { tags } = useAuth();
+
+    const { tags: availableTags } = useAuth(); // se espera que useAuth provea "tags" disponibles
+
     const [searchTitle, setSearchTitle] = useState('');
     // Estado para mostrar el modal de filtros avanzados
     const [modalVisible, setModalVisible] = useState(false);
@@ -119,11 +121,11 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                             <Text style={styles.modalTitle}>Filtros Avanzados</Text>
 
                             {/* Sección de Etiquetas */}
-                            {tags?.length > 0 && (
+                            {availableTags?.length > 0 && (
                                 <>
                                     <Text style={styles.label}>Etiquetas:</Text>
                                     <View style={styles.tagsContainer}>
-                                        {tags.map((tag, index) => (
+                                        {availableTags.map((tag, index) => (
                                             <TouchableOpacity
                                                 key={index}
                                                 style={[

@@ -19,11 +19,17 @@ func AdminReportRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *m
 	reportHandler := admininterfaces.NewReportHandler(reportService)
 
 	adminGroup := app.Group("/admin")
+	// reports
 	adminGroup.Post("/reports", middleware.UseExtractor(), reportHandler.CreateReport) // Crear reporte
 	adminGroup.Get("/reports/getid/:id", reportHandler.GetReportById)                  // Obtener reporte por ID
 	adminGroup.Get("/reports", reportHandler.GetReportsByUser)                         // Obtener reportes por usuario (query params)
 	adminGroup.Get("/reports/global", reportHandler.GetGlobalReports)                  // Obtener reportes globales
 	adminGroup.Post("/reports/:id/read", reportHandler.MarkReportAsRead)               // Marcar reporte como leído
 	adminGroup.Post("/block", reportHandler.BlockUser)                                 // Bloquear usuario (requiere autorización de admin)
+
+	// admin tags
+	adminGroup.Get("/tags", reportHandler.GetAllTagsHandler)
+	adminGroup.Post("/tags", middleware.UseExtractor(), reportHandler.AddTagHandler)
+	adminGroup.Delete("/tags/:tag", middleware.UseExtractor(), reportHandler.RemoveTagHandler)
 
 }

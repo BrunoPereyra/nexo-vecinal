@@ -101,6 +101,7 @@ type UserModelValidator struct {
 	Wallet        string    `json:"Wallet" default:""`
 	BirthDate     string    `json:"BirthDate" default:""`
 	BirthDateTime time.Time `json:"-" bson:"BirthDate"`
+	Sex           string    `json:"sex,omitempty" bson:"Sex"`
 }
 
 func (u *UserModelValidator) ValidateUser() error {

@@ -32,3 +32,6 @@ type UserReportResponse struct {
 	CreatedAt    time.Time          `json:"createdAt" bson:"createdAt"`
 	Read         bool               `json:"read" bson:"read"`
 }
+type Tag struct {
+	Tag string `bson:"tag" json:"tag"`
+}

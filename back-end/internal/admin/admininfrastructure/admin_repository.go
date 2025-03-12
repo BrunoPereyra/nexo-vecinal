@@ -176,3 +176,45 @@ func (r *ReportRepository) CheckAdminAuthorization(ctx context.Context, adminID 
 	}
 	return nil
 }
+
+// GetAllTags obtiene todos los tags almacenados.
+func (r *ReportRepository) GetAllTags(ctx context.Context) ([]string, error) {
+	coll := r.mongoClient.Database("NEXO-VECINAL").Collection("Tags")
+	cursor, err := coll.Find(ctx, bson.M{})
+	if err != nil {
+		return nil, fmt.Errorf("error fetching tags: %v", err)
+	}
+	defer cursor.Close(ctx)
+
+	var results []admindomain.Tag
+	if err := cursor.All(ctx, &results); err != nil {
+		return nil, fmt.Errorf("error decoding tags: %v", err)
+	}
+
+	var tags []string
+	for _, res := range results {
+		tags = append(tags, res.Tag)
+	}
+	return tags, nil
+}
+
+// AddTag agrega un nuevo tag, si no existe.
+func (r *ReportRepository) AddTag(ctx context.Context, tag string) error {
+	coll := r.mongoClient.Database("NEXO-VECINAL").Collection("Tags")
+	count, err := coll.CountDocuments(ctx, bson.M{"tag": tag})
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return fmt.Errorf("tag already exists")
+	}
+	_, err = coll.InsertOne(ctx, bson.M{"tag": tag})
+	return err
+}
+
+// RemoveTag elimina un tag.
+func (r *ReportRepository) RemoveTag(ctx context.Context, tag string) error {
+	coll := r.mongoClient.Database("NEXO-VECINAL").Collection("Tags")
+	_, err := coll.DeleteOne(ctx, bson.M{"tag": tag})
+	return err
+}

@@ -1,45 +1,73 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { SaveUserCodeConfirm, SignupService } from '@/services/authService';
 
 export default function SignupScreen() {
   const [nameUser, setNameUser] = useState('');
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // Almacenamos el código como número. Inicialmente 0 o puedes utilizar otro valor "nulo".
-  const [code, setCode] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState('');
+  // Almacenar la fecha como string en formato "DD-MM-YYYY"
+  const [birthDate, setBirthDate] = useState('');
+  const [sex, setSex] = useState<'Masculino' | 'Femenino'>('Masculino');
+  // const [code, setCode] = useState('');
   const [showCodeInput, setShowCodeInput] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { login } = useAuth();
   const router = useRouter();
 
-  const HandleSaveUserCodeConfirm = async () => {
-    try {
-      // Enviamos el código ya convertido a número
-      const resConfirm = await SaveUserCodeConfirm(code);
-      await login(resConfirm.token, resConfirm._id, resConfirm.avatar, resConfirm.nameUser);
-      router.replace('(protected)/view1' as any);
-    } catch (error) {
-      console.error(error);
-      alert('Error al confirmar el código');
-    }
+  // Validación básica para el formato "DD-MM-YYYY"
+  const validateBirthDate = (dateStr: string): boolean => {
+    const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
+    return regex.test(dateStr);
   };
 
   const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Las contraseñas no coinciden');
+      return;
+    }
+    if (!validateBirthDate(birthDate)) {
+      Alert.alert('Error', 'La fecha de nacimiento debe tener el formato DD-MM-YYYY');
+      return;
+    }
     try {
-      const data = await SignupService(email, password, nameUser);
+      // Convertir "DD-MM-YYYY" a "YYYY-MM-DD" para el backend
+      const [dd, mm, yyyy] = birthDate.split('-');
+      const formattedBirthDate = `${yyyy}-${mm}-${dd}`;
+      const data = await SignupService(email, password, nameUser, fullName, formattedBirthDate, sex);
       if (data) {
         if (data.message === "email to confirm") {
-          setShowCodeInput(true);
+          await handleSaveUserCodeConfirm(data.code)
+          // setShowCodeInput(true);
+        } else {
+          Alert.alert('Error', data.message || 'No se pudo crear el usuario.');
         }
       } else {
-        alert('Error en el signup');
+        Alert.alert('Error', 'Error en el signup');
       }
     } catch (error) {
       console.error(error);
-      alert('Ocurrió un error');
+      Alert.alert('Ocurrió un error');
+    }
+  };
+
+  const handleSaveUserCodeConfirm = async (code: any) => {
+    try {
+      const resConfirm = await SaveUserCodeConfirm(code);
+      console.log(resConfirm);
+
+      await login(resConfirm.token, resConfirm._id, resConfirm.avatar, resConfirm.nameUser);
+      router.replace('/(protected)/home');
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error al confirmar el código');
     }
   };
 
@@ -49,49 +77,126 @@ export default function SignupScreen() {
       <TextInput
         style={styles.input}
         placeholder="Nombre de usuario"
+        placeholderTextColor="#888"
         value={nameUser}
         onChangeText={setNameUser}
       />
       <TextInput
         style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
+        placeholder="Nombre completo"
+        placeholderTextColor="#888"
+        value={fullName}
+        onChangeText={setFullName}
       />
       <TextInput
         style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
+        placeholder="Email"
+        placeholderTextColor="#888"
+        value={email}
+        onChangeText={setEmail}
       />
-
-      <Button title="Signup" onPress={handleSignup} />
-      <Button title="Ir a Login" onPress={() => router.push('/login' as any)} />
-
-      {showCodeInput && (
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder="Password"
+          placeholderTextColor="#888"
+          secureTextEntry={!showPassword}
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+          <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={24} color="#03DAC5" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.passwordContainer}>
+        <TextInput
+          style={[styles.input, { flex: 1 }]}
+          placeholder="Confirmar Password"
+          placeholderTextColor="#888"
+          secureTextEntry={!showConfirmPassword}
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
+        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+          <Ionicons name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} size={24} color="#03DAC5" />
+        </TouchableOpacity>
+      </View>
+      <TextInput
+        style={styles.input}
+        placeholder="Fecha de nacimiento (DD-MM-YYYY)"
+        placeholderTextColor="#888"
+        value={birthDate}
+        onChangeText={setBirthDate}
+        keyboardType="numeric"
+      />
+      <View style={styles.genderContainer}>
+        <Text style={styles.label}>Género / Sexo:</Text>
+        <View style={styles.genderOptions}>
+          <TouchableOpacity
+            style={[styles.genderOption, sex === 'Masculino' && styles.genderOptionSelected]}
+            onPress={() => setSex('Masculino')}
+          >
+            <Text style={[styles.genderOptionText, sex === 'Masculino' && styles.genderOptionTextSelected]}>
+              Masculino
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.genderOption, sex === 'Femenino' && styles.genderOptionSelected]}
+            onPress={() => setSex('Femenino')}
+          >
+            <Text style={[styles.genderOptionText, sex === 'Femenino' && styles.genderOptionTextSelected]}>
+              Femenino
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <Button title="Signup" onPress={handleSignup} color="#03DAC5" />
+      <Button title="Ir a Login" onPress={() => router.push('/login')} color="#03DAC5" />
+      {/* {showCodeInput && (
         <>
           <TextInput
             style={styles.input}
             placeholder="Ingresa el código recibido"
+            placeholderTextColor="#888"
             value={code}
             onChangeText={setCode}
           />
-          <Button title="Confirmar Código" onPress={HandleSaveUserCodeConfirm} />
+          <Button title="Confirmar Código" onPress={handleSaveUserCodeConfirm} color="#03DAC5" />
         </>
-      )}
+      )} */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
+  container: { flex: 1, backgroundColor: '#121212', justifyContent: 'center', padding: 20 },
+  title: { fontSize: 24, marginBottom: 20, textAlign: 'center', color: '#E0E0E0' },
   input: {
     height: 40,
-    borderColor: '#ccc',
+    backgroundColor: '#1E1E1E',
+    borderColor: '#03DAC5',
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
+    color: '#E0E0E0',
+    borderRadius: 5,
   },
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  genderContainer: { marginBottom: 10 },
+  label: { color: '#E0E0E0', fontSize: 16, fontWeight: 'bold', marginBottom: 5 },
+  genderOptions: { flexDirection: 'row', justifyContent: 'space-around' },
+  genderOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#03DAC5',
+  },
+  genderOptionSelected: { backgroundColor: '#03DAC5' },
+  genderOptionText: { color: '#E0E0E0', fontSize: 16 },
+  genderOptionTextSelected: { color: '#121212', fontWeight: 'bold' },
 });

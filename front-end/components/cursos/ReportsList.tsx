@@ -40,7 +40,6 @@ export default function ReportsList() {
         const fetchReports = async () => {
             try {
                 const data = await getGlobalReports(token as string);
-                console.log("Reports data:", data);
                 setReports(data);
             } catch (error) {
                 Alert.alert('Error', 'No se pudieron cargar los reportes.');

@@ -27,12 +27,6 @@ import { useAuth } from "@/context/AuthContext";
 import SupportChat from '@/components/chatsupport/SupportChat';
 import { JobCardProfiles } from "@/components/jobCards/JobCardProfiles";
 
-// Interfaz de usuario (ajústala según tu modelo de datos)
-interface User {
-    id: string;
-    NameUser: string;
-    Avatar?: string;
-}
 
 export default function ProfileScreen() {
     const { token, logout } = useAuth();

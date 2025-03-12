@@ -109,3 +109,34 @@ func (h *ReportHandler) BlockUser(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "usuario bloqueado"})
 }
+func (h *ReportHandler) GetAllTagsHandler(c *fiber.Ctx) error {
+	ctx := context.Background()
+	tags, err := h.ReportService.GetAllTags(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(tags)
+}
+
+func (h *ReportHandler) AddTagHandler(c *fiber.Ctx) error {
+	var data struct {
+		Tag string `json:"tag"`
+	}
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	ctx := context.Background()
+	if err := h.ReportService.AddTag(ctx, data.Tag); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"message": "Tag added successfully"})
+}
+
+func (h *ReportHandler) RemoveTagHandler(c *fiber.Ctx) error {
+	tag := c.Params("tag")
+	ctx := context.Background()
+	if err := h.ReportService.RemoveTag(ctx, tag); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"message": "Tag removed successfully"})
+}

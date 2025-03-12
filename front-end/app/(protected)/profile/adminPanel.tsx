@@ -1,4 +1,3 @@
-// AdminPanelScreen.tsx
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -8,6 +7,7 @@ import {
     FlatList,
     Alert,
     ActivityIndicator,
+    TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
@@ -15,9 +15,10 @@ import { getActiveCourses, getCoursesPaginated, Course } from '@/services/cursos
 import ReportsList from '@/components/cursos/ReportsList';
 import SupportChatsList, { Conversation, User as ChatUser } from '@/components/admin/SupportChatsList';
 import SupportChatAdmin from '@/components/chatsupport/SupportChatAdmin';
+import { getTags, addTag, removeTag } from '@/services/admin';
 
 export default function AdminPanelScreen() {
-    const { token, logout, } = useAuth();
+    const { token, logout } = useAuth();
     const router = useRouter();
 
     // Pestañas: 'reports', 'courses' o 'support'
@@ -29,6 +30,11 @@ export default function AdminPanelScreen() {
     const [chatDetailVisible, setChatDetailVisible] = useState<boolean>(false);
     // Almacena la información del otro usuario de la conversación seleccionada
     const [selectedUserProfile, setSelectedUserProfile] = useState<ChatUser | null>(null);
+
+    // Estados para gestión de tags
+    const [adminTags, setAdminTags] = useState<string[]>([]);
+    const [newTag, setNewTag] = useState('');
+    const [loadingTags, setLoadingTags] = useState<boolean>(false);
 
     useEffect(() => {
         if (activeTab === 'courses') {
@@ -51,6 +57,48 @@ export default function AdminPanelScreen() {
             Alert.alert('Error', error.message);
         } finally {
             setLoadingCourses(false);
+        }
+    };
+
+    // Cargar tags desde el servicio
+    const fetchTags = async () => {
+        if (!token) return;
+        setLoadingTags(true);
+        try {
+            const tagsResponse = await getTags(token as string);
+            if (tagsResponse && Array.isArray(tagsResponse)) {
+                setAdminTags(tagsResponse);
+            }
+        } catch (error: any) {
+            Alert.alert('Error', error.message);
+        } finally {
+            setLoadingTags(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTags();
+    }, [token]);
+
+    // Función para agregar un tag
+    const handleAddTag = async () => {
+        if (!newTag.trim()) return;
+        try {
+            await addTag(newTag.trim(), token as string);
+            setAdminTags(prev => [...prev, newTag.trim()]);
+            setNewTag('');
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'No se pudo agregar el tag.');
+        }
+    };
+
+    // Función para eliminar un tag
+    const handleRemoveTag = async (tag: string) => {
+        try {
+            await removeTag(tag, token as string);
+            setAdminTags(prev => prev.filter(t => t !== tag));
+        } catch (error: any) {
+            Alert.alert('Error', error.message || 'No se pudo eliminar el tag.');
         }
     };
 
@@ -92,12 +140,41 @@ export default function AdminPanelScreen() {
                     </Text>
                 </TouchableOpacity>
             </View>
+            {/* Sección de Gestión de Tags (solo visible en el panel admin) */}
+            <View style={styles.tagsManagementContainer}>
+                <Text style={styles.sectionHeader}>Gestión de Tags</Text>
+                {loadingTags ? (
+                    <ActivityIndicator color="#03DAC5" />
+                ) : (
+                    <View style={styles.tagsList}>
+                        {adminTags.map((tag, index) => (
+                            <View key={index} style={styles.tagItem}>
+                                <Text style={styles.tagText}>{tag}</Text>
+                                <TouchableOpacity onPress={() => handleRemoveTag(tag)} style={styles.removeTagButton}>
+                                    <Text style={styles.removeTagText}>X</Text>
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                    </View>
+                )}
+                <View style={styles.addTagContainer}>
+                    <TextInput
+                        style={styles.inputTag}
+                        placeholder="Nuevo tag"
+                        placeholderTextColor="#888"
+                        value={newTag}
+                        onChangeText={setNewTag}
+                    />
+                    <TouchableOpacity onPress={handleAddTag} style={styles.addTagButton}>
+                        <Text style={styles.addTagButtonText}>Agregar</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
         </View>
     );
 
     // Cuando se toca una conversación, se guarda la info del otro usuario y se abre el modal del chat.
     const handleConversationPress = (conversation: Conversation) => {
-
         setSelectedUserProfile(conversation.User);
         setChatDetailVisible(true);
     };
@@ -142,7 +219,7 @@ export default function AdminPanelScreen() {
                             contentContainerStyle={styles.listContainer}
                         />
                     )}
-                    <TouchableOpacity style={styles.fab} onPress={() => router.push("/cursos/CreateCourseScreen")}>
+                    <TouchableOpacity style={styles.fab} onPress={() => router.push('/cursos/CreateCourseScreen')}>
                         <Text style={styles.fabText}>+</Text>
                     </TouchableOpacity>
                 </View>
@@ -202,6 +279,29 @@ const styles = StyleSheet.create({
         color: '#121212',
         fontWeight: 'bold',
     },
+    filterContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginBottom: 16,
+    },
+    filterButton: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        backgroundColor: '#1E1E1E',
+        marginHorizontal: 8,
+    },
+    filterButtonText: {
+        fontSize: 16,
+        color: '#E0E0E0',
+    },
+    activeFilter: {
+        backgroundColor: '#03DAC5',
+    },
+    activeFilterText: {
+        color: '#121212',
+        fontWeight: 'bold',
+    },
     listContainer: {
         paddingBottom: 16,
     },
@@ -221,29 +321,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#B0B0B0',
     },
-    filterContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginBottom: 16,
-    },
-    filterButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 8,
-        backgroundColor: '#1E1E1E',
-        marginHorizontal: 8,
-    },
-    activeFilter: {
-        backgroundColor: '#03DAC5',
-    },
-    filterButtonText: {
-        fontSize: 16,
-        color: '#E0E0E0',
-    },
-    activeFilterText: {
-        color: '#121212',
-        fontWeight: 'bold',
-    },
     fab: {
         position: 'absolute',
         bottom: 24,
@@ -260,16 +337,75 @@ const styles = StyleSheet.create({
         color: '#121212',
         fontWeight: 'bold',
     },
-    optionsButton: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        padding: 8,
+    // Estilos para gestión de Tags
+    tagsManagementContainer: {
+        marginBottom: 16,
         backgroundColor: '#1E1E1E',
-        borderRadius: 30,
+        padding: 12,
+        borderRadius: 8,
     },
-    optionsButtonText: {
-        fontSize: 16,
+    sectionHeader: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#03DAC5',
+        marginBottom: 8,
+        textAlign: 'center',
+    },
+    tagsList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        marginBottom: 12,
+    },
+    tagItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#121212',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#03DAC5',
+        marginRight: 8,
+        marginBottom: 8,
+    },
+    tagText: {
+        fontSize: 12,
         color: '#E0E0E0',
+        marginRight: 4,
+    },
+    removeTagButton: {
+        backgroundColor: '#BB86FC',
+        borderRadius: 10,
+        paddingHorizontal: 4,
+        paddingVertical: 2,
+    },
+    removeTagText: {
+        color: '#121212',
+        fontSize: 10,
+        fontWeight: 'bold',
+    },
+    addTagContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    inputTag: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#03DAC5',
+        borderRadius: 8,
+        padding: 8,
+        backgroundColor: '#121212',
+        color: '#E0E0E0',
+        marginRight: 8,
+    },
+    addTagButton: {
+        backgroundColor: '#03DAC5',
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    addTagButtonText: {
+        color: '#121212',
+        fontWeight: 'bold',
     },
 });
