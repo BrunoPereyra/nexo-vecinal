@@ -43,13 +43,7 @@ export default function VisitedProfileScreen() {
     const [activeSection, setActiveSection] = useState<'employer' | 'jobFeed'>('jobFeed');
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
     const [currentPageWorker, setCurrentPageWorker] = useState(1);
-    const [loadingEmployer, setLoadingEmployer] = useState(false);
-    const [loadingWorker, setLoadingWorker] = useState(false);
-    // Estado para guardar la calificación (rating) más reciente
-    const [latestRating, setLatestRating] = useState<number | null>(null);
-    // Estado para la descripción expandida
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-    // Estados para el modal de reporte
     const [reportModalVisible, setReportModalVisible] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
 
@@ -89,14 +83,12 @@ export default function VisitedProfileScreen() {
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'jobFeed' && workerJobs.length === 0) {
-            setLoadingWorker(true);
             GetJobsUserCompleted(id as string)
                 .then((jobsData) => {
                     setWorkerJobs(jobsData?.data || []);
                     setCurrentPageWorker(1);
                 })
                 .catch((error) => console.error(error))
-                .finally(() => setLoadingWorker(false));
         }
     }, [activeSection, token, id]);
 
@@ -104,14 +96,12 @@ export default function VisitedProfileScreen() {
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'employer' && employerJobs.length === 0) {
-            setLoadingEmployer(true);
             GetJobsUserIDForEmployeProfilevist(1, id as string)
                 .then((feedData) => {
                     setEmployerJobs(feedData?.jobs || []);
                     setCurrentPageEmployer(1);
                 })
                 .catch((error) => console.error(error))
-                .finally(() => setLoadingEmployer(false));
         }
     }, [activeSection, token, id]);
 
@@ -123,9 +113,6 @@ export default function VisitedProfileScreen() {
                 res = await GetLatestJobsForEmployervist(id);
             } else {
                 res = await GetLatestJobsForWorkervist(id);
-            }
-            if (res && res.Rating !== undefined) {
-                setLatestRating(res.Rating);
             }
         };
         fetchRating();

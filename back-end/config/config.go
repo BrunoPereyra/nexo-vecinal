@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -12,7 +11,6 @@ import (
 
 func PORT() string {
 	if err := godotenv.Load(".env"); err != nil {
-		fmt.Println(err.Error())
 
 		log.Fatal("godotenv.Load error PORT")
 	}

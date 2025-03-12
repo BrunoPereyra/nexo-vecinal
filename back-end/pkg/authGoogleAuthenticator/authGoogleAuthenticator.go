@@ -41,7 +41,6 @@ func GenerateQRCode(otpURL string, filePath string) error {
 		WhiteChar: qrterminal.WHITE,
 	})
 
-	fmt.Println("\nScan the QR code with your authentication app")
 	return nil
 }
 

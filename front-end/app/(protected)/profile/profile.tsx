@@ -41,7 +41,6 @@ export default function ProfileScreen() {
     const [createJobVisible, setCreateJobVisible] = useState(false);
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
     const [currentPageJobFeed, setCurrentPageJobFeed] = useState(1);
-    const [latestRating, setLatestRating] = useState<number | null>(null);
     const [showDropdown, setShowDropdown] = useState(false);
     const [editBioVisible, setEditBioVisible] = useState(false);
     const [biografia, setBiografia] = useState("");
@@ -58,9 +57,7 @@ export default function ProfileScreen() {
             } else {
                 res = await GetLatestJobsForEmployer(token as string);
             }
-            if (res && res.Rating !== undefined) {
-                setLatestRating(res.Rating);
-            }
+
         };
         getRating();
     }, [activeSection, token]);

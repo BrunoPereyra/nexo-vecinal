@@ -333,11 +333,9 @@ func (j *JobRepository) ProvideEmployerFeedback(jobID, employerID primitive.Obje
 	}
 
 	// Actualizar los usuarios recomendados usando la información obtenida
-	fmt.Println(job.AssignedApplication.ApplicantID, job.Categories)
 	err = j.UpdateRecommendedUsers(job.AssignedApplication.ApplicantID, job.Categories)
 
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil
@@ -413,11 +411,9 @@ func (j *JobRepository) UpdateRecommendedUsers(workerId primitive.ObjectID, cate
 			"tags": bson.M{"$each": categories},
 		},
 	}
-	fmt.Println(oldestFeedbackTime)
 	opts := options.Update().SetUpsert(true)
 	_, err = recommendedUsersColl.UpdateOne(context.Background(), bson.M{"workerId": workerId}, update, opts)
 	if err != nil {
-		fmt.Println(err)
 
 		return err
 	}
@@ -1483,6 +1479,5 @@ func (r *JobRepository) GetRecommendedUsers(categories []string, page, limit int
 	if err = cursor.All(ctx, &users); err != nil {
 		return nil, fmt.Errorf("error decoding recommended users: %v", err)
 	}
-	fmt.Println(users)
 	return users, nil
 }

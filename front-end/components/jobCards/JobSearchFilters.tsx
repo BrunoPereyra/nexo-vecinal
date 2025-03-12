@@ -36,6 +36,13 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [radius, setRadius] = useState<number>(5000); // 5 km por defecto
+    useEffect(() => {
+        if (availableTags) {
+            setSelectedTags((prevSelectedTags) =>
+                prevSelectedTags.filter((tag) => availableTags.includes(tag))
+            );
+        }
+    }, [availableTags]);
 
     useEffect(() => {
         const loadCachedFilters = async () => {

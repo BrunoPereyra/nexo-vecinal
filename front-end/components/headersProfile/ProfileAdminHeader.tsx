@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, Dimensions } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "@/context/AuthContext";
 import { EditAvatar } from "@/services/userService";
@@ -14,6 +14,7 @@ type ProfileAdminHeaderProps = {
     };
 };
 
+const windowWidth = Dimensions.get("window").width;
 export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) => {
     const { token } = useAuth();
     const [avatar, setAvatar] = useState(user.Avatar);
@@ -56,7 +57,10 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
                     <Text style={styles.username}>@{user.NameUser}</Text>
                 </View>
             </View>
-            <Text style={styles.biography}>{user.biography}</Text>
+            <Text style={styles.biography}>
+                {user.biography || "Sin descripción"}
+            </Text>
+
         </View>
     );
 };
@@ -115,5 +119,10 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#B0B0B0",
         textAlign: "left",
+        // width: "100%",         // Ocupa el 100% del ancho del contenedor padre
+        minWidth: windowWidth * 0.9, // Asegura que tenga al menos el ancho de la pantalla
+        // minHeight: 100,
+        padding: 8,            // Opcional: para dar algo de espacio interno
     },
+
 });

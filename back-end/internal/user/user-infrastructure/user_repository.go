@@ -821,7 +821,6 @@ func (u *UserRepository) EditAvatar(avatar string, id primitive.ObjectID) error 
 	if err != nil {
 		return err
 	}
-	fmt.Println(avatar)
 	return err
 }
 func (u *UserRepository) EditBanner(Banner string, id primitive.ObjectID) error {

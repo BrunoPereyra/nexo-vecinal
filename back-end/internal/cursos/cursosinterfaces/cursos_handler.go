@@ -108,10 +108,8 @@ func (h *CursoHandler) GetActiveCursos(c *fiber.Ctx) error {
 
 // GET CURSO ID
 func (h *CursoHandler) GetCursoByID(c *fiber.Ctx) error {
-	fmt.Println("id")
 
 	id := c.Params("id")
-	fmt.Println(id)
 	curso, err := h.CursoService.GetCursoByID(id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error fetching course"})

@@ -10,7 +10,6 @@ import (
 	"back-end/pkg/helpers"
 	"back-end/pkg/jwt"
 	"context"
-	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -398,7 +397,6 @@ func (h *UserHandler) SignupSaveUserRedis(c *fiber.Ctx) error {
 					// 		"err":     err,
 					// 	})
 					// }
-					fmt.Println(code)
 					return c.Status(fiber.StatusOK).JSON(fiber.Map{
 						"message": "email to confirm",
 						"code":    code,
@@ -532,9 +530,7 @@ func (h *UserHandler) UpdateUserBiography(c *fiber.Ctx) error {
 		})
 	}
 	var req domain.EditBiography
-	fmt.Println(req.Biography)
 	if err := c.BodyParser(&req); err != nil {
-		fmt.Println(err.Error())
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "StatusBadRequest",
 		})

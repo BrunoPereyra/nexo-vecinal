@@ -56,14 +56,6 @@ export default function LoginScreen() {
       />
       <Button title="Login" onPress={handleLogin} color="#03DAC5" />
       <View style={styles.buttonSpacing}>
-        <Button
-          title="Login con Google"
-          onPress={() => promptAsync()}
-          disabled={!request}
-          color="#03DAC5"
-        />
-      </View>
-      <View style={styles.buttonSpacing}>
         <Button title="Ir a Signup" onPress={() => router.push('/signup')} color="#03DAC5" />
       </View>
     </View>
