@@ -2,7 +2,7 @@
   "expo": {
     "name": "front-end",
     "slug": "front-end",
-    "version": "1.0.3",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
     "scheme": "myapp",
@@ -14,9 +14,8 @@
     "privacyPolicy": "https://nexo-vecinal.blogspot.com/2025/03/terminos-y-condiciones-y-politica-de.html",
     "android": {
       "package": "com.nexovecinal.app",
-      "versionCode": 2,
+      "versionCode": 4,
       "permissions": [
-        "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE"
       ],

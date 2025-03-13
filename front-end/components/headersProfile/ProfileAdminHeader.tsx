@@ -22,38 +22,24 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
     const [avatar, setAvatar] = useState(user.Avatar);
 
     const handleAvatarEdit = async () => {
-        // 1️⃣ Pedir permisos para la cámara y la galería
-        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        // 1️⃣ Pedir permisos solo para la galería
         const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        if (cameraStatus !== "granted" || libraryStatus !== "granted") {
-            Alert.alert("Permiso denegado", "Se necesitan permisos para acceder a la cámara y la galería.");
+        if (libraryStatus !== "granted") {
+            Alert.alert("Permiso denegado", "Se necesitan permisos para acceder a la galería.");
             return;
         }
 
-        // 2️⃣ Preguntar al usuario si quiere tomar una foto o elegir de la galería
+        // 2️⃣ Preguntar al usuario si quiere elegir de la galería
         Alert.alert(
             "Seleccionar avatar",
-            "¿Quieres tomar una foto o elegir de la galería?",
+            "¿Quieres elegir una imagen de la galería?",
             [
                 {
                     text: "Galería",
                     onPress: async () => {
                         const result = await ImagePicker.launchImageLibraryAsync({
                             mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                            allowsEditing: true,
-                            aspect: [1, 1],
-                            quality: 1,
-                        });
-                        if (!result.canceled) {
-                            await processImage(result.assets[0].uri);
-                        }
-                    },
-                },
-                {
-                    text: "Cámara",
-                    onPress: async () => {
-                        const result = await ImagePicker.launchCameraAsync({
                             allowsEditing: true,
                             aspect: [1, 1],
                             quality: 1,
@@ -107,7 +93,6 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
             Alert.alert("Error", "Ocurrió un error al procesar la imagen.");
         }
     };
-
 
     return (
         <View style={styles.container}>
