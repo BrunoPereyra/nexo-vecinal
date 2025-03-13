@@ -1,4 +1,6 @@
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084"
+import Constants from "expo-constants";
+const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
+
 
 
 export const loginNameUser = async (NameUser: string, password: string) => {
@@ -42,6 +44,8 @@ export const SignupService = async (
     sex: string
 ) => {
     try {
+        console.log(API);
+
         const res = await fetch(API + "/user/signupNotConfirmed", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

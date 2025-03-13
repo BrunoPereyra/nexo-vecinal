@@ -31,7 +31,10 @@ export interface CreateCourseRequest {
     code: string;
 }
 
-const API_BASE = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084"
+import Constants from "expo-constants";
+
+const API_BASE = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
+
 
 /**
  * Crea un nuevo curso en el servidor.
@@ -57,7 +60,6 @@ export async function createCourse(
         throw new Error(`Error creating course: ${response.statusText}`);
     }
     const course: Course = await response.json();
-    console.log(course);
 
     return course;
 }

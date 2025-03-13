@@ -4,7 +4,7 @@
     "slug": "front-end",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/adaptive-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -16,7 +16,7 @@
       "package": "com.nexovecinal.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#d6d9d3"
       }
     },
     "web": {
@@ -32,7 +32,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#d6d9d3"
         }
       ]
     ],
@@ -42,7 +42,9 @@
     "extra": {
       "eas": {
         "projectId": "986130da-6534-4144-94be-e74db5d65c82"
-      }
+      },
+      "EXPO_URL_API": "http://192.168.0.28:9000",
+      "EXPO_URL_APIWS": "ws://192.168.0.28:9000"
     }
   }
 }

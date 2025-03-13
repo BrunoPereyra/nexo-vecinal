@@ -48,7 +48,6 @@ export default function EmployerJobDetail() {
       setLoading(true);
       try {
         const data = await GetJobTokenAdmin(jobId, token);
-        console.log("data", data);
         if (data.job) {
           setJobDetail(data.job);
         } else {

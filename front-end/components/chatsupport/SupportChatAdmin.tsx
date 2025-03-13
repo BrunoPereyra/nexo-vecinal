@@ -76,14 +76,9 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
         if (visible && token && supportAgent) {
             loadSupportChatMessages();
             const roomKey = userProfile.id + supportAgent.id
-            console.log(roomKey);
-            console.log("roomKey");
-
             const ws = subscribeSupportMessages(roomKey, (data: string) => {
                 try {
-                    console.log("xxx");
                     const message: SupportMessage = JSON.parse(data);
-                    console.log("bbb");
                     if (
                         (message.senderId === supportAgent.id && message.receiverId === userProfile.id) ||
                         (message.senderId === userProfile.id && message.receiverId === supportAgent.id)

@@ -77,7 +77,6 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
         if (activeSection === 'jobFeed' && workerJobs.length === 0) {
             GetJobsUserCompleted(userId)
                 .then((jobsData) => {
-                    console.log(jobsData);
                     setWorkerJobs(jobsData?.data || []);
                     setCurrentPageWorker(1);
                 })

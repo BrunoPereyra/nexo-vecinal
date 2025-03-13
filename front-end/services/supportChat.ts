@@ -1,4 +1,5 @@
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084";
+import Constants from "expo-constants";
+const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
 
 // Interfaz que define la estructura de un mensaje de soporte.
 export interface SupportMessage {
@@ -138,7 +139,6 @@ export const subscribeSupportMessages = (
     };
 
     ws.onmessage = (event: MessageEvent) => {
-        console.log("AA");
 
         onMessage(event.data);
     };

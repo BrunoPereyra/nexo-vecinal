@@ -44,7 +44,6 @@ const Home: React.FC = () => {
   useEffect(() => {
     const loadSavedFilters = async () => {
       try {
-        console.log("Cargando filtros guardados...");
 
         // Recuperar valores desde AsyncStorage
         const cachedTitle = await AsyncStorage.getItem('searchTitle');
@@ -65,7 +64,6 @@ const Home: React.FC = () => {
           radius: parsedRadius || 10, // Valor por defecto si no hay radio guardado
         };
 
-        console.log("Filtros recuperados:", filters);
 
         // Ejecutar búsqueda si hay una ubicación guardada
         if (filters.location) {

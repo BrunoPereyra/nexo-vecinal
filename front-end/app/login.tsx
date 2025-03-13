@@ -30,12 +30,6 @@ export default function LoginScreen() {
     }
   };
 
-  useEffect(() => {
-    if (userInfo) {
-      console.log('Usuario de Google:', userInfo);
-    }
-  }, [userInfo]);
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Login</Text>

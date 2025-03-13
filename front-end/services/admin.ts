@@ -1,4 +1,7 @@
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084";
+import Constants from "expo-constants";
+const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
+
+
 
 /**
  * Procesa la respuesta de la API, verificando el Content-Type.
@@ -105,7 +108,6 @@ export const getReportsByUser = async (queryParams: Record<string, string>, toke
  */
 export const getGlobalReports = async (token: string) => {
     try {
-        console.log(`${API}/admin/reports/global`)
         const res = await fetch(`${API}/admin/reports/global`, {
             method: 'GET',
         });

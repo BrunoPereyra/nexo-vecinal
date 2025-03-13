@@ -230,7 +230,6 @@ export default function VisitedProfileScreen() {
     //     </TouchableOpacity>
     // );
     const renderItem = ({ item }: { item: any }) => {
-        console.log(item);
 
         return <JobCardProfiles item={item} activeSection={activeSection} />
     }

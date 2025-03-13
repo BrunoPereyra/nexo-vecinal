@@ -1,5 +1,6 @@
-import { router } from "expo-router";
-const API = process.env.EXPO_URL_API ?? "http://192.168.0.28:8084"
+import Constants from "expo-constants";
+const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
+
 /**
  * Realiza una petición POST para crear un nuevo trabajo.
  * @param jobData - Objeto con la información del job a crear.
@@ -46,7 +47,6 @@ export const GetJobTokenAdmin = async (JobId: any, token: string) => {
  * @returns La respuesta de la API en formato JSON.
  */
 export const getCreateJobsProfile = async (page: number, token: string) => {
-    console.log(page);
 
     try {
         // Construimos la URL usando el parámetro page
@@ -247,6 +247,8 @@ export const getJobsByFilters = async (filters: {
     radius: number;
 }, token: string) => {
     try {
+        console.log(API);
+
         const res = await fetch(`${API}/job/get-jobsBy-filters`, {
             method: 'POST',
             headers: {

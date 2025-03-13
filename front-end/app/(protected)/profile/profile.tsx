@@ -115,7 +115,6 @@ export default function ProfileScreen() {
                 setLoading(false);
             }
         };
-        console.log("activeSection", activeSection);
         if (activeSection === "jobFeed") {
             fetchJobFeed();
         } else {

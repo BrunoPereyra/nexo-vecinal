@@ -16,7 +16,8 @@ import { sendChatMessage, getMessagesBetween } from '@/services/chatService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-const API = process.env.EXPO_URL_APIWS || "ws://192.168.0.28:8084";
+import Constants from "expo-constants";
+const API = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "http://192.168.0.28:90000";
 
 interface Message {
   id: string;

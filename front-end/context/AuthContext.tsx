@@ -49,7 +49,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
             const tokenData = await Notifications.getExpoPushTokenAsync();
             setPushToken(tokenData.data);
-            console.log('Expo Push Token:', tokenData.data);
         } else {
             alert('Debe usar un dispositivo físico para recibir notificaciones push.');
         }
