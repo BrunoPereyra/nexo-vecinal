@@ -10,6 +10,7 @@ import (
 	"back-end/pkg/helpers"
 	"back-end/pkg/jwt"
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -345,18 +346,22 @@ func (h *UserHandler) SaveUserCodeConfirm(c *fiber.Ctx) error {
 }
 func (h *UserHandler) SignupSaveUserRedis(c *fiber.Ctx) error {
 	var newUser domain.UserModelValidator
+	fmt.Println("aa")
 	fileHeader, _ := c.FormFile("avatar")
 	PostImageChanel := make(chan string)
 	errChanel := make(chan error)
 	go helpers.ProcessImage(fileHeader, PostImageChanel, errChanel)
 
 	if err := c.BodyParser(&newUser); err != nil {
+		fmt.Println(err)
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"messages": "Bad Request",
+			"error":    err.Error(),
 		})
 	}
 
 	if err := newUser.ValidateUser(); err != nil {
+		fmt.Println(err)
 
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",

@@ -1,7 +1,6 @@
 package userapplication
 
 import (
-	"back-end/config"
 	domain "back-end/internal/user/user-domain"
 	userdomain "back-end/internal/user/user-domain"
 	infrastructure "back-end/internal/user/user-infrastructure"
@@ -45,12 +44,12 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	var modelNewUser domain.User
 	modelNewUser.Avatar = avatarUrl
 	if modelNewUser.Avatar == "" {
-		avatarConf := config.FotoPerfilAleatoria()
-		modelNewUser.Avatar = avatarConf
+		// avatarConf := config.FotoPerfilAleatoria()
+		modelNewUser.Avatar = "https://www.pinkker.tv/uploads/nexo-vecinal/assets/avatar_default/Fotoperfil1.png"
 	}
+	modelNewUser.NameUser = newUser.NameUser
 
 	modelNewUser.FullName = newUser.FullName
-	modelNewUser.NameUser = newUser.NameUser
 	modelNewUser.PasswordHash = passwordHash
 	modelNewUser.Banner = ""
 	modelNewUser.Pais = newUser.Pais
