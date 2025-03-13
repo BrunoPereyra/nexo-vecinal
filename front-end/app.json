@@ -2,18 +2,24 @@
   "expo": {
     "name": "front-end",
     "slug": "front-end",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "bundlerIdentifier": "com.nexovecinal.app",
       "supportsTablet": true
     },
+    "privacyPolicy": "https://nexo-vecinal.blogspot.com/2025/03/termino-y-condiciones-de-politica-de.html",
     "android": {
       "package": "com.nexovecinal.app",
+      "versionCode": 2,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#d6d9d3"

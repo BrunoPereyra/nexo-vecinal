@@ -22,63 +22,92 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
     const [avatar, setAvatar] = useState(user.Avatar);
 
     const handleAvatarEdit = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== "granted") {
-            Alert.alert("Permiso denegado", "Se necesitan permisos para acceder a la galería.");
+        // 1️⃣ Pedir permisos para la cámara y la galería
+        const { status: cameraStatus } = await ImagePicker.requestCameraPermissionsAsync();
+        const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (cameraStatus !== "granted" || libraryStatus !== "granted") {
+            Alert.alert("Permiso denegado", "Se necesitan permisos para acceder a la cámara y la galería.");
             return;
         }
 
-        const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
-            allowsEditing: true,
-            aspect: [1, 1],
-            quality: 1,
-        });
+        // 2️⃣ Preguntar al usuario si quiere tomar una foto o elegir de la galería
+        Alert.alert(
+            "Seleccionar avatar",
+            "¿Quieres tomar una foto o elegir de la galería?",
+            [
+                {
+                    text: "Galería",
+                    onPress: async () => {
+                        const result = await ImagePicker.launchImageLibraryAsync({
+                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                            allowsEditing: true,
+                            aspect: [1, 1],
+                            quality: 1,
+                        });
+                        if (!result.canceled) {
+                            await processImage(result.assets[0].uri);
+                        }
+                    },
+                },
+                {
+                    text: "Cámara",
+                    onPress: async () => {
+                        const result = await ImagePicker.launchCameraAsync({
+                            allowsEditing: true,
+                            aspect: [1, 1],
+                            quality: 1,
+                        });
+                        if (!result.canceled) {
+                            await processImage(result.assets[0].uri);
+                        }
+                    },
+                },
+                { text: "Cancelar", style: "cancel" },
+            ]
+        );
+    };
 
-        if (!result.canceled) {
-            try {
-                // 1. Redimensionamos la imagen a 512x512 para trabajar con un tamaño estándar.
-                const resized = await ImageManipulator.manipulateAsync(
-                    result.assets[0].uri,
-                    [{ resize: { width: 612, height: 612 } }],
-                    { compress: 1, format: ImageManipulator.SaveFormat.PNG }
-                );
+    // Función auxiliar para procesar la imagen antes de enviarla
+    const processImage = async (uri: string) => {
+        try {
+            const resized = await ImageManipulator.manipulateAsync(
+                uri,
+                [{ resize: { width: 612, height: 612 } }],
+                { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+            );
 
-                // 2. Recortamos mínimamente para centrar la imagen:
-                // Usamos un recorte del 5% de cada lado, de modo que se preserve casi toda la imagen.
-                const cropPercentage = 0.05; // 5% de cada lado
-                const offset = Math.floor(612 * cropPercentage);
-                const newDimension = 612 - 2 * offset; // Resultado: 512 - (2*26) = 460 (aprox.)
+            const cropPercentage = 0.05;
+            const offset = Math.floor(612 * cropPercentage);
+            const newDimension = 612 - 2 * offset;
 
-                const cropped = await ImageManipulator.manipulateAsync(
-                    resized.uri,
-                    [
-                        {
-                            crop: {
-                                originX: offset,
-                                originY: offset,
-                                width: newDimension,
-                                height: newDimension,
-                            },
+            const cropped = await ImageManipulator.manipulateAsync(
+                resized.uri,
+                [
+                    {
+                        crop: {
+                            originX: offset,
+                            originY: offset,
+                            width: newDimension,
+                            height: newDimension,
                         },
-                    ],
-                    { compress: 1, format: ImageManipulator.SaveFormat.PNG }
-                );
+                    },
+                ],
+                { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+            );
 
-                // En este caso, se envía la imagen recortada (aprox. 460x460) al backend.
-                // Si necesitás un tamaño fijo, se podría reescalar, pero eso podría eliminar el margen.
-                const response = await EditAvatar(cropped.uri, token as string);
-                if (response && response.avatar) {
-                    setAvatar(response.avatar);
-                } else {
-                    Alert.alert("Error", "No se pudo actualizar el avatar");
-                }
-            } catch (error) {
-                console.error(error);
-                Alert.alert("Error", "Ocurrió un error al procesar la imagen.");
+            const response = await EditAvatar(cropped.uri, token as string);
+            if (response && response.avatar) {
+                setAvatar(response.avatar);
+            } else {
+                Alert.alert("Error", "No se pudo actualizar el avatar");
             }
+        } catch (error) {
+            console.error(error);
+            Alert.alert("Error", "Ocurrió un error al procesar la imagen.");
         }
     };
+
 
     return (
         <View style={styles.container}>

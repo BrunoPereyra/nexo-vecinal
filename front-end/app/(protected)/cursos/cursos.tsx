@@ -19,7 +19,11 @@ export default function CursosScreen() {
         async function fetchCourses() {
             try {
                 const data = await getActiveCourses();
-                setCourses(data);
+                if (Array.isArray(data)) {
+                    setCourses(data);
+                } else {
+                    console.error('Invalid data format:', data);
+                }
             } catch (error) {
                 console.error("Error fetching courses:", error);
             } finally {
@@ -29,7 +33,7 @@ export default function CursosScreen() {
         fetchCourses();
     }, []);
 
-    const groupedCourses = courses.reduce((acc, course) => {
+    const groupedCourses = courses?.reduce((acc, course) => {
         if (!acc[course.seccion]) acc[course.seccion] = [];
         acc[course.seccion].push(course);
         return acc;
