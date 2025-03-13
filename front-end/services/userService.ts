@@ -64,6 +64,8 @@ export const Editbiografia = async (Biography: string, token: string) => {
         console.error("Error en createJob:", error);
     }
 }; export const EditAvatar = async (avatarUri: string, token: string) => {
+    console.log("A");
+
     const formData = new FormData();
     // Extrae el nombre del archivo de la URI
     const fileName = avatarUri.split('/').pop() || "avatar.jpg";

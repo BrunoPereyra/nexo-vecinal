@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, Dimensions } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { useAuth } from "@/context/AuthContext";
 import { EditAvatar } from "@/services/userService";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -15,6 +16,7 @@ type ProfileAdminHeaderProps = {
 };
 
 const windowWidth = Dimensions.get("window").width;
+
 export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) => {
     const { token } = useAuth();
     const [avatar, setAvatar] = useState(user.Avatar);
@@ -27,18 +29,53 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ["images"],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
         });
 
         if (!result.canceled) {
-            const response = await EditAvatar(result.assets[0].uri, token as string);
-            if (response && response.avatar) {
-                setAvatar(response.avatar);
-            } else {
-                Alert.alert("Error", "No se pudo actualizar el avatar");
+            try {
+                // 1. Redimensionamos la imagen a 512x512 para trabajar con un tamaño estándar.
+                const resized = await ImageManipulator.manipulateAsync(
+                    result.assets[0].uri,
+                    [{ resize: { width: 612, height: 612 } }],
+                    { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+                );
+
+                // 2. Recortamos mínimamente para centrar la imagen:
+                // Usamos un recorte del 5% de cada lado, de modo que se preserve casi toda la imagen.
+                const cropPercentage = 0.05; // 5% de cada lado
+                const offset = Math.floor(612 * cropPercentage);
+                const newDimension = 612 - 2 * offset; // Resultado: 512 - (2*26) = 460 (aprox.)
+
+                const cropped = await ImageManipulator.manipulateAsync(
+                    resized.uri,
+                    [
+                        {
+                            crop: {
+                                originX: offset,
+                                originY: offset,
+                                width: newDimension,
+                                height: newDimension,
+                            },
+                        },
+                    ],
+                    { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+                );
+
+                // En este caso, se envía la imagen recortada (aprox. 460x460) al backend.
+                // Si necesitás un tamaño fijo, se podría reescalar, pero eso podría eliminar el margen.
+                const response = await EditAvatar(cropped.uri, token as string);
+                if (response && response.avatar) {
+                    setAvatar(response.avatar);
+                } else {
+                    Alert.alert("Error", "No se pudo actualizar el avatar");
+                }
+            } catch (error) {
+                console.error(error);
+                Alert.alert("Error", "Ocurrió un error al procesar la imagen.");
             }
         }
     };
@@ -52,6 +89,7 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
                         <MaterialIcons name="edit" size={20} color="#fff" />
                     </View>
                 </TouchableOpacity>
+
                 <View style={styles.infoContainer}>
                     <Text style={styles.fullName}>{user.FullName}</Text>
                     <Text style={styles.username}>@{user.NameUser}</Text>
@@ -60,7 +98,6 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
             <Text style={styles.biography}>
                 {user.biography || "Sin descripción"}
             </Text>
-
         </View>
     );
 };
@@ -84,13 +121,18 @@ const styles = StyleSheet.create({
     },
     avatarContainer: {
         position: "relative",
-    },
-    avatar: {
+        backgroundColor: "#fff",
+        borderRadius: 50,
         width: 100,
         height: 100,
-        borderRadius: 50,
+        overflow: "hidden",
         borderWidth: 2,
         borderColor: "#03DAC5",
+    },
+    avatar: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "cover",
     },
     editIcon: {
         position: "absolute",
@@ -119,10 +161,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: "#B0B0B0",
         textAlign: "left",
-        // width: "100%",         // Ocupa el 100% del ancho del contenedor padre
-        minWidth: windowWidth * 0.9, // Asegura que tenga al menos el ancho de la pantalla
-        // minHeight: 100,
-        padding: 8,            // Opcional: para dar algo de espacio interno
+        minWidth: windowWidth * 0.9,
+        padding: 8,
     },
-
 });

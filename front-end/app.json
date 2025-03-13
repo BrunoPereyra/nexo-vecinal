@@ -43,8 +43,8 @@
       "eas": {
         "projectId": "986130da-6534-4144-94be-e74db5d65c82"
       },
-      "EXPO_URL_API": "http://192.168.0.28:9000",
-      "EXPO_URL_APIWS": "ws://192.168.0.28:9000"
+      "EXPO_URL_API": "https://www.pinkker.tv/9000",
+      "EXPO_URL_APIWS": "wss://www.pinkker.tv/9000"
     }
   }
 }
