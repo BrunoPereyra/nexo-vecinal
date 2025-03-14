@@ -71,6 +71,7 @@ async function registerForNotificationsAsync() {
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;
 
+
         // Si no está concedido, pedimos el permiso
         if (existingStatus !== 'granted') {
             const { status } = await Notifications.requestPermissionsAsync();
