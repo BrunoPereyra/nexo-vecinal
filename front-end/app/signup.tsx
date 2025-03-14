@@ -41,7 +41,6 @@ export default function SignupScreen() {
       const [dd, mm, yyyy] = birthDate.split('-');
       const formattedBirthDate = `${yyyy}-${mm}-${dd}`;
       const data = await SignupService(email, password, nameUser, fullName, formattedBirthDate, sex);
-      console.log(data);
 
       if (data) {
         if (data.message === "email to confirm") {

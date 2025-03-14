@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { getTags as apiGetTags, addTag as apiAddTag } from '@/services/admin';
@@ -35,34 +35,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // Función para registrar notificaciones y obtener el token push
-    async function registerForPushNotificationsAsync() {
-        if (Device.isDevice) {
-            const { status: existingStatus } = await Notifications.getPermissionsAsync();
-            let finalStatus = existingStatus;
-            if (existingStatus !== 'granted') {
-                const { status } = await Notifications.requestPermissionsAsync();
-                finalStatus = status;
-            }
-            if (finalStatus !== 'granted') {
-                alert('No se han otorgado permisos para recibir notificaciones.');
-                return;
-            }
-            const tokenData = await Notifications.getExpoPushTokenAsync();
-            setPushToken(tokenData.data);
-        } else {
-            alert('Debe usar un dispositivo físico para recibir notificaciones push.');
+
+    const registerForPushNotificationsAsync = async () => {
+        if (!Device.isDevice) {
+            Alert.alert('Advertencia', 'Debe usar un dispositivo físico para recibir notificaciones push.');
+            return;
         }
 
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== 'granted') {
+            const { status } = await Notifications.requestPermissionsAsync();
+            finalStatus = status;
+        }
+        if (finalStatus !== 'granted') {
+            Alert.alert('Permiso denegado', 'No se han otorgado permisos para recibir notificaciones.');
+            return;
+        }
+        const tokenData = await Notifications.getExpoPushTokenAsync();
+        setPushToken(tokenData.data);
         if (Platform.OS === 'android') {
-            Notifications.setNotificationChannelAsync('default', {
+            await Notifications.setNotificationChannelAsync('default', {
                 name: 'default',
                 importance: Notifications.AndroidImportance.MAX,
                 vibrationPattern: [0, 250, 250, 250],
                 lightColor: '#FF231F7C',
             });
         }
-    }
-
+    };
     // Cargar el token almacenado
     const loadToken = async () => {
         try {

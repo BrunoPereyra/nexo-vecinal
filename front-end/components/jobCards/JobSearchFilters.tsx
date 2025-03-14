@@ -7,11 +7,13 @@ import {
     StyleSheet,
     Modal,
     ScrollView,
+    Alert,
 } from 'react-native';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
+import * as Location from 'expo-location';
 
 export interface FilterParams {
     searchTitle: string;
@@ -25,17 +27,14 @@ interface JobSearchFiltersProps {
 }
 
 const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
-
     const { tags: availableTags } = useAuth(); // se espera que useAuth provea "tags" disponibles
 
     const [searchTitle, setSearchTitle] = useState('');
-    // Estado para mostrar el modal de filtros avanzados
     const [modalVisible, setModalVisible] = useState(false);
-
-    // Estados avanzados
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [radius, setRadius] = useState<number>(5000); // 5 km por defecto
+
     useEffect(() => {
         if (availableTags) {
             setSelectedTags((prevSelectedTags) =>
@@ -43,6 +42,22 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
             );
         }
     }, [availableTags]);
+
+    // Solicitar permisos de ubicación y obtener la ubicación actual
+    useEffect(() => {
+        (async () => {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permiso denegado', 'Necesitas dar permisos de ubicación para usar el mapa.');
+            } else {
+                const currentLocation = await Location.getCurrentPositionAsync({});
+                setLocation({
+                    latitude: currentLocation.coords.latitude,
+                    longitude: currentLocation.coords.longitude,
+                });
+            }
+        })();
+    }, []);
 
     useEffect(() => {
         const loadCachedFilters = async () => {
@@ -64,7 +79,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
         loadCachedFilters();
     }, []);
 
-    // Función para guardar filtros en caché y ejecutar la búsqueda
     const applyFilters = async () => {
         try {
             await AsyncStorage.setItem('searchTitle', searchTitle);
@@ -94,7 +108,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     const increaseRadius = () => setRadius((prev) => prev + 5000);
     const decreaseRadius = () => setRadius((prev) => (prev - 5000 >= 0 ? prev - 5000 : 0));
 
-    // Función para ejecutar la búsqueda cuando se pulse "Enter"
     const handleSubmit = () => {
         onSearch({ searchTitle, selectedTags, location, radius });
     };
@@ -159,6 +172,7 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                             <Text style={styles.label}>Ubicación:</Text>
                             <View style={styles.mapContainer}>
                                 <MapView
+                                    provider={undefined}
                                     style={styles.map}
                                     initialRegion={{
                                         latitude: location ? location.latitude : -31.4201,
@@ -218,7 +232,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#121212',
         borderRadius: 10,
         marginHorizontal: 5,
-        // marginBottom: 16,
         elevation: 3,
         shadowColor: '#000',
         shadowOpacity: 0.3,

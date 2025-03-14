@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -12,8 +12,8 @@ import MapView, {
   Marker,
   MapPressEvent,
   MarkerDragStartEndEvent,
-  PROVIDER_GOOGLE,
 } from 'react-native-maps';
+import * as Location from 'expo-location';
 import { createJob } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 
@@ -30,21 +30,35 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  // La ubicación se guarda como un objeto con properties "latitude" y "longitude"
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  // Usamos un estado para los tags seleccionados (como array de strings)
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [budget, setBudget] = useState('');
 
-  const { token, tags: availableTags } = useAuth(); // se espera que useAuth provea "tags" disponibles
+  const { token, tags: availableTags } = useAuth();
 
-  // Al tocar el mapa se guarda la coordenada.
+  // Solicitar permisos de ubicación al montar el componente
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permiso denegado',
+          'Es necesario otorgar permisos de ubicación para usar el mapa.'
+        );
+      } else {
+        // Opcional: obtener la ubicación actual y centrar el mapa
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        // Si querés, podés setear la ubicación inicial a la ubicación actual:
+        // setLocation(currentLocation.coords);
+      }
+    })();
+  }, []);
+
   const handleMapPress = (e: MapPressEvent) => {
     const { coordinate } = e.nativeEvent;
     setLocation(coordinate);
   };
 
-  // Permite mover el marcador manualmente.
   const handleMarkerDragEnd = (e: MarkerDragStartEndEvent) => {
     const { coordinate } = e.nativeEvent;
     setLocation(coordinate);
@@ -95,7 +109,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       return;
     }
 
-    // Se crea el objeto jobData, enviando la ubicación en formato GeoJSON.
     const jobData = {
       title,
       description,
@@ -106,6 +119,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       tags: selectedTags,
       budget: budgetNumber,
     };
+
     try {
       const response = await createJob(jobData, token as string);
       if (response && response.message === "Job created successfully") {
@@ -113,7 +127,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
         if (onJobCreated) {
           onJobCreated(response.job);
         }
-        // Limpiar campos
         setTitle('');
         setDescription('');
         setLocation(null);
@@ -149,12 +162,10 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             multiline
             placeholderTextColor="#888"
           />
-
-          {/* Sección para seleccionar ubicación */}
           <Text style={styles.label}>Selecciona ubicación en el mapa</Text>
           <MapView
             style={styles.map}
-            provider={PROVIDER_GOOGLE}
+            provider={undefined}
             initialRegion={{
               latitude: -31.4201,
               longitude: -64.1811,
@@ -171,8 +182,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
               />
             )}
           </MapView>
-
-          {/* Sección de selección de Tags */}
           <Text style={styles.label}>Selecciona etiquetas:</Text>
           <View style={styles.tagsContainer}>
             {availableTags && availableTags.length > 0 ? (
@@ -199,7 +208,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
               <Text style={styles.label}>No hay etiquetas disponibles</Text>
             )}
           </View>
-
           <TextInput
             placeholder="Presupuesto"
             value={budget}
@@ -208,7 +216,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             keyboardType="numeric"
             placeholderTextColor="#888"
           />
-
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Crear</Text>
@@ -229,12 +236,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)', // Overlay semitransparente
+    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: '#1E1E1E', // Fondo oscuro para el modal
+    backgroundColor: '#1E1E1E',
     padding: 20,
     borderRadius: 10,
     width: '90%',
@@ -248,7 +255,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#03DAC5', // Borde con color de acento
+    borderColor: '#03DAC5',
     borderRadius: 5,
     marginBottom: 10,
     padding: 10,
