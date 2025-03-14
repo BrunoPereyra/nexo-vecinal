@@ -4,6 +4,7 @@ import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { getTags as apiGetTags, addTag as apiAddTag } from '@/services/admin';
+import Constants from "expo-constants";
 
 interface AuthContextProps {
     token: string | null;
@@ -52,7 +53,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             Alert.alert('Permiso denegado', 'No se han otorgado permisos para recibir notificaciones.');
             return;
         }
-        const tokenData = await Notifications.getExpoPushTokenAsync();
+
+
+        const tokenData = await Notifications.getExpoPushTokenAsync({
+            projectId: Constants.expoConfig?.extra?.eas?.projectId
+        });
+
+
         setPushToken(tokenData.data);
         if (Platform.OS === 'android') {
             await Notifications.setNotificationChannelAsync('default', {

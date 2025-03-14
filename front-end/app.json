@@ -23,7 +23,10 @@
         "SEND_SMS",
         "RECEIVE_BOOT_COMPLETED",
         "VIBRATE",
-        "INTERNET"
+        "INTERNET",
+        "POST_NOTIFICATIONS",
+        "com.google.android.gms.permission.AD_ID",
+        "ACCESS_COARSE_LOCATION"
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",

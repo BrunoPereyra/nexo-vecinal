@@ -1,7 +1,6 @@
 import Constants from "expo-constants";
 const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
 
-
 // Envía un mensaje de chat. Se espera un objeto con senderId, receiverId, text y opcionalmente jobId.
 export const sendChatMessage = async (
     message: {
