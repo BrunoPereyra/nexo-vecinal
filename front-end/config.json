@@ -1,85 +1,66 @@
 {
-    "name": "front-end",
-    "slug": "front-end",
-    "version": "1.0.6",
-    "orientation": "portrait",
-    "icon": "./assets/images/adaptive-icon.png",
-    "scheme": "myapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-        "supportsTablet": true
-    },
-    "privacyPolicy": "https://nexo-vecinal.blogspot.com/2025/03/terminos-y-condiciones-y-politica-de.html",
-    "android": {
-        "package": "com.nexovecinal.app",
-        "versionCode": 4,
-        "permissions": [],
-        "adaptiveIcon": {
-            "foregroundImage": "./assets/images/adaptive-icon.png",
-            "backgroundColor": "#d6d9d3"
-        }
-    },
-    "web": {
-        "bundler": "metro",
-        "output": "static",
-        "favicon": "./assets/images/favicon.png"
-    },
-    "plugins": [
-        "expo-router",
-        [
-            "expo-splash-screen",
-            {
-                "image": "./assets/images/splash-icon.png",
-                "imageWidth": 200,
-                "resizeMode": "contain",
+    "expo": {
+        "name": "front-end",
+        "slug": "front-end",
+        "version": "1.1.0",
+        "orientation": "portrait",
+        "icon": "./assets/images/adaptive-icon.png",
+        "scheme": "myapp",
+        "userInterfaceStyle": "automatic",
+        "newArchEnabled": true,
+        "ios": {
+            "supportsTablet": true
+        },
+        "privacyPolicy": "https://nexo-vecinal.blogspot.com/2025/03/terminos-y-condiciones-y-politica-de.html",
+        "android": {
+            "package": "com.nexovecinal.app",
+            "versionCode": 7,
+            "permissions": [
+                "ACCESS_FINE_LOCATION",
+                "ACCESS_COARSE_LOCATION"
+            ],
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#d6d9d3"
             }
-        ],
-        [
-            "expo-build-properties",
-            {
-                "android": {
-                    "removePermissions": [
-                        "android.permission.CAMERA"
-                    ]
-                }
-            }
-        ]
-    ],
-    "experiments": {
-        "typedRoutes": true
-    },
-    "extra": {
-        "eas": {
-            "projectId": "986130da-6534-4144-94be-e74db5d65c82"
         },
-        "EXPO_URL_API": "https://www.pinkker.tv/9000",
-        "EXPO_URL_APIWS": "wss://www.pinkker.tv/9000",
-        "router": {
-            "origin": false
-        }
-    },
-    "_internal": {
-        "isDebug": false,
-        "projectRoot": "C:\\Users\\Terminal\\Documents\\programming\\nexo-vecinal\\front-end",
-        "dynamicConfigPath": {},
-        "staticConfigPath": "C:\\Users\\Terminal\\Documents\\programming\\nexo-vecinal\\front-end\\app.json",
-        "packageJsonPath": "C:\\Users\\Terminal\\Documents\\programming\\nexo-vecinal\\front-end\\package.json",
-        "pluginHistory": {
-            "expo-splash-screen": {
-                "name": "expo-splash-screen",
-                "version": "0.29.22"
+        "web": {
+            "bundler": "metro",
+            "output": "static",
+            "favicon": "./assets/images/favicon.png"
+        },
+        "plugins": [
+            "expo-router",
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/images/splash-icon.png",
+                    "imageWidth": 200,
+                    "resizeMode": "contain",
+                    "backgroundColor": "#d6d9d3"
+                }
+            ],
+            [
+                "expo-build-properties",
+                {
+                    "android": {
+                        "removePermissions": []
+                    }
+                }
+            ]
+        ],
+        "experiments": {
+            "typedRoutes": true
+        },
+        "extra": {
+            "eas": {
+                "projectId": "986130da-6534-4144-94be-e74db5d65c82"
+            },
+            "EXPO_URL_API": "https://www.pinkker.tv/9000",
+            "EXPO_URL_APIWS": "wss://www.pinkker.tv/9000",
+            "router": {
+                "origin": false
             }
         }
-    },
-    "sdkVersion": "52.0.0",
-    "platforms": [
-        "ios",
-        "android",
-        "web"
-    ],
-    "androidStatusBar": {
-        "backgroundColor": "#d6d9d3"
     }
 }
