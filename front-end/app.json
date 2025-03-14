@@ -14,7 +14,7 @@
     "privacyPolicy": "https://nexo-vecinal.blogspot.com/2025/03/terminos-y-condiciones-y-politica-de.html",
     "android": {
       "package": "com.nexovecinal.app",
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",

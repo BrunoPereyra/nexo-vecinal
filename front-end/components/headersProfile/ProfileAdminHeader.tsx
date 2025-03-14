@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, Image, StyleSheet, TouchableOpacity, Alert, Dimensions } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+// import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useAuth } from "@/context/AuthContext";
 import { EditAvatar } from "@/services/userService";
@@ -23,35 +23,35 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
 
     const handleAvatarEdit = async () => {
         // 1️⃣ Pedir permisos solo para la galería
-        const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        // const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-        if (libraryStatus !== "granted") {
-            Alert.alert("Permiso denegado", "Se necesitan permisos para acceder a la galería.");
-            return;
-        }
+        // if (libraryStatus !== "granted") {
+        //     Alert.alert("Permiso denegado", "Se necesitan permisos para acceder a la galería.");
+        //     return;
+        // }
 
         // 2️⃣ Preguntar al usuario si quiere elegir de la galería
-        Alert.alert(
-            "Seleccionar avatar",
-            "¿Quieres elegir una imagen de la galería?",
-            [
-                {
-                    text: "Galería",
-                    onPress: async () => {
-                        const result = await ImagePicker.launchImageLibraryAsync({
-                            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                            allowsEditing: true,
-                            aspect: [1, 1],
-                            quality: 1,
-                        });
-                        if (!result.canceled) {
-                            await processImage(result.assets[0].uri);
-                        }
-                    },
-                },
-                { text: "Cancelar", style: "cancel" },
-            ]
-        );
+        // Alert.alert(
+        //     "Seleccionar avatar",
+        //     "¿Quieres elegir una imagen de la galería?",
+        //     [
+        //         {
+        //             text: "Galería",
+        //             onPress: async () => {
+        //                 const result = await ImagePicker.launchImageLibraryAsync({
+        //                     mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        //                     allowsEditing: true,
+        //                     aspect: [1, 1],
+        //                     quality: 1,
+        //                 });
+        //                 if (!result.canceled) {
+        //                     await processImage(result.assets[0].uri);
+        //                 }
+        //             },
+        //         },
+        //         { text: "Cancelar", style: "cancel" },
+        //     ]
+        // );
     };
 
     // Función auxiliar para procesar la imagen antes de enviarla
