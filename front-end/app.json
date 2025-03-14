@@ -15,14 +15,15 @@
     "android": {
       "package": "com.nexovecinal.app",
       "versionCode": 5,
-      "permissions": [],
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#d6d9d3"
-      },
-      "removePermissions": [
-        "android.permission.CAMERA"
-      ]
+      }
     },
     "web": {
       "bundler": "metro",
@@ -44,7 +45,8 @@
         "expo-build-properties",
         {
           "android": {
-            "removePermissions": [
+            "permissions": [
+              "android.permission.ACCESS_FINE_LOCATION",
               "android.permission.CAMERA"
             ]
           }
