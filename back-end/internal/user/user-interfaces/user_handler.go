@@ -372,7 +372,7 @@ func (h *UserHandler) SignupSaveUserRedis(c *fiber.Ctx) error {
 	// password
 	passwordHashChan := make(chan string)
 	go helpers.HashPassword(newUser.Password, passwordHashChan)
-
+	fmt.Println("A")
 	_, existUser := h.userService.FindNameUser(newUser.NameUser, newUser.Email)
 	if existUser != nil {
 		if existUser == mongo.ErrNoDocuments {
@@ -418,6 +418,7 @@ func (h *UserHandler) SignupSaveUserRedis(c *fiber.Ctx) error {
 			"message": "StatusInternalServerError",
 		})
 	} else {
+		fmt.Println("Z")
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 			"message": "exist NameUser or Email",
 		})
