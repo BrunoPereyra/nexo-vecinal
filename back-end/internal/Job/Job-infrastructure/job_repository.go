@@ -556,6 +556,54 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	if err = cursor.All(context.Background(), &jobs); err != nil {
 		return nil, err
 	}
+	if len(jobs) == 0 {
+		return j.FindOldestJobs(10) // Puedes cambiar el límite de trabajos a traer
+	}
+
+	return jobs, nil
+}
+func (j *JobRepository) FindOldestJobs(limit int) ([]jobdomain.JobDetailsUsers, error) {
+	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+
+	// Filtro para obtener solo los trabajos que no están completados
+	filter := bson.M{
+		"status": bson.M{
+			"$nin": []jobdomain.JobStatus{jobdomain.JobStatusCompleted},
+		},
+	}
+
+	// Pipeline para traer los trabajos más antiguos
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: filter}},
+		// Ordenar por fecha de creación (ascendente: más antiguos primero)
+		bson.D{{Key: "$sort", Value: bson.M{"createdAt": 1}}},
+		// Limitar la cantidad de resultados
+		bson.D{{Key: "$limit", Value: limit}},
+		// Lookup para obtener detalles del usuario creador
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from":         "Users",
+			"localField":   "userId",
+			"foreignField": "_id",
+			"as":           "userDetails",
+		}}},
+		// Unwind para extraer el objeto de usuario (si existe)
+		bson.D{{Key: "$unwind", Value: bson.M{
+			"path":                       "$userDetails",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+	}
+
+	// Ejecutar la consulta agregada
+	cursor, err := jobColl.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var jobs []jobdomain.JobDetailsUsers
+	if err = cursor.All(context.Background(), &jobs); err != nil {
+		return nil, err
+	}
 
 	return jobs, nil
 }
