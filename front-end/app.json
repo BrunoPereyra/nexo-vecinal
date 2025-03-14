@@ -2,7 +2,7 @@
   "expo": {
     "name": "front-end",
     "slug": "front-end",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
     "scheme": "myapp",
@@ -59,6 +59,7 @@
       "eas": {
         "projectId": "986130da-6534-4144-94be-e74db5d65c82"
       },
+      "GOOGLE_MAPS_API_KEY": "@env.GOOGLE_MAPS_API_KEY",
       "EXPO_URL_API": "https://www.pinkker.tv/9000",
       "EXPO_URL_APIWS": "wss://www.pinkker.tv/9000"
     }
