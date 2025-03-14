@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "front-end",
-    "slug": "front-end",
+    "name": "nexo vecinal",
+    "slug": "nexo vecinal",
     "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
@@ -11,9 +11,15 @@
     "ios": {
       "supportsTablet": true
     },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#000000",
+      "iosDisplayInForeground": true
+    },
     "privacyPolicy": "https://nexo-vecinal.blogspot.com/2025/03/terminos-y-condiciones-y-politica-de.html",
     "android": {
       "package": "com.nexovecinal.app",
+      "googleServicesFile": "./google-services.json",
       "versionCode": 8,
       "permissions": [
         "CAMERA",

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "386642666747",
+    "project_id": "nexo-vecinal",
+    "storage_bucket": "nexo-vecinal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:386642666747:android:5b075d378c23df2e953c5e",
+        "android_client_info": {
+          "package_name": "com.nexovecinal.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3Crq8j2d4M_n-VNwSOW2kV0bwWiQZpRg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

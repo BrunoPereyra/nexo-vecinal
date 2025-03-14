@@ -59,6 +59,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             projectId: Constants.expoConfig?.extra?.eas?.projectId
         });
 
+        console.log(Constants.expoConfig?.extra?.eas?.projectId);
+        console.log(tokenData);
 
         setPushToken(tokenData.data);
         if (Platform.OS === 'android') {

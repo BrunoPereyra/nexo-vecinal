@@ -16,7 +16,10 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const data = await loginNameUser(nameUser, password);
+      console.log("pushToken");
+      console.log(pushToken);
       if (!pushToken) {
+
         alert("No se pudo obtener el token de notificaciones.");
         return;
       }
