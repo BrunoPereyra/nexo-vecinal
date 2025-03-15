@@ -46,6 +46,7 @@ export default function VisitedProfileScreen() {
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
     const [reportModalVisible, setReportModalVisible] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
+    const [loading, setLoading] = useState<boolean>(true);
 
     // Cargar el perfil del usuario visitado
     useEffect(() => {
@@ -64,6 +65,7 @@ export default function VisitedProfileScreen() {
                 const data = await getUserByid(id as string);
                 if (data?.data) {
                     setUserProfile(data.data);
+                    setLoading(false)
                 }
             } catch (err: any) {
                 setError('Error al obtener la información del usuario');
@@ -105,18 +107,6 @@ export default function VisitedProfileScreen() {
         }
     }, [activeSection, token, id]);
 
-    useEffect(() => {
-        const fetchRating = async () => {
-            if (!id) return;
-            let res;
-            if (activeSection === 'employer') {
-                res = await GetLatestJobsForEmployervist(id);
-            } else {
-                res = await GetLatestJobsForWorkervist(id);
-            }
-        };
-        fetchRating();
-    }, [activeSection, id]);
 
     const handleLogout = async () => {
         await logout();
@@ -220,15 +210,14 @@ export default function VisitedProfileScreen() {
         </View>
     );
 
-    // const renderItem = ({ item }: { item: Job }) => (
-    //     <TouchableOpacity
-    //         style={styles.card}
-    //         onPress={() => router.push(`/JobDetailVisited?id=${item.id}`)}
-    //     >
-    //         <Text style={styles.cardTitle}>{item.title}</Text>
-    //         <Text style={styles.cardStatus}>Estado: {item.status}</Text>
-    //     </TouchableOpacity>
-    // );
+    if (loading || !userProfile) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator size="large" color="#03DAC5" />
+            </View>
+        );
+    }
+
     const renderItem = ({ item }: { item: any }) => {
 
         return <JobCardProfiles item={item} activeSection={activeSection} />
@@ -253,7 +242,13 @@ export default function VisitedProfileScreen() {
             </View>
         );
     }
-
+    if (loading || !userProfile) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator size="large" color="#03DAC5" />
+            </View>
+        );
+    }
     return (
         <View style={{ flex: 1, backgroundColor: '#121212' }}>
             <FlatList

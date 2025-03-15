@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   View,
@@ -12,8 +12,8 @@ import MapView, {
   Marker,
   MapPressEvent,
   MarkerDragStartEndEvent,
+  UrlTile,
 } from 'react-native-maps';
-import * as Location from 'expo-location';
 import { createJob } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 
@@ -35,24 +35,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
   const [budget, setBudget] = useState('');
 
   const { token, tags: availableTags } = useAuth();
-
-  // Solicitar permisos de ubicación al montar el componente
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          'Permiso denegado',
-          'Es necesario otorgar permisos de ubicación para usar el mapa.'
-        );
-      } else {
-        // Opcional: obtener la ubicación actual y centrar el mapa
-        const currentLocation = await Location.getCurrentPositionAsync({});
-        // Si querés, podés setear la ubicación inicial a la ubicación actual:
-        // setLocation(currentLocation.coords);
-      }
-    })();
-  }, []);
 
   const handleMapPress = (e: MapPressEvent) => {
     const { coordinate } = e.nativeEvent;
@@ -98,10 +80,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       return;
     }
     if (description.length < 10 || description.length > 1000) {
-      Alert.alert(
-        'Error',
-        'La descripción debe tener entre 10 y 1000 caracteres.'
-      );
+      Alert.alert('Error', 'La descripción debe tener entre 10 y 1000 caracteres.');
       return;
     }
     if (budgetNumber <= 2000) {
@@ -119,7 +98,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       tags: selectedTags,
       budget: budgetNumber,
     };
-
     try {
       const response = await createJob(jobData, token as string);
       if (response && response.message === "Job created successfully") {
@@ -162,13 +140,14 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             multiline
             placeholderTextColor="#888"
           />
+
+          {/* Sección para seleccionar ubicación */}
           <Text style={styles.label}>Selecciona ubicación en el mapa</Text>
           <MapView
             style={styles.map}
-            provider={undefined}
             initialRegion={{
-              latitude: -31.4201,
-              longitude: -64.1811,
+              latitude: location ? location.latitude : -31.4201,
+              longitude: location ? location.longitude : -64.1811,
               latitudeDelta: 0.0922,
               longitudeDelta: 0.0421,
             }}
@@ -181,25 +160,24 @@ export const CreateJob: React.FC<CreateJobProps> = ({
                 onDragEnd={handleMarkerDragEnd}
               />
             )}
+            <UrlTile
+              urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              maximumZ={19}
+              flipY={false}
+            />
           </MapView>
+
+          {/* Sección de selección de Tags */}
           <Text style={styles.label}>Selecciona etiquetas:</Text>
           <View style={styles.tagsContainer}>
             {availableTags && availableTags.length > 0 ? (
               availableTags.map((tag: string, index: number) => (
                 <TouchableOpacity
                   key={index}
-                  style={[
-                    styles.tag,
-                    selectedTags.includes(tag) && styles.tagSelected,
-                  ]}
+                  style={[styles.tag, selectedTags.includes(tag) && styles.tagSelected]}
                   onPress={() => toggleTag(tag)}
                 >
-                  <Text
-                    style={[
-                      styles.tagText,
-                      selectedTags.includes(tag) && styles.tagTextSelected,
-                    ]}
-                  >
+                  <Text style={[styles.tagText, selectedTags.includes(tag) && styles.tagTextSelected]}>
                     {tag}
                   </Text>
                 </TouchableOpacity>
@@ -208,6 +186,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
               <Text style={styles.label}>No hay etiquetas disponibles</Text>
             )}
           </View>
+
           <TextInput
             placeholder="Presupuesto"
             value={budget}
@@ -216,14 +195,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             keyboardType="numeric"
             placeholderTextColor="#888"
           />
+
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Crear</Text>
             </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onClose}
-            >
+            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
               <Text style={styles.buttonText}>Cancelar</Text>
             </TouchableOpacity>
           </View>

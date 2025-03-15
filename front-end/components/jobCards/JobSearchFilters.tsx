@@ -9,7 +9,7 @@ import {
     ScrollView,
     Alert,
 } from 'react-native';
-import MapView, { Marker, Circle } from 'react-native-maps';
+import MapView, { Marker, Circle, UrlTile } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
@@ -27,7 +27,7 @@ interface JobSearchFiltersProps {
 }
 
 const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
-    const { tags: availableTags } = useAuth(); // se espera que useAuth provea "tags" disponibles
+    const { tags: availableTags } = useAuth();
 
     const [searchTitle, setSearchTitle] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
@@ -172,7 +172,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                             <Text style={styles.label}>Ubicación:</Text>
                             <View style={styles.mapContainer}>
                                 <MapView
-                                    provider={undefined}
                                     style={styles.map}
                                     initialRegion={{
                                         latitude: location ? location.latitude : -31.4201,
@@ -192,6 +191,12 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                                             strokeWidth={2}
                                         />
                                     )}
+                                    {/* Agregamos UrlTile para usar OpenStreetMap */}
+                                    <UrlTile
+                                        urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        maximumZ={19}
+                                        flipY={false}
+                                    />
                                 </MapView>
                             </View>
 

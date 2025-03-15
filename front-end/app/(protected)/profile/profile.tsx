@@ -49,18 +49,6 @@ export default function ProfileScreen() {
     const [supportChatVisible, setSupportChatVisible] = useState<boolean>(false);
     // -----------------------------------------------------------
 
-    useEffect(() => {
-        const getRating = async () => {
-            let res;
-            if (activeSection === "jobFeed") {
-                res = await GetLatestJobsForWorker(token as string);
-            } else {
-                res = await GetLatestJobsForEmployer(token as string);
-            }
-
-        };
-        getRating();
-    }, [activeSection, token]);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -240,7 +228,13 @@ export default function ProfileScreen() {
             </View>
         );
     }
-
+    if (loading || !userProfile) {
+        return (
+            <View style={styles.center}>
+                <ActivityIndicator size="large" color="#03DAC5" />
+            </View>
+        );
+    }
     return (
         <View style={{ flex: 1, backgroundColor: "#121212" }}>
             <FlatList
