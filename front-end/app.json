@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "nexo vecinal",
-    "slug": "nexo vecinal",
+    "slug": "nexo-vecinal",
     "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
