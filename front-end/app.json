@@ -21,6 +21,11 @@
       "package": "com.nexovecinal.app",
       "googleServicesFile": "./google-services.json",
       "versionCode": 8,
+      "config": {
+        "googleMaps": {
+          "apiKey": "API-key"
+        }
+      },
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",

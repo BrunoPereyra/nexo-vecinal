@@ -16,6 +16,23 @@ import MapView, {
 } from 'react-native-maps';
 import { createJob } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
+import ErrorBoundary from '../ErrorBoundary';
+
+// Componente ErrorBoundary para atrapar errores en el MapView
+
+const errorStyles = StyleSheet.create({
+  errorContainer: {
+    width: '100%',
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  errorText: {
+    color: '#FFF',
+    fontSize: 16,
+  },
+});
 
 type CreateJobProps = {
   visible: boolean;
@@ -33,7 +50,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [budget, setBudget] = useState('');
-
+  const [isMapReady, setIsMapReady] = useState(false);
   const { token, tags: availableTags } = useAuth();
 
   const handleMapPress = (e: MapPressEvent) => {
@@ -98,6 +115,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       tags: selectedTags,
       budget: budgetNumber,
     };
+
     try {
       const response = await createJob(jobData, token as string);
       if (response && response.message === "Job created successfully") {
@@ -143,29 +161,35 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 
           {/* Sección para seleccionar ubicación */}
           <Text style={styles.label}>Selecciona ubicación en el mapa</Text>
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: location ? location.latitude : -31.4201,
-              longitude: location ? location.longitude : -64.1811,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            }}
-            onPress={handleMapPress}
-          >
-            {location && (
-              <Marker
-                coordinate={location}
-                draggable
-                onDragEnd={handleMarkerDragEnd}
+          <ErrorBoundary>
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: location ? location.latitude : -31.4201,
+                longitude: location ? location.longitude : -64.1811,
+                latitudeDelta: 0.0922,
+                longitudeDelta: 0.0421,
+              }}
+              onPress={handleMapPress}
+              onMapReady={() => {
+                setIsMapReady(true);
+                console.log('Mapa listo')
+              }}
+            >
+              {location && isMapReady && (
+                <Marker
+                  coordinate={location}
+                  draggable
+                  onDragEnd={handleMarkerDragEnd}
+                />
+              )}
+              <UrlTile
+                urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                maximumZ={19}
+                flipY={false}
               />
-            )}
-            <UrlTile
-              urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              maximumZ={19}
-              flipY={false}
-            />
-          </MapView>
+            </MapView>
+          </ErrorBoundary>
 
           {/* Sección de selección de Tags */}
           <Text style={styles.label}>Selecciona etiquetas:</Text>

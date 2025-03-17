@@ -1,3 +1,4 @@
+// JobSearchFilters.tsx
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -14,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
 import * as Location from 'expo-location';
+import ErrorBoundary from '@/components/ErrorBoundary'; // Ajusta la ruta según la estructura de tu proyecto
 
 export interface FilterParams {
     searchTitle: string;
@@ -28,7 +30,7 @@ interface JobSearchFiltersProps {
 
 const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     const { tags: availableTags } = useAuth();
-
+    const [isMapReady, setIsMapReady] = useState(false);
     const [searchTitle, setSearchTitle] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -171,33 +173,38 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                             {/* Sección de Ubicación */}
                             <Text style={styles.label}>Ubicación:</Text>
                             <View style={styles.mapContainer}>
-                                <MapView
-                                    style={styles.map}
-                                    initialRegion={{
-                                        latitude: location ? location.latitude : -31.4201,
-                                        longitude: location ? location.longitude : -64.1811,
-                                        latitudeDelta: 0.05,
-                                        longitudeDelta: 0.05,
-                                    }}
-                                    onPress={handleMapPress}
-                                >
-                                    {location && <Marker coordinate={location} />}
-                                    {location && (
-                                        <Circle
-                                            center={location}
-                                            radius={radius}
-                                            strokeColor="rgba(3, 1, 6, 0.5)"
-                                            fillColor="rgba(18, 7, 30, 0.2)"
-                                            strokeWidth={2}
+                                <ErrorBoundary>
+                                    <MapView
+                                        style={styles.map}
+                                        initialRegion={{
+                                            latitude: location ? location.latitude : -31.4201,
+                                            longitude: location ? location.longitude : -64.1811,
+                                            latitudeDelta: 0.05,
+                                            longitudeDelta: 0.05,
+                                        }}
+                                        onPress={handleMapPress}
+                                        onMapReady={() => {
+                                            setIsMapReady(true);
+                                            console.log('Mapa listo');
+                                        }}
+                                    >
+                                        {location && isMapReady && <Marker coordinate={location} />}
+                                        {location && isMapReady && (
+                                            <Circle
+                                                center={location}
+                                                radius={radius}
+                                                strokeColor="rgba(3, 1, 6, 0.5)"
+                                                fillColor="rgba(18, 7, 30, 0.2)"
+                                                strokeWidth={2}
+                                            />
+                                        )}
+                                        <UrlTile
+                                            urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                            maximumZ={19}
+                                            flipY={false}
                                         />
-                                    )}
-                                    {/* Agregamos UrlTile para usar OpenStreetMap */}
-                                    <UrlTile
-                                        urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                                        maximumZ={19}
-                                        flipY={false}
-                                    />
-                                </MapView>
+                                    </MapView>
+                                </ErrorBoundary>
                             </View>
 
                             {/* Sección de Alcance */}

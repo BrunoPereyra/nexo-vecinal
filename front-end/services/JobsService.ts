@@ -247,8 +247,6 @@ export const getJobsByFilters = async (filters: {
     radius: number;
 }, token: string) => {
     try {
-        console.log(API);
-
         const res = await fetch(`${API}/job/get-jobsBy-filters`, {
             method: 'POST',
             headers: {
