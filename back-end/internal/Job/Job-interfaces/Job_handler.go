@@ -231,7 +231,6 @@ func (j *JobHandler) ProvideWorkerFeedback(c *fiber.Ctx) error {
 	})
 }
 func (j *JobHandler) GetJobsByFilters(c *fiber.Ctx) error {
-	// Ejemplo: se reciben los filtros desde el body en formato JSON.
 	var reqFilyer jobdomain.FindJobsByTagsAndLocation
 	if err := c.BodyParser(&reqFilyer); err != nil {
 

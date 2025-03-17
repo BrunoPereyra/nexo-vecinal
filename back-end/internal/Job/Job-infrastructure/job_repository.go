@@ -495,7 +495,6 @@ func (j *JobRepository) UpdateJobPaymentStatus(jobID primitive.ObjectID, status 
 
 func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-
 	// Convertir el radio de metros a radianes (radio terrestre ≈ 6,378,100 metros)
 	radiusInRadians := jobFilter.RadiusInMeters / 6378100.0
 
