@@ -18,6 +18,7 @@ import {
     SupportMessage,
     GetSupportAgent,
 } from "@/services/supportChat";
+import { MaterialIcons } from '@expo/vector-icons';
 
 // Interfaz para el usuario
 export interface User {
@@ -151,7 +152,8 @@ const SupportChat: React.FC<SupportChatProps> = ({
     };
 
     return (
-        <Modal visible={visible} transparent animationType="slide">
+        <Modal visible={visible} transparent animationType="slide" style={[styles.modalContent, { minHeight: "80%", maxHeight: "80%" }]}
+        >
             <View style={styles.modalContainer}>
                 <View style={[styles.modalContent, { maxHeight: "80%" }]}>
                     <View style={styles.modalHeader}>
@@ -165,20 +167,27 @@ const SupportChat: React.FC<SupportChatProps> = ({
                             {supportAgent ? supportAgent.NameUser : "Soporte"}
                         </Text>
                         <TouchableOpacity onPress={onClose}>
-                            <Text style={styles.modalClose}>Cerrar</Text>
+                            <MaterialIcons name="close" size={28} color="#03DAC5" />
                         </TouchableOpacity>
+
                     </View>
-                    {loadingSupport ? (
-                        <ActivityIndicator size="large" color="#03DAC5" />
-                    ) : (
-                        <FlatList
-                            ref={flatListRef}
-                            data={supportMessages}
-                            renderItem={renderMessage}
-                            contentContainerStyle={{ padding: 10 }}
-                            onContentSizeChange={handleContentSizeChange}
-                        />
-                    )}
+                    <View style={styles.messageListWrapper}>
+                        {loadingSupport ? (
+                            <ActivityIndicator size="large" color="#03DAC5" />
+                        ) : (
+                            <FlatList
+                                ref={flatListRef}
+                                data={supportMessages}
+                                renderItem={renderMessage}
+                                contentContainerStyle={{
+                                    padding: 10,
+                                    flexGrow: 1,
+                                    justifyContent: supportMessages.length === 0 ? "center" : "flex-start",
+                                }}
+                                onContentSizeChange={handleContentSizeChange}
+                            />
+                        )}
+                    </View>
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={styles.input}
@@ -186,6 +195,8 @@ const SupportChat: React.FC<SupportChatProps> = ({
                             placeholderTextColor="#888"
                             value={supportNewMessage}
                             onChangeText={setSupportNewMessage}
+                            onSubmitEditing={handleSendSupportMessage} // Permite enviar con Enter
+                            blurOnSubmit={false} // Evita que el teclado se cierre automáticamente
                         />
                         <TouchableOpacity style={styles.sendButton} onPress={handleSendSupportMessage}>
                             <Text style={styles.sendButtonText}>Enviar</Text>
@@ -210,6 +221,8 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 20,
         elevation: 6,
+        height: "80%",
+
     },
     modalHeader: {
         flexDirection: "row",
@@ -279,6 +292,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: "#333",
     },
+    messageListWrapper: {
+        flex: 1, // Ocupa el espacio disponible entre el header y el formulario
+    },
+
 });
 
 export default SupportChat;

@@ -31,6 +31,7 @@ export default function EmployerJobDetail() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [actionLoading, setActionLoading] = useState<boolean>(false);
+  const [isMapReady, setIsMapReady] = useState(false);
 
   // Estados para feedback y rating (empleador)
   const [feedback, setFeedback] = useState<string>('');

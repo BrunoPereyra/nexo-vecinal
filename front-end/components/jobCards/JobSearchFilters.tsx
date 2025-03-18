@@ -202,6 +202,8 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                                             urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
                                             maximumZ={19}
                                             flipY={false}
+                                            zIndex={1}
+                                            tileSize={256}
                                         />
                                     </MapView>
                                 </ErrorBoundary>

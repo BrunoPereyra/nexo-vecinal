@@ -164,6 +164,8 @@ export default function AdminPanelScreen() {
                         placeholderTextColor="#888"
                         value={newTag}
                         onChangeText={setNewTag}
+                        autoFocus={true}
+
                     />
                     <TouchableOpacity onPress={handleAddTag} style={styles.addTagButton}>
                         <Text style={styles.addTagButtonText}>Agregar</Text>
@@ -179,10 +181,6 @@ export default function AdminPanelScreen() {
         setChatDetailVisible(true);
     };
 
-    const handleLogout = async () => {
-        await logout();
-        router.replace('/login');
-    };
 
     return (
         <View style={styles.container}>

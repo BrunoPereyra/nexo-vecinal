@@ -8,12 +8,13 @@ import {
     StyleSheet,
     TouchableOpacity
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, UrlTile } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useAuth } from '../../../context/AuthContext';
-import { GetJobDetailvisited, GetJobTokenAdmin } from '@/services/JobsService';
+import { GetJobDetailvisited, } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedbackSection } from '@/components/FeedbackSection';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export default function JobDetailVisited() {
     // Obtenemos el parámetro "id" de la URL
@@ -21,6 +22,7 @@ export default function JobDetailVisited() {
     const router = useRouter();
     const { token } = useAuth();
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [isMapReady, setIsMapReady] = useState(false);
 
     useEffect(() => {
         AsyncStorage.getItem('id').then((id) => setCurrentUserId(id));
@@ -86,29 +88,44 @@ export default function JobDetailVisited() {
                 </Text>
             )}
 
-            {/* Mapa para mostrar la ubicación */}
             {jobDetail.location && jobDetail.location.coordinates && (
                 <View style={darkStyles.mapContainer}>
-                    <MapView
-                        style={darkStyles.map}
-                        initialRegion={{
-                            latitude: jobDetail.location.coordinates[1],
-                            longitude: jobDetail.location.coordinates[0],
-                            latitudeDelta: 0.01,
-                            longitudeDelta: 0.01,
-                        }}
-                    >
-                        <Marker
-                            coordinate={{
+                    <ErrorBoundary>
+                        <MapView
+                            style={darkStyles.map}
+                            initialRegion={{
                                 latitude: jobDetail.location.coordinates[1],
                                 longitude: jobDetail.location.coordinates[0],
+                                latitudeDelta: 0.01,
+                                longitudeDelta: 0.01,
                             }}
-                            title={jobDetail.title}
-                            description={jobDetail.description}
-                        />
-                    </MapView>
+                            onMapReady={() => {
+                                setIsMapReady(true);
+                                console.log('Mapa listo');
+                            }}
+                        >
+                            {isMapReady && (
+                                <Marker
+                                    coordinate={{
+                                        latitude: jobDetail.location.coordinates[1],
+                                        longitude: jobDetail.location.coordinates[0],
+                                    }}
+                                    title={jobDetail.title}
+                                    description={jobDetail.description}
+                                />
+                            )}
+                            <UrlTile
+                                urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                maximumZ={19}
+                                flipY={false}
+                                zIndex={1}
+                                tileSize={256}
+                            />
+                        </MapView>
+                    </ErrorBoundary>
                 </View>
             )}
+
 
             {/* Sección de postulados */}
             {/* < job={jobDetail} token={token as string} /> */}

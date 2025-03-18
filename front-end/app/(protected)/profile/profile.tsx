@@ -18,8 +18,6 @@ import { Editbiografia, getUserToken } from "@/services/userService";
 import {
     getCreateJobsProfile,
     GetJobsByUserIDForEmploye,
-    GetLatestJobsForEmployer,
-    GetLatestJobsForWorker,
 } from "@/services/JobsService";
 import { ProfileAdminHeader } from "@/components/headersProfile/ProfileAdminHeader";
 import { CreateJob } from "@/components/jobCards/CreateJob";
@@ -44,6 +42,7 @@ export default function ProfileScreen() {
     const [showDropdown, setShowDropdown] = useState(false);
     const [editBioVisible, setEditBioVisible] = useState(false);
     const [biografia, setBiografia] = useState("");
+    const [loadingJobs, setloadingJobs] = useState(false);
 
     // ---------------------- Chat de Soporte ----------------------
     const [supportChatVisible, setSupportChatVisible] = useState<boolean>(false);
@@ -108,6 +107,8 @@ export default function ProfileScreen() {
         } else {
             fetchEmployer();
         }
+        setloadingJobs(true)
+
     }, [activeSection, token]);
 
     const handleLogout = async () => {
@@ -205,8 +206,8 @@ export default function ProfileScreen() {
     );
     const data = activeSection === "employer" ? employerJobs : workerJobs;
     const renderItem = ({ item }: { item: any }) => {
-
         return <JobCardProfiles item={item} activeSection={activeSection} />
+
     }
 
 
@@ -245,6 +246,19 @@ export default function ProfileScreen() {
                 ListHeaderComponent={ListHeader}
                 onEndReachedThreshold={0.5}
                 contentContainerStyle={styles.listContainer}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        {loadingJobs ?
+                            <ActivityIndicator size="large" color="#03DAC5" />
+                            :
+                            <Text style={styles.emptyText}>
+                                {activeSection === "jobFeed"
+                                    ? "Aquí aparecerán tus trabajos realizados"
+                                    : "Aquí aparecerán tus trabajos creados"}
+                            </Text>
+                        }
+                    </View>
+                }
             />
             {/* Botón de opciones en la esquina superior derecha */}
             <TouchableOpacity
@@ -582,5 +596,17 @@ const styles = StyleSheet.create({
         color: "#121212",
         fontWeight: "bold",
     },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
+    },
+    emptyText: {
+        color: "#E0E0E0",
+        fontSize: 16,
+        textAlign: "center",
+    },
+
 });
 

@@ -1,35 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { loginNameUser } from '../services/authService';
-import { savePushToken } from '../services/userService'; // o donde lo ubiques
-import { useGoogleAuth } from '../hooks/useGoogleAuth';
+import { savePushToken } from '../services/userService';
 
 export default function LoginScreen() {
   const [nameUser, setNameUser] = useState('');
   const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState(''); // Estado para manejar el error
   const { login, pushToken } = useAuth();
   const router = useRouter();
-  const { request, promptAsync, userInfo } = useGoogleAuth();
 
   const handleLogin = async () => {
     try {
-      const data = await loginNameUser(nameUser, password);
-      console.log("pushToken");
-      console.log(pushToken);
-      if (!pushToken) {
+      setErrorMessage(''); // Limpiar el mensaje de error antes de intentar iniciar sesión
 
-        alert("No se pudo obtener el token de notificaciones.");
+      const data = await loginNameUser(nameUser, password);
+      if (!pushToken) {
+        setErrorMessage('No se pudo obtener el token de notificaciones.');
         return;
       }
-      // Inicia sesión y guarda pushToken
-      await login(data.token, data._id, data.avatar, data.nameUser,);
-      // Guarda el pushToken en el backend
+
+      await login(data.token, data._id, data.avatar, data.nameUser);
       await savePushToken(data.token, pushToken);
       router.replace("/profile/Profile");
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Ocurrió un error desconocido');
+      setErrorMessage('Error al iniciar sesión. Verifica tus credenciales.');
     }
   };
 
@@ -51,6 +48,7 @@ export default function LoginScreen() {
         value={password}
         onChangeText={setPassword}
       />
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
       <Button title="Login" onPress={handleLogin} color="#03DAC5" />
       <View style={styles.buttonSpacing}>
         <Button title="Ir a Signup" onPress={() => router.push('/signup')} color="#03DAC5" />
@@ -64,4 +62,5 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, marginBottom: 20, textAlign: 'center', color: '#E0E0E0' },
   input: { height: 40, backgroundColor: '#1E1E1E', borderColor: '#03DAC5', borderWidth: 1, marginBottom: 10, paddingHorizontal: 10, color: '#E0E0E0', borderRadius: 5 },
   buttonSpacing: { marginVertical: 10 },
+  errorText: { color: '#FF5252', textAlign: 'center', marginBottom: 10 }, // Estilo para el mensaje de error
 });

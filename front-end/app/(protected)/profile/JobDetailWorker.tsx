@@ -9,19 +9,21 @@ import {
     TouchableOpacity,
     Image,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, UrlTile } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { GetJobDetailvisited, provideWorkerFeedback } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedbackSection } from '@/components/FeedbackSection';
 import { useAuth } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export default function ProfileDetailWorker() {
     // Obtenemos el parámetro "id" de la URL
     const { id: jobId } = useLocalSearchParams<{ id: string }>();
     const router = useRouter();
     const { token } = useAuth();
+    const [isMapReady, setIsMapReady] = useState(false);
 
     const [jobDetail, setJobDetail] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -148,26 +150,42 @@ export default function ProfileDetailWorker() {
                 </View>
 
                 {/* Mapa con la ubicación del trabajo */}
+                {/* Mapa con la ubicación del trabajo */}
                 {jobDetail.location && jobDetail.location.coordinates && (
                     <View style={styles.mapCard}>
-                        <MapView
-                            style={styles.map}
-                            initialRegion={{
-                                latitude: jobDetail.location.coordinates[1],
-                                longitude: jobDetail.location.coordinates[0],
-                                latitudeDelta: 0.01,
-                                longitudeDelta: 0.01,
-                            }}
-                        >
-                            <Marker
-                                coordinate={{
+                        <ErrorBoundary>
+                            <MapView
+                                style={styles.map}
+                                initialRegion={{
                                     latitude: jobDetail.location.coordinates[1],
                                     longitude: jobDetail.location.coordinates[0],
+                                    latitudeDelta: 0.01,
+                                    longitudeDelta: 0.01,
                                 }}
-                                title={jobDetail.title}
-                                description={jobDetail.description}
-                            />
-                        </MapView>
+                                onMapReady={() => {
+                                    setIsMapReady(true);
+                                    console.log('Mapa listo');
+                                }}
+                            >
+                                {isMapReady && (
+                                    <Marker
+                                        coordinate={{
+                                            latitude: jobDetail.location.coordinates[1],
+                                            longitude: jobDetail.location.coordinates[0],
+                                        }}
+                                        title={jobDetail.title}
+                                        description={jobDetail.description}
+                                    />
+                                )}
+                                <UrlTile
+                                    urlTemplate="https://a.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                    maximumZ={19}
+                                    flipY={false}
+                                    zIndex={1}
+                                    tileSize={256}
+                                />
+                            </MapView>
+                        </ErrorBoundary>
                     </View>
                 )}
 

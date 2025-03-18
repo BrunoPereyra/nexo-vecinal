@@ -15,7 +15,6 @@ const Home: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const flatListRef = useRef<FlatList<any>>(null);
 
-  // 1. Función para buscar trabajos según los filtros
   const handleSearch = async (filters: FilterParams) => {
     if (!token || !filters.location) return;
     const apiFilters = {
