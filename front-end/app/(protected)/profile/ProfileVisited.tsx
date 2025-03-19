@@ -17,8 +17,6 @@ import { getUserByid } from '@/services/userService';
 import {
     GetJobsUserIDForEmployeProfilevist,
     GetJobsUserCompleted,
-    GetLatestJobsForWorkervist,
-    GetLatestJobsForEmployervist,
 } from '@/services/JobsService';
 import { ProfileVisitedHeader } from '@/components/headersProfile/ProfileVisitedHeader';
 import { createReports } from '@/services/admin';
