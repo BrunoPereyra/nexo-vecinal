@@ -101,7 +101,6 @@ export default function JobDetailVisited() {
                             }}
                             onMapReady={() => {
                                 setIsMapReady(true);
-                                console.log('Mapa listo');
                             }}
                         >
                             {isMapReady && (
@@ -144,150 +143,157 @@ const darkStyles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        backgroundColor: '#121212'
+        backgroundColor: '#0f2027',
     },
     title: {
         fontSize: 24,
         fontWeight: 'bold',
         marginBottom: 8,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     description: {
         fontSize: 16,
         marginBottom: 8,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     detail: {
         fontSize: 16,
         marginBottom: 4,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     mapContainer: {
         height: 200,
         width: '100%',
         marginVertical: 16,
         borderRadius: 8,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        backgroundColor: '#203a43',
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     map: {
-        flex: 1
+        flex: 1,
     },
     sectionTitle: {
         fontSize: 20,
         fontWeight: 'bold',
         marginVertical: 8,
-        color: '#BB86FC'
+        color: '#03DAC5',
     },
     ratingContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10
+        marginBottom: 10,
     },
     ratingLabel: {
         fontSize: 16,
         marginRight: 8,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     star: {
         fontSize: 24,
-        marginHorizontal: 2
+        marginHorizontal: 2,
     },
     selectedStar: {
-        color: '#F1C40F'
+        color: '#03DAC5',
     },
     unselectedStar: {
-        color: '#444'
+        color: '#2c5364',
     },
     feedbackContainer: {
         marginTop: 16,
         padding: 12,
-        backgroundColor: '#1E1E1E',
-        borderRadius: 8
+        backgroundColor: '#203a43',
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     feedbackInput: {
         borderWidth: 1,
-        borderColor: '#444',
+        borderColor: '#2c5364',
         borderRadius: 5,
         padding: 8,
         minHeight: 60,
         marginBottom: 10,
-        backgroundColor: '#121212',
-        color: '#E0E0E0'
+        backgroundColor: '#0f2027',
+        color: '#E0E0E0',
     },
     feedbackButton: {
         backgroundColor: '#03DAC5',
         paddingVertical: 10,
         borderRadius: 5,
-        alignItems: 'center'
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     feedbackButtonText: {
-        color: '#121212',
+        fontSize: 16,
         fontWeight: 'bold',
-        fontSize: 16
+        color: '#0f2027',
     },
     existingFeedbackContainer: {
         marginTop: 8,
         padding: 8,
-        backgroundColor: '#121212',
+        backgroundColor: '#203a43',
         borderRadius: 5,
         borderWidth: 1,
-        borderColor: '#BB86FC',
-        marginBottom: 16
+        borderColor: '#2c5364',
+        marginBottom: 16,
     },
     feedbackTitle: {
         fontSize: 18,
         fontWeight: 'bold',
         marginBottom: 4,
-        color: '#BB86FC'
+        color: '#03DAC5',
     },
     feedbackText: {
         fontSize: 16,
         marginBottom: 4,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     candidateCard: {
         padding: 8,
         borderWidth: 1,
-        borderColor: '#444',
+        borderColor: '#2c5364',
         borderRadius: 4,
         marginBottom: 8,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#1E1E1E'
+        backgroundColor: '#203a43',
     },
     candidateName: {
         fontSize: 16,
-        color: '#E0E0E0'
+        color: '#E0E0E0',
     },
     assignedCandidateCard: {
         padding: 12,
         borderWidth: 1,
-        borderColor: '#BB86FC',
+        borderColor: '#2c5364',
         borderRadius: 4,
         marginBottom: 8,
-        backgroundColor: '#1E1E1E'
+        backgroundColor: '#203a43',
     },
     completeButton: {
-        backgroundColor: '#BB86FC',
+        backgroundColor: '#03DAC5',
         paddingVertical: 10,
         borderRadius: 5,
         marginTop: 16,
-        alignItems: 'center'
+        alignItems: 'center',
     },
     completeButtonText: {
-        color: '#121212',
+        color: '#0f2027',
         fontWeight: 'bold',
-        fontSize: 16
+        fontSize: 16,
     },
     errorText: {
         color: '#CF6679',
-        marginBottom: 16
+        marginBottom: 16,
     },
     center: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#121212'
-    }
+        backgroundColor: '#0f2027',
+    },
 });

@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Alert, ActivityIndicator } from 'react-native';
+import {
+    View,
+    Text,
+    StyleSheet,
+    ScrollView,
+    TouchableOpacity,
+    Linking,
+    Alert,
+    ActivityIndicator
+} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getCourseById } from '@/services/cursos';
@@ -18,7 +27,7 @@ interface Course {
 }
 
 const SocialLinks = ({ socials }: { socials: Course['socials'] }) => {
-    const handlePress = async (url: any) => {
+    const handlePress = async (url: string) => {
         const supported = await Linking.canOpenURL(url);
         if (supported) {
             await Linking.openURL(url);
@@ -30,23 +39,24 @@ const SocialLinks = ({ socials }: { socials: Course['socials'] }) => {
     return (
         <View style={styles.socialContainer}>
             {socials?.instagram && (
-                <TouchableOpacity onPress={() => handlePress(socials.instagram)}>
-                    <FontAwesome name="instagram" size={28} color="#E1306C" style={styles.icon} />
+                <TouchableOpacity onPress={() => handlePress(socials.instagram!)}>
+                    <FontAwesome name="instagram" size={28} color="#03DAC5" style={styles.icon} />
                 </TouchableOpacity>
+
             )}
             {socials?.youtube && (
-                <TouchableOpacity onPress={() => handlePress(socials.youtube)}>
-                    <FontAwesome name="youtube-play" size={28} color="#FF0000" style={styles.icon} />
+                <TouchableOpacity onPress={() => handlePress(socials.youtube!)}>
+                    <FontAwesome name="youtube-play" size={28} color="#03DAC5" style={styles.icon} />
                 </TouchableOpacity>
             )}
             {socials?.website && (
-                <TouchableOpacity onPress={() => handlePress(socials.website)}>
+                <TouchableOpacity onPress={() => handlePress(socials.website!)}>
                     <MaterialCommunityIcons name="web" size={28} color="#03DAC5" style={styles.icon} />
                 </TouchableOpacity>
             )}
             {socials?.twitter && (
-                <TouchableOpacity onPress={() => handlePress(socials.twitter)}>
-                    <FontAwesome name="twitter" size={28} color="#1DA1F2" style={styles.icon} />
+                <TouchableOpacity onPress={() => handlePress(socials.twitter!)}>
+                    <FontAwesome name="twitter" size={28} color="#03DAC5" style={styles.icon} />
                 </TouchableOpacity>
             )}
         </View>
@@ -63,7 +73,6 @@ export default function CursoDetailScreen() {
         if (id) {
             getCourseById(id)
                 .then((data: Course) => {
-
                     setCourse(data);
                 })
                 .catch((error) => {
@@ -91,9 +100,11 @@ export default function CursoDetailScreen() {
 
     return (
         <ScrollView style={styles.container}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                <Text style={styles.backButtonText}>← Volver</Text>
+            {/* Botón de volver rediseñado */}
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <FontAwesome name="arrow-left" size={20} color="#03DAC5" />
             </TouchableOpacity>
+
             <Text style={styles.title}>{course.title}</Text>
             <Text style={styles.description}>{course.description}</Text>
             <View style={styles.contentContainer}>
@@ -108,15 +119,19 @@ export default function CursoDetailScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
         padding: 16,
     },
     backButton: {
+        width: 40,
+        height: 40,
+        backgroundColor: '#203a43',
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#2c5364',
         marginBottom: 16,
-    },
-    backButtonText: {
-        fontSize: 16,
-        color: '#03DAC5',
     },
     title: {
         fontSize: 28,
@@ -130,10 +145,12 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     contentContainer: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#203a43',
         borderRadius: 8,
         padding: 16,
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     contentTitle: {
         fontSize: 20,

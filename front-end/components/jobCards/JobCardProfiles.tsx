@@ -8,11 +8,14 @@ interface JobCardProfilesProps {
     activeSection: "employer" | "jobFeed";
 }
 
-export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({ item, activeSection }) => {
+export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({
+    item,
+    activeSection,
+}) => {
     const pathname = usePathname();
     const router = useRouter();
 
-    // Permitir navegación solo si estamos dentro de /protected/profile/
+    // Permitir navegación solo si estamos dentro de /profile/
     const isInProtectedProfile = pathname.startsWith("/profile/");
 
     const feedback = activeSection === "employer" ? item.workerFeedback : item.employerFeedback;
@@ -20,7 +23,7 @@ export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({ item, activeSe
     const comment = feedback?.comment;
 
     const handlePress = () => {
-        if (!isInProtectedProfile) return; // Bloquear la navegación si no está en la ruta permitida
+        if (!isInProtectedProfile) return;
 
         if (activeSection !== "employer") {
             if (isInProtectedProfile) {
@@ -40,7 +43,9 @@ export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({ item, activeSe
 
             {feedback && (
                 <View style={styles.feedbackContainer}>
-                    <Text style={styles.feedbackText}>Comentario: {comment || "Sin comentarios"}</Text>
+                    <Text style={styles.feedbackText}>
+                        Comentario: {comment || "Sin comentarios"}
+                    </Text>
                     <View style={styles.starContainer}>
                         {[1, 2, 3, 4, 5].map((star, index) => (
                             <Ionicons
@@ -59,10 +64,11 @@ export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({ item, activeSe
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: "#1E1E1E",
+        backgroundColor: "#203a43",
         padding: 16,
         borderRadius: 12,
         marginVertical: 8,
+        // Sombra suave
         elevation: 3,
         shadowColor: "#000",
         shadowOpacity: 0.2,
@@ -82,7 +88,7 @@ const styles = StyleSheet.create({
     feedbackContainer: {
         marginTop: 8,
         padding: 10,
-        backgroundColor: "#2E2E2E",
+        backgroundColor: "#2c5364",
         borderRadius: 8,
     },
     feedbackText: {

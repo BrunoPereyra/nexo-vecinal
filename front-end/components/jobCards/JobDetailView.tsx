@@ -13,6 +13,7 @@ import {
 import { applyToJob } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
+
 export interface JobUserDetails {
     avatar: string;
     id: string;
@@ -39,7 +40,6 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
     const [proposal, setProposal] = useState('');
     const [price, setPrice] = useState('');
     const [showInputs, setShowInputs] = useState(false);
-    // Estado para controlar el modal del perfil
     const [showProfileModal, setShowProfileModal] = useState(false);
 
     const handleApply = async () => {
@@ -67,7 +67,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            {/* Al tocar el área del empleador se abre el modal del perfil en lugar de enrutar */}
+            {/* Empleador: al tocar, abre modal del perfil */}
             {job.userDetails && (
                 <TouchableOpacity
                     style={styles.employerContainer}
@@ -148,36 +148,35 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                     <VisitedProfileModal
                         visible={showProfileModal}
                         onClose={() => setShowProfileModal(false)}
-                        userId={job.userDetails.id} // Se pasa el id del usuario
+                        userId={job.userDetails.id}
                     />
                 </View>
             </Modal>
-
         </ScrollView>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        padding: 6,
-        backgroundColor: '#121212',
+        padding: 12,
+        backgroundColor: "#0f2027",
         flexGrow: 1,
     },
     employerContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginBottom: 16,
         padding: 12,
-        backgroundColor: '#1E1E1E',
+        backgroundColor: "#203a43",
         borderRadius: 8,
     },
     avatarPlaceholder: {
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#03DAC5',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "#03DAC5",
+        justifyContent: "center",
+        alignItems: "center",
         marginRight: 12,
     },
     avatar: {
@@ -186,55 +185,58 @@ const styles = StyleSheet.create({
         borderRadius: 30,
     },
     avatarText: {
-        color: '#121212',
+        color: "#0f2027",
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
     employerName: {
         fontSize: 18,
-        color: '#E0E0E0',
-        fontWeight: 'bold',
+        color: "#E0E0E0",
+        fontWeight: "bold",
     },
     card: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: "#203a43",
         borderRadius: 10,
         padding: 16,
         marginBottom: 20,
         elevation: 3,
+        shadowColor: "#000",
+        shadowOpacity: 0.2,
+        shadowOffset: { width: 0, height: 2 },
     },
     title: {
         fontSize: 24,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
+        fontWeight: "bold",
+        color: "#E0E0E0",
         marginBottom: 10,
     },
     description: {
         fontSize: 16,
-        color: '#B0B0B0',
+        color: "#B0B0B0",
         marginBottom: 20,
         lineHeight: 22,
     },
     infoRow: {
-        flexDirection: 'row',
+        flexDirection: "row",
         marginBottom: 10,
     },
     label: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#E0E0E0',
+        fontWeight: "600",
+        color: "#E0E0E0",
         marginRight: 8,
     },
     value: {
         fontSize: 16,
-        color: '#B0B0B0',
+        color: "#B0B0B0",
     },
     tagsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
+        flexDirection: "row",
+        flexWrap: "wrap",
         marginTop: 8,
     },
     tag: {
-        backgroundColor: '#333',
+        backgroundColor: "#2c5364",
         borderRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -243,72 +245,46 @@ const styles = StyleSheet.create({
     },
     tagText: {
         fontSize: 12,
-        color: '#E0E0E0',
+        color: "#E0E0E0",
     },
     applyForm: {
         marginBottom: 20,
     },
     input: {
         height: 45,
-        borderColor: '#03DAC5',
+        borderColor: "#03DAC5",
         borderWidth: 1,
         borderRadius: 8,
         marginBottom: 12,
         paddingHorizontal: 12,
-        color: '#E0E0E0',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: "#203a43",
+        color: "#E0E0E0",
     },
     applyButton: {
-        backgroundColor: '#03DAC5',
+        backgroundColor: "#03DAC5",
         paddingVertical: 14,
         borderRadius: 8,
-        alignItems: 'center',
+        alignItems: "center",
         marginBottom: 20,
     },
     applyButtonText: {
-        color: '#121212',
+        color: "#0f2027",
         fontSize: 16,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
     closeButton: {
-        alignItems: 'center',
+        alignItems: "center",
         padding: 10,
     },
     closeButtonText: {
-        color: '#03DAC5',
+        color: "#03DAC5",
         fontSize: 16,
     },
     profileModalContainer: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    profileModalContent: {
-        backgroundColor: '#121212',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
-    },
-    closeProfileButton: {
-        alignSelf: 'flex-end',
-    },
-    closeProfileText: {
-        color: '#03DAC5',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    profileAvatar: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
-        marginVertical: 10,
-    },
-    profileName: {
-        fontSize: 20,
-        color: '#E0E0E0',
-        fontWeight: 'bold',
+        backgroundColor: "rgba(0,0,0,0)",
+        justifyContent: "center",
+        alignItems: "center",
     },
 });
 

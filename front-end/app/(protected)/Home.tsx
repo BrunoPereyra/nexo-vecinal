@@ -1,11 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Modal } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getJobsByFilters } from '@/services/JobsService';
-import { useAuth } from '@/context/AuthContext';
-import JobCard from '@/components/JobCardHome';
-import JobSearchFilters, { FilterParams } from '@/components/jobCards/JobSearchFilters';
-import JobDetailView, { Job } from '@/components/jobCards/JobDetailView';
+import React, { useState, useRef, useEffect } from "react";
+import { View, FlatList, StyleSheet, Modal } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getJobsByFilters } from "@/services/JobsService";
+import { useAuth } from "@/context/AuthContext";
+import JobCard from "@/components/JobCardHome";
+import JobSearchFilters, { FilterParams } from "@/components/jobCards/JobSearchFilters";
+import JobDetailView, { Job } from "@/components/jobCards/JobDetailView";
 
 let savedScrollOffset = 0;
 
@@ -28,59 +28,57 @@ const Home: React.FC = () => {
       const data = await getJobsByFilters(apiFilters, token);
       setJobs(data || []);
     } catch (error) {
-      console.error('Error fetching jobs:', error);
+      console.error("Error fetching jobs:", error);
     }
   };
 
-  // 2. Efecto para restaurar la posición del scroll
+  // Restaurar la posición del scroll (opcional)
   useEffect(() => {
     if (flatListRef.current && savedScrollOffset > 0) {
-      flatListRef.current.scrollToOffset({ offset: savedScrollOffset, animated: false });
+      flatListRef.current.scrollToOffset({
+        offset: savedScrollOffset,
+        animated: false,
+      });
     }
   }, []);
 
-  // 3. Efecto para cargar y usar los filtros guardados
+  // Cargar y usar los filtros guardados
   useEffect(() => {
     const loadSavedFilters = async () => {
       try {
+        const cachedTitle = await AsyncStorage.getItem("searchTitle");
+        const cachedTags = await AsyncStorage.getItem("selectedTags");
+        const cachedLocation = await AsyncStorage.getItem("location");
+        const cachedRadius = await AsyncStorage.getItem("radius");
 
-        // Recuperar valores desde AsyncStorage
-        const cachedTitle = await AsyncStorage.getItem('searchTitle');
-        const cachedTags = await AsyncStorage.getItem('selectedTags');
-        const cachedLocation = await AsyncStorage.getItem('location');
-        const cachedRadius = await AsyncStorage.getItem('radius');
-
-        // Convertir a formato JSON si no son nulos
         const parsedTags = cachedTags ? JSON.parse(cachedTags) : [];
         const parsedLocation = cachedLocation ? JSON.parse(cachedLocation) : null;
         const parsedRadius = cachedRadius ? JSON.parse(cachedRadius) : null;
 
-        // Construir el objeto de filtros
         const filters: FilterParams = {
-          searchTitle: cachedTitle || '',
+          searchTitle: cachedTitle || "",
           selectedTags: parsedTags,
           location: parsedLocation,
-          radius: parsedRadius || 10, // Valor por defecto si no hay radio guardado
+          radius: parsedRadius || 10,
         };
 
-
-        // Ejecutar búsqueda si hay una ubicación guardada
         if (filters.location) {
           await handleSearch(filters);
         }
       } catch (error) {
-        console.error('Error cargando los filtros guardados:', error);
+        console.error("Error cargando los filtros guardados:", error);
       }
     };
 
     loadSavedFilters();
   }, [token]);
 
-
   return (
     <View style={styles.container}>
-      {/* Componente de filtros */}
-      <JobSearchFilters onSearch={handleSearch} />
+      {/* Contenedor de filtros */}
+      <View style={styles.filterContainer}>
+        <JobSearchFilters onSearch={handleSearch} />
+      </View>
 
       {/* Lista de trabajos */}
       <FlatList
@@ -104,8 +102,21 @@ const Home: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#121212', paddingHorizontal: 16 },
-  listContainer: { paddingBottom: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: "#0f2027", // Fondo principal
+  },
+  filterContainer: {
+    backgroundColor: "#203a43", // Contenedor secundario
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderColor: "#2c5364", // Borde para separar la sección
+  },
+  listContainer: {
+    padding: 16,
+    paddingBottom: 16,
+  },
 });
 
 export default Home;

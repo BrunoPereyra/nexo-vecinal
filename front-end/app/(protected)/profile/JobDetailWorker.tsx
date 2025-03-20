@@ -150,7 +150,6 @@ export default function ProfileDetailWorker() {
                 </View>
 
                 {/* Mapa con la ubicación del trabajo */}
-                {/* Mapa con la ubicación del trabajo */}
                 {jobDetail.location && jobDetail.location.coordinates && (
                     <View style={styles.mapCard}>
                         <ErrorBoundary>
@@ -164,7 +163,6 @@ export default function ProfileDetailWorker() {
                                 }}
                                 onMapReady={() => {
                                     setIsMapReady(true);
-                                    console.log('Mapa listo');
                                 }}
                             >
                                 {isMapReady && (
@@ -217,7 +215,7 @@ export default function ProfileDetailWorker() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
     },
     contentContainer: {
         padding: 6,
@@ -225,7 +223,7 @@ const styles = StyleSheet.create({
     },
     center: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -237,10 +235,12 @@ const styles = StyleSheet.create({
     employerCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#203a43',
         padding: 12,
         borderRadius: 10,
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#2c5364',
         shadowColor: '#000',
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#03DAC5',
+        backgroundColor: '#203a43',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 12,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
         borderRadius: 30,
     },
     avatarPlaceholderText: {
-        color: '#121212',
+        color: '#0f2027',
         fontSize: 24,
         fontWeight: 'bold',
     },
@@ -272,10 +272,12 @@ const styles = StyleSheet.create({
     },
     // Card de Detalle del Trabajo
     jobCard: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#203a43',
         borderRadius: 10,
         padding: 16,
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#2c5364',
         shadowColor: '#000',
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
@@ -312,6 +314,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         overflow: 'hidden',
         marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#2c5364',
         shadowColor: '#000',
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
@@ -325,12 +329,14 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 30,
         right: 20,
-        backgroundColor: '#03DAC5',
+        backgroundColor: '#203a43',
         width: 60,
         height: 60,
         borderRadius: 30,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#2c5364',
         elevation: 5,
         shadowColor: '#000',
         shadowOpacity: 0.3,
@@ -338,4 +344,3 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
     },
 });
-

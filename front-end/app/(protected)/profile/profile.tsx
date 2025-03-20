@@ -1,4 +1,3 @@
-// ProfileScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
     View,
@@ -11,6 +10,7 @@ import {
     Alert,
     Modal,
     TextInput,
+    Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -22,9 +22,11 @@ import {
 import { ProfileAdminHeader } from "@/components/headersProfile/ProfileAdminHeader";
 import { CreateJob } from "@/components/jobCards/CreateJob";
 import { useAuth } from "@/context/AuthContext";
-import SupportChat from '@/components/chatsupport/SupportChat';
+import SupportChat from "@/components/chatsupport/SupportChat";
 import { JobCardProfiles } from "@/components/jobCards/JobCardProfiles";
+import { MaterialIcons } from "@expo/vector-icons";
 
+const windowWidth = Dimensions.get("window").width;
 
 export default function ProfileScreen() {
     const { token, logout } = useAuth();
@@ -35,19 +37,20 @@ export default function ProfileScreen() {
     const [error, setError] = useState<string>("");
     const [workerJobs, setWorkerJobs] = useState<any[]>([]);
     const [employerJobs, setEmployerJobs] = useState<any[]>([]);
-    const [activeSection, setActiveSection] = useState<"employer" | "jobFeed">("jobFeed");
+    const [activeSection, setActiveSection] = useState<"employer" | "jobFeed">(
+        "jobFeed"
+    );
     const [createJobVisible, setCreateJobVisible] = useState(false);
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
     const [currentPageJobFeed, setCurrentPageJobFeed] = useState(1);
     const [showDropdown, setShowDropdown] = useState(false);
     const [editBioVisible, setEditBioVisible] = useState(false);
     const [biografia, setBiografia] = useState("");
-    const [loadingJobs, setloadingJobs] = useState(false);
+    const [loadingJobs, setLoadingJobs] = useState(false);
 
     // ---------------------- Chat de Soporte ----------------------
     const [supportChatVisible, setSupportChatVisible] = useState<boolean>(false);
-    // -----------------------------------------------------------
-
+    // -------------------------------------------------------------
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -58,7 +61,6 @@ export default function ProfileScreen() {
             }
             try {
                 const data = await getUserToken(token);
-
                 if (data?.data) {
                     setUserProfile(data.data);
                     setBiografia(data.data.Biography || "");
@@ -94,7 +96,7 @@ export default function ProfileScreen() {
             try {
                 const feedData = await getCreateJobsProfile(1, token);
                 setEmployerJobs(feedData?.jobs || []);
-                setCurrentPageJobFeed(1);
+                setCurrentPageEmployer(1);
             } catch (error) {
                 setEmployerJobs([]);
                 console.error(error);
@@ -107,8 +109,7 @@ export default function ProfileScreen() {
         } else {
             fetchEmployer();
         }
-        setloadingJobs(true)
-
+        setLoadingJobs(true);
     }, [activeSection, token]);
 
     const handleLogout = async () => {
@@ -168,16 +169,27 @@ export default function ProfileScreen() {
         }
     };
 
-
+    // Encabezado de la lista (header) con más espacio entre el header y los toggles
     const ListHeader = () => (
         <View style={styles.headerContainer}>
             {userProfile && <ProfileAdminHeader user={userProfile} />}
-
+            {/* Más espacio para separar la biografía de los toggles */}
+            <View style={{ marginTop: 10 }} />
             <View style={styles.toggleContainer}>
+                {/* Toggle "Trabajos realizados" */}
                 <TouchableOpacity
-                    style={[styles.toggleButton, activeSection === "jobFeed" && styles.activeToggle]}
+                    style={[
+                        styles.toggleButton,
+                        activeSection === "jobFeed" && styles.activeToggle,
+                    ]}
                     onPress={() => setActiveSection("jobFeed")}
                 >
+                    <MaterialIcons
+                        name="done-all"
+                        size={20}
+                        color={activeSection === "jobFeed" ? "#121212" : "#E0E0E0"}
+                        style={styles.toggleIcon}
+                    />
                     <Text
                         style={[
                             styles.toggleButtonText,
@@ -187,10 +199,21 @@ export default function ProfileScreen() {
                         Trabajos realizados
                     </Text>
                 </TouchableOpacity>
+
+                {/* Toggle "Trabajos creados" */}
                 <TouchableOpacity
-                    style={[styles.toggleButton, activeSection === "employer" && styles.activeToggle]}
+                    style={[
+                        styles.toggleButton,
+                        activeSection === "employer" && styles.activeToggle,
+                    ]}
                     onPress={() => setActiveSection("employer")}
                 >
+                    <MaterialIcons
+                        name="work-outline"
+                        size={20}
+                        color={activeSection === "employer" ? "#121212" : "#E0E0E0"}
+                        style={styles.toggleIcon}
+                    />
                     <Text
                         style={[
                             styles.toggleButtonText,
@@ -202,16 +225,16 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
             </View>
 
+            {/* Un poco más de espacio antes de la lista de trabajos */}
+            <View style={{ marginBottom: 8 }} />
         </View>
     );
+
     const data = activeSection === "employer" ? employerJobs : workerJobs;
+
     const renderItem = ({ item }: { item: any }) => {
-        return <JobCardProfiles item={item} activeSection={activeSection} />
-
-    }
-
-
-
+        return <JobCardProfiles item={item} activeSection={activeSection} />;
+    };
 
     if (loading) {
         return (
@@ -229,6 +252,7 @@ export default function ProfileScreen() {
             </View>
         );
     }
+
     if (loading || !userProfile) {
         return (
             <View style={styles.center}>
@@ -236,43 +260,53 @@ export default function ProfileScreen() {
             </View>
         );
     }
+
     return (
-        <View style={{ flex: 1, backgroundColor: "#121212" }}>
+        <View style={styles.container}>
             <FlatList
                 data={data}
                 keyExtractor={(item) => item?.id.toString()}
                 renderItem={renderItem}
-                onEndReached={activeSection === "employer" ? loadMoreEmployerJobs : loadMoreJobFeed}
-                ListHeaderComponent={ListHeader}
+                onEndReached={
+                    activeSection === "employer" ? loadMoreEmployerJobs : loadMoreJobFeed
+                }
                 onEndReachedThreshold={0.5}
+                ListHeaderComponent={ListHeader}
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        {loadingJobs ?
+                        {loadingJobs ? (
                             <ActivityIndicator size="large" color="#03DAC5" />
-                            :
+                        ) : (
                             <Text style={styles.emptyText}>
                                 {activeSection === "jobFeed"
                                     ? "Aquí aparecerán tus trabajos realizados"
                                     : "Aquí aparecerán tus trabajos creados"}
                             </Text>
-                        }
+                        )}
                     </View>
                 }
             />
+
             {/* Botón de opciones en la esquina superior derecha */}
             <TouchableOpacity
                 style={styles.optionsButton}
                 onPress={() => setShowDropdown(!showDropdown)}
             >
-                <Text style={styles.optionsButtonText}>⋮</Text>
+                <MaterialIcons name="more-vert" size={24} color="#E0E0E0" />
             </TouchableOpacity>
             {showDropdown && (
                 <View style={styles.dropdown}>
-                    <TouchableOpacity onPress={HandleEditbiografia} style={styles.dropdownButton}>
+                    <TouchableOpacity
+                        onPress={HandleEditbiografia}
+                        style={styles.dropdownButton}
+                    >
                         <Text style={styles.dropdownButtonText}>Cambiar descripción</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={handleSubscribe} style={styles.dropdownButton}>
+                    <TouchableOpacity
+                        onPress={handleSubscribe}
+                        style={styles.dropdownButton}
+                    >
                         <Text style={styles.dropdownButtonText}>Subscribirse</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -284,15 +318,14 @@ export default function ProfileScreen() {
                     >
                         <Text style={styles.dropdownButtonText}>Chat de Soporte</Text>
                     </TouchableOpacity>
-                    {
-                        userProfile?.PanelAdminNexoVecinal.Level > 0 &&
+                    {userProfile?.PanelAdminNexoVecinal?.Level > 0 && (
                         <TouchableOpacity
                             onPress={() => router.push("/profile/adminPanel")}
                             style={styles.dropdownButton}
                         >
                             <Text style={styles.dropdownButtonText}>Administrador</Text>
                         </TouchableOpacity>
-                    }
+                    )}
                     <TouchableOpacity
                         onPress={handleLogoutOption}
                         style={[styles.dropdownButton, styles.dropdownLogout]}
@@ -302,6 +335,7 @@ export default function ProfileScreen() {
                 </View>
             )}
 
+            {/* Modal para editar biografía */}
             <Modal visible={editBioVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
@@ -320,42 +354,59 @@ export default function ProfileScreen() {
                                 onPress={() => setEditBioVisible(false)}
                                 color="#CF6679"
                             />
-                            <Button title="Guardar" onPress={handleSaveBiografia} color="#03DAC5" />
+                            <Button
+                                title="Guardar"
+                                onPress={handleSaveBiografia}
+                                color="#03DAC5"
+                            />
                         </View>
                     </View>
                 </View>
             </Modal>
 
-            {/* Modal de Chat de Soporte mediante el componente modular */}
-            {
-                userProfile &&
+            {/* Modal de Chat de Soporte */}
+            {userProfile && (
                 <SupportChat
                     visible={supportChatVisible}
                     onClose={() => setSupportChatVisible(false)}
                     token={token as string}
                     userProfile={userProfile}
                 />
-            }
-            {/* Floating Action Button para "Crear Trabajo" */}
-            <TouchableOpacity style={styles.fab} onPress={() => setCreateJobVisible(true)}>
-                <Text style={styles.fabText}>+</Text>
+            )}
+
+            {/* FAB para crear trabajo */}
+            <TouchableOpacity
+                style={styles.fab}
+                onPress={() => setCreateJobVisible(true)}
+            >
+                <MaterialIcons name="add" size={32} color="#121212" />
             </TouchableOpacity>
+
             {/* Modal de creación de trabajo */}
-            <CreateJob visible={createJobVisible} onClose={() => setCreateJobVisible(false)} />
+            <CreateJob
+                visible={createJobVisible}
+                onClose={() => setCreateJobVisible(false)}
+            />
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    // 1. Unificar la paleta en el contenedor principal
+    container: {
+        flex: 1,
+        backgroundColor: "#0f2027",
+    },
+    // 2. Agregar más espacios y separaciones
     listContainer: {
-        padding: 6,
-        backgroundColor: "#121212",
+        paddingHorizontal: 10,
+        paddingBottom: 16,
     },
     center: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#121212",
+        backgroundColor: "#0f2027",
     },
     errorText: {
         color: "#CF6679",
@@ -363,78 +414,61 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     headerContainer: {
-        marginBottom: 16,
         alignItems: "center",
-    },
-    ratingContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#1E1E1E",
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        borderRadius: 20,
-        marginBottom: 16,
-    },
-    starIcon: {
-        marginHorizontal: 2,
-    },
-    ratingText: {
-        fontSize: 16,
-        color: "#03DAC5",
-        marginLeft: 8,
-        fontWeight: "600",
+        marginBottom: 8,
     },
     toggleContainer: {
         flexDirection: "row",
         justifyContent: "space-evenly",
         marginVertical: 12,
+        marginHorizontal: 8,
     },
     toggleButton: {
-        paddingVertical: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingVertical: 12,
         paddingHorizontal: 20,
         borderRadius: 30,
-        backgroundColor: "#1E1E1E",
+        backgroundColor: "#203a43",
         borderWidth: 1,
-        borderColor: "#444",
+        borderColor: "#2c5364",
+        marginHorizontal: 6,
     },
+    toggleIcon: {
+        marginRight: 6,
+    },
+    // 3. Contraste de texto asegurado (color claro vs. fondo oscuro)
+    toggleButtonText: {
+        fontSize: 15,
+        color: "#E0E0E0",
+    },
+    // 4. Consistencia de botones: usar #03DAC5 como color de acento en toggles activos
     activeToggle: {
         backgroundColor: "#03DAC5",
         borderColor: "#03DAC5",
-    },
-    toggleButtonText: {
-        fontSize: 16,
-        color: "#E0E0E0",
     },
     activeToggleText: {
         color: "#121212",
         fontWeight: "bold",
     },
-    card: {
-        backgroundColor: "#1E1E1E",
-        padding: 16,
-        borderRadius: 12,
-        marginVertical: 8,
-        elevation: 3,
-        shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 2 },
+    // 5. Pequeños detalles de estilo
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
     },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: "bold",
+    emptyText: {
         color: "#E0E0E0",
-        marginBottom: 4,
-    },
-    cardStatus: {
-        fontSize: 14,
-        color: "#B0B0B0",
+        fontSize: 16,
+        textAlign: "center",
     },
     optionsButton: {
         position: "absolute",
         top: 10,
         right: 10,
         padding: 8,
-        backgroundColor: "#1E1E1E",
+        backgroundColor: "#203a43",
         borderRadius: 30,
         elevation: 5,
         shadowColor: "#000",
@@ -443,15 +477,11 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         zIndex: 100,
     },
-    optionsButtonText: {
-        color: "#E0E0E0",
-        fontSize: 24,
-    },
     dropdown: {
         position: "absolute",
         top: 50,
         right: 10,
-        backgroundColor: "#1E1E1E",
+        backgroundColor: "#203a43",
         borderRadius: 8,
         paddingVertical: 8,
         paddingHorizontal: 10,
@@ -475,6 +505,7 @@ const styles = StyleSheet.create({
         borderColor: "#444",
         marginTop: 8,
     },
+    // 6. Biografía / Descripción con más espacio en el header (hecho en ListHeader con marginTop)
     modalContainer: {
         flex: 1,
         justifyContent: "center",
@@ -483,34 +514,25 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         width: "85%",
-        backgroundColor: "#1E1E1E",
+        backgroundColor: "#203a43",
         borderRadius: 12,
         padding: 20,
         elevation: 6,
-    },
-    modalHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 12,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: "bold",
         color: "#E0E0E0",
-    },
-    modalClose: {
-        fontSize: 16,
-        color: "#03DAC5",
+        marginBottom: 16,
     },
     modalTextInput: {
         height: 100,
-        borderColor: "#444",
+        borderColor: "#2c5364",
         borderWidth: 1,
         borderRadius: 8,
         padding: 12,
         color: "#E0E0E0",
-        backgroundColor: "#121212",
+        backgroundColor: "#0f2027",
         textAlignVertical: "top",
         marginBottom: 20,
         fontSize: 16,
@@ -519,6 +541,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
     },
+    // FAB unificado con el color de acento
     fab: {
         position: "absolute",
         bottom: 30,
@@ -535,78 +558,4 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
-    fabText: {
-        color: "#121212",
-        fontSize: 30,
-        fontWeight: "bold",
-    },
-    starContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        marginVertical: 8,
-    },
-    star: {
-        fontSize: 24,
-        marginHorizontal: 4,
-    },
-    selectedStar: {
-        color: "#F1C40F",
-    },
-    unselectedStar: {
-        color: "#444",
-    },
-    messageContainer: {
-        backgroundColor: "#1E1E1E",
-        borderRadius: 8,
-        padding: 10,
-        marginVertical: 4,
-    },
-    messageSender: {
-        fontSize: 14,
-        color: "#BB86FC",
-        fontWeight: "bold",
-    },
-    messageText: {
-        fontSize: 16,
-        color: "#E0E0E0",
-        marginVertical: 4,
-    },
-    inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginTop: 8,
-    },
-    input: {
-        flex: 1,
-        borderWidth: 1,
-        borderColor: "#444",
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        color: "#E0E0E0",
-    },
-    sendButton: {
-        backgroundColor: "#03DAC5",
-        padding: 12,
-        borderRadius: 8,
-        marginLeft: 8,
-    },
-    sendButtonText: {
-        color: "#121212",
-        fontWeight: "bold",
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 20,
-    },
-    emptyText: {
-        color: "#E0E0E0",
-        fontSize: 16,
-        textAlign: "center",
-    },
-
 });
-

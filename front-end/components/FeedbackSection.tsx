@@ -154,10 +154,12 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
 const styles = StyleSheet.create({
     feedbackCard: {
-        backgroundColor: '#1A1A1A',
+        backgroundColor: '#203a43',
         borderRadius: 10,
         padding: 16,
         marginVertical: 16,
+        borderWidth: 1,
+        borderColor: '#2c5364',
         shadowColor: '#000',
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
@@ -170,12 +172,12 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     existingFeedback: {
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
         borderRadius: 8,
         padding: 12,
         marginBottom: 12,
-
-
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     feedbackHeader: {
         flexDirection: 'row',
@@ -184,7 +186,7 @@ const styles = StyleSheet.create({
     },
     uploader: {
         fontSize: 16,
-        color: '#CCCCCC',
+        color: '#E0E0E0',
         flex: 1,
         marginHorizontal: 8,
     },
@@ -197,7 +199,7 @@ const styles = StyleSheet.create({
     },
     feedbackComment: {
         fontSize: 16,
-        color: '#CCCCCC',
+        color: '#B0B0B0',
     },
     feedbackDate: {
         fontSize: 14,
@@ -216,7 +218,7 @@ const styles = StyleSheet.create({
         color: '#03DAC5',
     },
     unselectedStar: {
-        color: '#444',
+        color: '#2c5364',
     },
     feedbackForm: {
         marginTop: 12,
@@ -224,7 +226,7 @@ const styles = StyleSheet.create({
     formTitle: {
         fontSize: 18,
         fontWeight: '600',
-        color: '#CCCCCC',
+        color: '#E0E0E0',
         marginBottom: 8,
     },
     ratingSection: {
@@ -234,31 +236,31 @@ const styles = StyleSheet.create({
     },
     ratingLabel: {
         fontSize: 16,
-        color: '#CCCCCC',
+        color: '#E0E0E0',
         marginRight: 8,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#444',
+        borderColor: '#2c5364',
         borderRadius: 8,
         padding: 10,
         minHeight: 60,
-        color: '#CCCCCC',
-        backgroundColor: '#121212',
+        color: '#E0E0E0',
+        backgroundColor: '#0f2027',
         marginBottom: 12,
     },
     feedbackButton: {
-        backgroundColor: '#121212',
+        backgroundColor: '#03DAC5',
         paddingVertical: 12,
         borderRadius: 8,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#03DAC5',
+        borderColor: '#2c5364',
     },
     feedbackButtonText: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#CCCCCC',
+        color: '#0f2027',
     },
 });
 

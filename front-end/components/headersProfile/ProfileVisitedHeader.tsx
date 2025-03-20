@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 type ProfileHeaderProps = {
     user: {
@@ -13,30 +14,40 @@ type ProfileHeaderProps = {
 
 export const ProfileVisitedHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
     return (
-        <View style={styles.container}>
-            <View style={styles.topRow}>
-                <Image source={{ uri: user.Avatar }} style={styles.avatar} />
-                <View style={styles.infoContainer}>
-                    <Text style={styles.fullName}>{user.FullName}</Text>
-                    <Text style={styles.username}>@{user.NameUser}</Text>
+        <LinearGradient
+            colors={["#0f2027", "#203a43", "#2c5364"]}
+            style={styles.gradientContainer}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+        >
+            <View style={styles.container}>
+                <View style={styles.topRow}>
+                    <Image source={{ uri: user.Avatar }} style={styles.avatar} />
+                    <View style={styles.infoContainer}>
+                        <Text style={styles.fullName}>{user.FullName}</Text>
+                        <Text style={styles.username}>@{user.NameUser}</Text>
+                    </View>
                 </View>
+                <Text style={styles.biography}>{user.biography}</Text>
             </View>
-            <Text style={styles.biography}>{user.biography}</Text>
-        </View>
+        </LinearGradient>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        backgroundColor: '#1E1E1E',
-        padding: 16,
+    gradientContainer: {
         borderRadius: 12,
         marginBottom: 20,
+        overflow: 'hidden',
         elevation: 3,
         shadowColor: '#000',
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
+    },
+    container: {
+        backgroundColor: 'transparent', // Transparente para ver el degradado
+        padding: 16,
     },
     topRow: {
         flexDirection: 'row',

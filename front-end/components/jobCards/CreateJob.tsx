@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -7,32 +7,15 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-} from 'react-native';
+} from "react-native";
 import MapView, {
   Marker,
   MapPressEvent,
   MarkerDragStartEndEvent,
-  UrlTile,
-} from 'react-native-maps';
-import { createJob } from '@/services/JobsService';
-import { useAuth } from '@/context/AuthContext';
-import ErrorBoundary from '../ErrorBoundary';
-
-// Componente ErrorBoundary para atrapar errores en el MapView
-
-const errorStyles = StyleSheet.create({
-  errorContainer: {
-    width: '100%',
-    height: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#000',
-  },
-  errorText: {
-    color: '#FFF',
-    fontSize: 16,
-  },
-});
+} from "react-native-maps";
+import { createJob } from "@/services/JobsService";
+import { useAuth } from "@/context/AuthContext";
+import ErrorBoundary from "../ErrorBoundary";
 
 type CreateJobProps = {
   visible: boolean;
@@ -45,11 +28,11 @@ export const CreateJob: React.FC<CreateJobProps> = ({
   onClose,
   onJobCreated,
 }) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [budget, setBudget] = useState('');
+  const [budget, setBudget] = useState("");
   const [isMapReady, setIsMapReady] = useState(false);
   const { token, tags: availableTags } = useAuth();
 
@@ -80,28 +63,28 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       !location
     ) {
       Alert.alert(
-        'Error',
-        'Todos los campos son obligatorios y debes seleccionar una ubicación y al menos una etiqueta.'
+        "Error",
+        "Todos los campos son obligatorios y debes seleccionar una ubicación y al menos una etiqueta."
       );
       return;
     }
 
     const budgetNumber = parseFloat(budget);
     if (isNaN(budgetNumber) || budgetNumber <= 0) {
-      Alert.alert('Error', 'El presupuesto debe ser un número mayor que 0.');
+      Alert.alert("Error", "El presupuesto debe ser un número mayor que 0.");
       return;
     }
 
     if (title.length < 3 || title.length > 100) {
-      Alert.alert('Error', 'El título debe tener entre 3 y 100 caracteres.');
+      Alert.alert("Error", "El título debe tener entre 3 y 100 caracteres.");
       return;
     }
     if (description.length < 10 || description.length > 1000) {
-      Alert.alert('Error', 'La descripción debe tener entre 10 y 1000 caracteres.');
+      Alert.alert("Error", "La descripción debe tener entre 10 y 1000 caracteres.");
       return;
     }
     if (budgetNumber <= 2000) {
-      Alert.alert('Error', 'El presupuesto debe ser mayor a 2000.');
+      Alert.alert("Error", "El presupuesto debe ser mayor a 2000.");
       return;
     }
 
@@ -109,7 +92,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       title,
       description,
       location: {
-        type: 'Point',
+        type: "Point",
         coordinates: [location.longitude, location.latitude],
       },
       tags: selectedTags,
@@ -119,22 +102,22 @@ export const CreateJob: React.FC<CreateJobProps> = ({
     try {
       const response = await createJob(jobData, token as string);
       if (response && response.message === "Job created successfully") {
-        Alert.alert('Éxito', 'Trabajo creado exitosamente.');
+        Alert.alert("Éxito", "Trabajo creado exitosamente.");
         if (onJobCreated) {
           onJobCreated(response.job);
         }
-        setTitle('');
-        setDescription('');
+        setTitle("");
+        setDescription("");
         setLocation(null);
         setSelectedTags([]);
-        setBudget('');
+        setBudget("");
         onClose();
       } else {
-        Alert.alert('Error', response.message || 'No se pudo crear el trabajo.');
+        Alert.alert("Error", response.message || "No se pudo crear el trabajo.");
       }
     } catch (error) {
-      console.error('Error al crear el trabajo:', error);
-      Alert.alert('Error', 'Ocurrió un error al crear el trabajo.');
+      console.error("Error al crear el trabajo:", error);
+      Alert.alert("Error", "Ocurrió un error al crear el trabajo.");
     }
   };
 
@@ -158,8 +141,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             multiline
             placeholderTextColor="#888"
           />
-
-          {/* Sección para seleccionar ubicación */}
           <Text style={styles.label}>Selecciona ubicación en el mapa</Text>
           <ErrorBoundary>
             <MapView
@@ -173,7 +154,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
               onPress={handleMapPress}
               onMapReady={() => {
                 setIsMapReady(true);
-                console.log('Mapa listo')
+                console.log("Mapa listo");
               }}
             >
               {location && isMapReady && (
@@ -183,21 +164,26 @@ export const CreateJob: React.FC<CreateJobProps> = ({
                   onDragEnd={handleMarkerDragEnd}
                 />
               )}
-
             </MapView>
           </ErrorBoundary>
-
-          {/* Sección de selección de Tags */}
           <Text style={styles.label}>Selecciona etiquetas:</Text>
           <View style={styles.tagsContainer}>
             {availableTags && availableTags.length > 0 ? (
               availableTags.map((tag: string, index: number) => (
                 <TouchableOpacity
                   key={index}
-                  style={[styles.tag, selectedTags.includes(tag) && styles.tagSelected]}
+                  style={[
+                    styles.tag,
+                    selectedTags.includes(tag) && styles.tagSelected,
+                  ]}
                   onPress={() => toggleTag(tag)}
                 >
-                  <Text style={[styles.tagText, selectedTags.includes(tag) && styles.tagTextSelected]}>
+                  <Text
+                    style={[
+                      styles.tagText,
+                      selectedTags.includes(tag) && styles.tagTextSelected,
+                    ]}
+                  >
                     {tag}
                   </Text>
                 </TouchableOpacity>
@@ -206,7 +192,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
               <Text style={styles.label}>No hay etiquetas disponibles</Text>
             )}
           </View>
-
           <TextInput
             placeholder="Presupuesto"
             value={budget}
@@ -215,7 +200,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
             keyboardType="numeric"
             placeholderTextColor="#888"
           />
-
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Crear</Text>
@@ -233,56 +217,56 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: "#203a43",
     padding: 20,
     borderRadius: 10,
-    width: '90%',
+    width: "90%",
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    textAlign: 'center',
-    color: '#03DAC5',
+    textAlign: "center",
+    color: "#03DAC5",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#03DAC5',
+    borderColor: "#2c5364",
     borderRadius: 5,
     marginBottom: 10,
     padding: 10,
-    backgroundColor: '#121212',
-    color: '#E0E0E0',
+    backgroundColor: "#0f2027",
+    color: "#E0E0E0",
   },
   multilineInput: {
     height: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 5,
-    color: '#E0E0E0',
+    color: "#E0E0E0",
   },
   map: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 5,
     marginBottom: 10,
   },
   tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     marginBottom: 10,
   },
   tag: {
-    backgroundColor: '#121212',
+    backgroundColor: "#0f2027",
     borderWidth: 1,
-    borderColor: '#03DAC5',
+    borderColor: "#2c5364",
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -290,32 +274,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tagSelected: {
-    backgroundColor: '#03DAC5',
+    backgroundColor: "#03DAC5",
   },
   tagText: {
     fontSize: 12,
-    color: '#E0E0E0',
+    color: "#E0E0E0",
   },
   tagTextSelected: {
-    color: '#121212',
+    color: "#0f2027",
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
   button: {
-    backgroundColor: '#03DAC5',
+    backgroundColor: "#03DAC5",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     margin: 5,
   },
   cancelButton: {
-    backgroundColor: '#BB86FC',
+    backgroundColor: "#2c5364",
   },
   buttonText: {
-    color: '#121212',
-    fontWeight: 'bold',
+    color: "#0f2027",
+    fontWeight: "bold",
   },
 });
 

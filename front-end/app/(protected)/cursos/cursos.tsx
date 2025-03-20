@@ -40,7 +40,6 @@ export default function CursosScreen() {
     }, {} as Record<string, Course[]>);
 
     const handleCoursePress = (courseId: string) => {
-
         router.push(`/cursos/${courseId}`);
     };
 
@@ -74,7 +73,7 @@ export default function CursosScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
         padding: 16,
     },
     sectionContainer: {
@@ -87,11 +86,13 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     courseCard: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#203a43',
         padding: 16,
         borderRadius: 8,
         marginRight: 12,
         width: 280,
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     courseTitle: {
         fontSize: 18,
@@ -104,4 +105,3 @@ const styles = StyleSheet.create({
         color: '#B0B0B0',
     },
 });
-

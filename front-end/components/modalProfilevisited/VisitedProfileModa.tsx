@@ -38,7 +38,6 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     const [currentPageWorker, setCurrentPageWorker] = useState(1);
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
-    // Cargar perfil del usuario visitado
     useEffect(() => {
         if (!visible) return;
         const fetchProfile = async () => {
@@ -66,12 +65,10 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
         fetchProfile();
     }, [token, userId, visible]);
 
-    // Guardar la sección activa
     useEffect(() => {
         AsyncStorage.setItem('activeSection', activeSection);
     }, [activeSection]);
 
-    // Cargar "Trabajos realizados"
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'jobFeed' && workerJobs.length === 0) {
@@ -80,11 +77,10 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                     setWorkerJobs(jobsData?.data || []);
                     setCurrentPageWorker(1);
                 })
-                .catch((error) => console.error(error))
+                .catch((error) => console.error(error));
         }
     }, [activeSection, token, userId]);
 
-    // Cargar "Trabajos creados"
     useEffect(() => {
         if (!token) return;
         if (activeSection === 'employer' && employerJobs.length === 0) {
@@ -93,11 +89,10 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                     setEmployerJobs(feedData?.jobs || []);
                     setCurrentPageEmployer(1);
                 })
-                .catch((error) => console.error(error))
+                .catch((error) => console.error(error));
         }
     }, [activeSection, token, userId]);
 
-    // Funciones para paginación
     const loadMoreEmployerJobs = async () => {
         if (!token) return;
         const nextPage = currentPageEmployer + 1;
@@ -154,7 +149,6 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
         );
     }
 
-    // Encabezado con la información del perfil
     const ListHeader = () => (
         <View>
             {userProfile && <ProfileVisitedHeader user={userProfile} />}
@@ -174,22 +168,6 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                     )}
                 </View>
             )}
-            {/* {latestRating !== null && (
-                <View style={styles.starContainer}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <Text
-                            key={star}
-                            style={[styles.star, star <= latestRating ? styles.selectedStar : styles.unselectedStar]}
-                        >
-                            ★
-                        </Text>
-                    ))}
-                    <Text style={styles.ratingText}>
-                        {latestRating} {latestRating === 1 ? 'estrella' : 'estrellas'}
-                    </Text>
-                </View>
-            )} */}
-
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
                     style={[styles.toggleButton, activeSection === 'jobFeed' && styles.activeToggle]}
@@ -211,14 +189,12 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
         </View>
     );
 
-    // Renderizado de cada item (trabajo)
-    const renderItem = ({ item }: { item: any }) => {
-        return <JobCardProfiles item={item} activeSection={activeSection} />
-    }
-
-
     const data = activeSection === 'jobFeed' ? workerJobs : employerJobs;
     const onEndReached = activeSection === 'jobFeed' ? loadMoreWorkerJobs : loadMoreEmployerJobs;
+
+    const renderItem = ({ item }: { item: any }) => {
+        return <JobCardProfiles item={item} activeSection={activeSection} />;
+    };
 
     return (
         <>
@@ -238,8 +214,6 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                     />
                 </View>
             </Modal>
-
-
         </>
     );
 };
@@ -247,7 +221,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
 const styles = StyleSheet.create({
     fullScreenContainer: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
     },
     closeButton: {
         position: 'absolute',
@@ -263,12 +237,12 @@ const styles = StyleSheet.create({
     listContainer: {
         flexGrow: 1,
         padding: 6,
-        backgroundColor: '#121212',
-        paddingTop: 10, // Espacio para que no tape el botón de cerrar
+        backgroundColor: '#0f2027',
+        paddingTop: 10,
     },
     center: {
         flex: 1,
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -278,7 +252,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     descriptionContainer: {
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#203a43',
         padding: 8,
         borderRadius: 5,
         marginBottom: 10,
@@ -293,41 +267,6 @@ const styles = StyleSheet.create({
         marginTop: 4,
         textDecorationLine: 'underline',
     },
-    starContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginVertical: 8,
-    },
-    star: {
-        fontSize: 24,
-        marginHorizontal: 4,
-    },
-    selectedStar: {
-        color: '#F1C40F',
-    },
-    unselectedStar: {
-        color: '#444',
-    },
-    ratingText: {
-        fontSize: 16,
-        color: '#03DAC5',
-        marginLeft: 8,
-        fontWeight: '600',
-    },
-    reportButton: {
-        alignSelf: 'flex-end',
-        backgroundColor: '#03DAC5',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 5,
-        marginBottom: 12,
-    },
-    reportButtonText: {
-        color: '#121212',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
     toggleContainer: {
         flexDirection: 'row',
         justifyContent: 'space-evenly',
@@ -337,72 +276,21 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 30,
-        backgroundColor: '#1E1E1E',
+        backgroundColor: '#203a43',
         borderWidth: 1,
-        borderColor: '#444',
-    },
-    activeToggle: {
-        backgroundColor: '#03DAC5',
-        borderColor: '#03DAC5',
+        borderColor: '#2c5364',
     },
     toggleButtonText: {
         fontSize: 16,
         color: '#E0E0E0',
     },
+    activeToggle: {
+        backgroundColor: '#03DAC5',
+        borderColor: '#03DAC5',
+    },
     activeToggleText: {
-        color: '#121212',
+        color: '#0f2027',
         fontWeight: 'bold',
-    },
-    card: {
-        backgroundColor: '#1E1E1E',
-        padding: 16,
-        borderRadius: 12,
-        marginVertical: 8,
-        elevation: 3,
-    },
-    cardTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
-        marginBottom: 4,
-    },
-    cardStatus: {
-        fontSize: 14,
-        color: '#B0B0B0',
-        marginTop: 4,
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContent: {
-        backgroundColor: '#1E1E1E',
-        padding: 20,
-        borderRadius: 8,
-        width: '80%',
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#03DAC5',
-        marginBottom: 12,
-        textAlign: 'center',
-    },
-    modalInput: {
-        borderWidth: 1,
-        borderColor: '#444',
-        borderRadius: 5,
-        padding: 10,
-        minHeight: 80,
-        marginBottom: 12,
-        backgroundColor: '#121212',
-        color: '#E0E0E0',
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
     },
 });
 

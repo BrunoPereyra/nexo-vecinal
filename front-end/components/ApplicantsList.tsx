@@ -262,39 +262,43 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 16,
-        backgroundColor: '#121212',
+        backgroundColor: '#0f2027',
     },
     sectionContainer: {
         marginBottom: 16,
         borderRadius: 8,
         overflow: 'hidden',
-        backgroundColor: '#1e1e1e',
+        backgroundColor: '#203a43',
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 12,
-        backgroundColor: '#333',
+        backgroundColor: '#203a43',
+        borderBottomWidth: 1,
+        borderColor: '#2c5364',
     },
     sectionHeaderText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFF',
+        color: '#E0E0E0',
     },
     expandIcon: {
         fontSize: 18,
-        color: '#FFF',
+        color: '#E0E0E0',
     },
     sectionContent: {
         padding: 12,
-        backgroundColor: '#222',
+        backgroundColor: '#203a43',
     },
     applicantContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#444',
+        borderBottomColor: '#2c5364',
     },
     avatar: {
         width: 50,
@@ -307,33 +311,36 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 25,
         marginRight: 12,
-        backgroundColor: '#555',
+        backgroundColor: '#2c5364',
     },
     infoContainer: {
         flex: 1,
     },
     applicantName: {
         fontSize: 16,
-        color: '#BB86FC',
+        color: '#E0E0E0',
         marginBottom: 2,
+        fontWeight: 'bold',
     },
     proposalText: {
         fontSize: 14,
-        color: '#AAAAAA',
+        color: '#B0B0B0',
     },
     priceText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: '#E0E0E0',
     },
     assignButton: {
         paddingHorizontal: 10,
         paddingVertical: 6,
-        backgroundColor: '#1E88E5',
+        backgroundColor: '#203a43',
         borderRadius: 4,
+        borderWidth: 1,
+        borderColor: '#2c5364',
     },
     assignButtonText: {
-        color: '#FFF',
+        color: '#E0E0E0',
         fontSize: 14,
     },
     assignedContainer: {
@@ -342,10 +349,11 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     noDataText: {
-        color: '#888',
+        color: '#B0B0B0',
         textAlign: 'center',
         padding: 8,
     },
 });
+
 
 export default ApplicantsList;

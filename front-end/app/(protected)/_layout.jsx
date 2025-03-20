@@ -11,15 +11,15 @@ export default function ProtectedLayout() {
   const router = useRouter();
   return (
     <ProtectedRoute>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#121212' }}>
-        <StatusBar style="light" translucent={false} backgroundColor="#121212" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0f2027' }}>
+        <StatusBar style="light" translucent={false} backgroundColor="#0f2027" />
         <Tabs
           initialRouteName="home"
           screenOptions={{
             headerShown: false,
             tabBarStyle: {
-              backgroundColor: '#121212',
-              borderTopColor: '#1E1E1E',
+              backgroundColor: '#0f2027', // Fondo principal
+              borderTopWidth: 0, // Sin borde superior
             },
             tabBarActiveTintColor: '#FFFFFF',
             tabBarInactiveTintColor: '#A0A0A0',

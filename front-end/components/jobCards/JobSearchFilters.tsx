@@ -1,4 +1,3 @@
-// JobSearchFilters.tsx
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -10,12 +9,12 @@ import {
     ScrollView,
     Alert,
 } from 'react-native';
-import MapView, { Marker, Circle, UrlTile } from 'react-native-maps';
+import MapView, { Marker, Circle } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
 import * as Location from 'expo-location';
-import ErrorBoundary from '@/components/ErrorBoundary'; // Ajusta la ruta según la estructura de tu proyecto
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export interface FilterParams {
     searchTitle: string;
@@ -39,13 +38,12 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 
     useEffect(() => {
         if (availableTags) {
-            setSelectedTags((prevSelectedTags) =>
-                prevSelectedTags.filter((tag) => availableTags.includes(tag))
+            setSelectedTags((prev) =>
+                prev.filter((tag) => availableTags.includes(tag))
             );
         }
     }, [availableTags]);
 
-    // Solicitar permisos de ubicación y obtener la ubicación actual
     useEffect(() => {
         (async () => {
             const { status } = await Location.requestForegroundPermissionsAsync();
@@ -147,7 +145,7 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                                 <>
                                     <Text style={styles.label}>Etiquetas:</Text>
                                     <View style={styles.tagsContainer}>
-                                        {availableTags.map((tag, index) => (
+                                        {availableTags.map((tag: string, index: number) => (
                                             <TouchableOpacity
                                                 key={index}
                                                 style={[
@@ -185,7 +183,7 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                                         onPress={handleMapPress}
                                         onMapReady={() => {
                                             setIsMapReady(true);
-                                            console.log('Mapa listo');
+                                            console.log("Mapa listo");
                                         }}
                                     >
                                         {location && isMapReady && <Marker coordinate={location} />}
@@ -236,112 +234,112 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 16,
-        backgroundColor: '#121212',
+        backgroundColor: "#0f2027",
         borderRadius: 10,
         marginHorizontal: 5,
         elevation: 3,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
-        borderWidth: 2,
-        borderColor: '#444',
+        borderWidth: 1,
+        borderColor: "#2c5364",
     },
     searchRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginBottom: 10,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#444',
+        borderColor: "#2c5364",
         borderRadius: 8,
         padding: 10,
-        backgroundColor: '#1E1E1E',
-        color: '#E0E0E0',
+        backgroundColor: "#203a43",
+        color: "#E0E0E0",
     },
     filterIconButton: {
         marginLeft: 8,
         padding: 8,
-        backgroundColor: '#1E1E1E',
+        backgroundColor: "#203a43",
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#444',
+        borderColor: "#2c5364",
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0,0,0,0.6)",
+        justifyContent: "center",
+        alignItems: "center",
     },
     modalContent: {
-        width: '90%',
-        maxHeight: '80%',
-        backgroundColor: '#1E1E1E',
+        width: "90%",
+        maxHeight: "80%",
+        backgroundColor: "#203a43",
         borderRadius: 12,
-        overflow: 'hidden',
+        overflow: "hidden",
     },
     modalTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
-        textAlign: 'center',
+        fontWeight: "bold",
+        color: "#E0E0E0",
+        textAlign: "center",
         marginVertical: 10,
     },
     label: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#E0E0E0',
+        fontWeight: "600",
+        color: "#E0E0E0",
         marginBottom: 8,
     },
     tagsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
+        flexDirection: "row",
+        flexWrap: "wrap",
         marginBottom: 12,
     },
     tag: {
-        backgroundColor: '#121212',
+        backgroundColor: "#0f2027",
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 20,
         marginRight: 8,
         marginBottom: 8,
         borderWidth: 1,
-        borderColor: '#444',
+        borderColor: "#2c5364",
     },
     tagSelected: {
-        backgroundColor: '#BB86FC',
+        backgroundColor: "#03DAC5",
     },
     tagText: {
         fontSize: 12,
-        color: '#E0E0E0',
+        color: "#E0E0E0",
     },
     tagTextSelected: {
-        color: '#121212',
+        color: "#0f2027",
     },
     mapContainer: {
-        width: '100%',
+        width: "100%",
         height: 150,
         borderRadius: 8,
-        overflow: 'hidden',
+        overflow: "hidden",
         marginBottom: 12,
     },
     map: {
-        width: '100%',
-        height: '100%',
+        width: "100%",
+        height: "100%",
     },
     radiusContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
         marginBottom: 10,
     },
     radiusLabel: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: "#E0E0E0",
         marginRight: 10,
     },
     radiusButton: {
-        backgroundColor: '#03DAC5',
+        backgroundColor: "#03DAC5",
         borderRadius: 20,
         paddingHorizontal: 12,
         paddingVertical: 6,
@@ -349,27 +347,27 @@ const styles = StyleSheet.create({
     },
     radiusButtonText: {
         fontSize: 20,
-        fontWeight: 'bold',
-        color: '#121212',
+        fontWeight: "bold",
+        color: "#0f2027",
     },
     radiusText: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: "#E0E0E0",
     },
     modalButtons: {
-        flexDirection: 'row',
+        flexDirection: "row",
         borderTopWidth: 1,
-        borderColor: '#444',
+        borderColor: "#2c5364",
     },
     modalButton: {
         flex: 1,
         paddingVertical: 12,
-        alignItems: 'center',
+        alignItems: "center",
     },
     modalButtonText: {
         fontSize: 16,
-        fontWeight: 'bold',
-        color: '#03DAC5',
+        fontWeight: "bold",
+        color: "#03DAC5",
     },
 });
 

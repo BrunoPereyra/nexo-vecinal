@@ -232,7 +232,7 @@ export default function EmployerJobDetail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#0f2027',
   },
   contentContainer: {
     padding: 6,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#0f2027',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -248,12 +248,13 @@ const styles = StyleSheet.create({
     color: '#CF6679',
     marginBottom: 16,
   },
-  // Card de Detalle del Trabajo
   jobCard: {
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#203a43',
     borderRadius: 10,
     padding: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#2c5364',
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
   },
   jobDescription: {
     fontSize: 16,
-    color: '#E0E0E0',
+    color: '#B0B0B0',
     marginBottom: 12,
   },
   detailRow: {
@@ -277,19 +278,20 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#03DAC5',
+    color: '#E0E0E0',
     marginRight: 8,
   },
   detailValue: {
     fontSize: 16,
     color: '#E0E0E0',
   },
-  // Mapa
   mapCard: {
     height: 200,
     borderRadius: 10,
     overflow: 'hidden',
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#2c5364',
     shadowColor: '#000',
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
@@ -299,38 +301,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   completeButton: {
-    backgroundColor: '#2ECC71', // Un tono verde para transmitir éxito o finalización
+    backgroundColor: '#203a43',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    marginTop: 0,
     margin: 15,
-    flexDirection: 'row', // Permite que el ícono y el texto se muestren en línea
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#2c5364',
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
     elevation: 3,
   },
   completeButtonText: {
-    color: '#fff',
+    color: '#E0E0E0',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8, // Separación entre el ícono y el texto
+    marginLeft: 8,
   },
-
-  // Botón flotante de Chat
   fab: {
     position: 'absolute',
     bottom: 30,
     right: 20,
-    backgroundColor: '#03DAC5',
+    backgroundColor: '#203a43',
     width: 60,
     height: 60,
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2c5364',
     elevation: 5,
     shadowColor: '#000',
     shadowOpacity: 0.3,
