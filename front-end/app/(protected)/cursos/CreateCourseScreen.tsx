@@ -51,15 +51,24 @@ export default function CreateCourseScreen() {
             Alert.alert('Error', error.message);
             return;
         }
+
+        // Completar automáticamente las URLs si no comienzan con "http"
+        const formatSocial = (username: string, baseUrl: string) => {
+            if (!username) return '';
+            return username.startsWith('http')
+                ? username
+                : `${baseUrl}${username}`;
+        };
+
         const newCourse: CreateCourseRequest = {
             title,
             description,
             content,
             socials: {
-                instagram: instagram || '',
-                youtube: youtube || '',
-                website: website || '',
-                twitter: twitter || '',
+                instagram: formatSocial(instagram, 'https://www.instagram.com/'),
+                youtube: formatSocial(youtube, 'https://www.youtube.com/'),
+                twitter: formatSocial(twitter, 'https://twitter.com/'),
+                website: website || '', // El usuario debe ingresar la URL completa para el sitio web
             },
             campaignStart: isoStart,
             campaignEnd: isoEnd,

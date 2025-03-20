@@ -39,6 +39,11 @@
         "com.google.android.gms.permission.AD_ID",
         "ACCESS_COARSE_LOCATION"
       ],
+      "queries": [
+        "instagram",
+        "youtube",
+        "twitter"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#d6d9d3"

@@ -25,14 +25,14 @@ func NewCursoRepository(mongoClient *mongo.Client) *CursoRepository {
 
 // CreateCurso inserta un nuevo curso en la base de datos.
 func (r *CursoRepository) CreateCurso(curso cursosdomain.Curso) error {
-	collection := r.mongoClient.Database("NEXO-VECINA").Collection("cursos")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("cursos")
 	_, err := collection.InsertOne(context.Background(), curso)
 	return err
 }
 
 // GetCursosPaginated obtiene los cursos de manera paginada y ordenada por CampaignEnd (descendente).
 func (r *CursoRepository) GetCursosPaginated(page, limit int) ([]cursosdomain.Curso, error) {
-	collection := r.mongoClient.Database("NEXO-VECINA").Collection("cursos")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("cursos")
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{Key: "campaignEnd", Value: -1}})
 	findOptions.SetSkip(int64((page - 1) * limit))
@@ -56,7 +56,7 @@ func (r *CursoRepository) GetCursosPaginated(page, limit int) ([]cursosdomain.Cu
 
 // GetActiveCursos obtiene los cursos cuya campaña aún no terminó.
 func (r *CursoRepository) GetActiveCursos() ([]cursosdomain.Curso, error) {
-	collection := r.mongoClient.Database("NEXO-VECINA").Collection("cursos")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("cursos")
 	now := time.Now()
 	cursor, err := collection.Find(context.Background(), bson.M{"campaignEnd": bson.M{"$gt": now}})
 	if err != nil {
@@ -77,7 +77,7 @@ func (r *CursoRepository) GetActiveCursos() ([]cursosdomain.Curso, error) {
 
 // GetCursoByID obtiene un curso por su ID.
 func (r *CursoRepository) GetCursoByID(id primitive.ObjectID) (cursosdomain.Curso, error) {
-	collection := r.mongoClient.Database("NEXO-VECINA").Collection("cursos")
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("cursos")
 	var curso cursosdomain.Curso
 	err := collection.FindOne(context.Background(), bson.M{"_id": id}).Decode(&curso)
 	return curso, err
