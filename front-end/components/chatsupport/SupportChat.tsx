@@ -207,7 +207,6 @@ const SupportChat: React.FC<SupportChatProps> = ({
         </Modal>
     );
 };
-
 const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,
@@ -217,12 +216,13 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         width: "85%",
-        backgroundColor: "#1E1E1E",
+        backgroundColor: "#203a43", // Contenedor secundario
         borderRadius: 12,
         padding: 20,
         elevation: 6,
         height: "80%",
-
+        borderWidth: 1,
+        borderColor: "#2c5364", // Borde destacado
     },
     modalHeader: {
         flexDirection: "row",
@@ -254,20 +254,21 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         borderWidth: 1,
-        borderColor: "#444",
+        borderColor: "#2c5364", // Borde destacado
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
+        backgroundColor: "#0f2027", // Fondo principal
         color: "#E0E0E0",
     },
     sendButton: {
-        backgroundColor: "#03DAC5",
+        backgroundColor: "#03DAC5", // Acento
         padding: 12,
         borderRadius: 8,
         marginLeft: 8,
     },
     sendButtonText: {
-        color: "#121212",
+        color: "#0f2027",
         fontWeight: "bold",
     },
     messageBubble: {
@@ -275,27 +276,29 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         padding: 12,
         marginVertical: 4,
+        borderWidth: 1,
+        borderColor: "#2c5364", // Borde para distinguir
     },
     myMessage: {
         alignSelf: "flex-end",
-        backgroundColor: "#03DAC5",
+        backgroundColor: "#03DAC5", // Acento para mis mensajes
     },
     partnerMessage: {
         alignSelf: "flex-start",
-        backgroundColor: "#333",
+        backgroundColor: "#203a43", // Contenedor secundario para los mensajes del otro
     },
     messageText: {
         fontSize: 16,
-        color: "#ffff",
+        color: "#E0E0E0",
     },
     messageTextParner: {
         fontSize: 16,
-        color: "#333",
+        color: "#E0E0E0",
     },
     messageListWrapper: {
-        flex: 1, // Ocupa el espacio disponible entre el header y el formulario
+        flex: 1,
     },
-
 });
+
 
 export default SupportChat;

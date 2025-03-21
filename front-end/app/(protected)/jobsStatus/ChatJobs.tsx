@@ -248,9 +248,9 @@ export default function ChatJobs() {
     <View style={styles.container}>
       {/* Cabecera */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        {/* <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#E0E0E0" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity
           style={styles.profileInfo}
           onPress={() => {
@@ -296,13 +296,13 @@ export default function ChatJobs() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: '#0f2027',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#203a43',
   },
   backButton: {
     marginRight: 12,
@@ -330,15 +330,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
+    backgroundColor: '#203a43',
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: '#2c5364',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
     color: '#E0E0E0',
+    backgroundColor: '#0f2027',
   },
   sendButton: {
     backgroundColor: '#03DAC5',
@@ -347,7 +349,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   sendButtonText: {
-    color: '#121212',
+    color: '#0f2027',
     fontWeight: 'bold',
   },
   // Estilos para mensajes
@@ -363,26 +365,28 @@ const styles = StyleSheet.create({
   },
   partnerMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#203a43',
+    borderWidth: 1,
+    borderColor: '#2c5364',
   },
   messageText: {
     fontSize: 16,
-    color: '#121212',
+    color: '#0f2027',
   },
   messageTextPartner: {
     fontSize: 16,
-    color: '#fff',
+    color: '#E0E0E0',
   },
   messageDate: {
     fontSize: 12,
-    color: '#555',
+    color: '#2c5364',
     textAlign: 'right',
     marginTop: 4,
   },
   // Placeholder
   placeholderBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#203a43',
     borderRadius: 16,
     padding: 12,
     marginVertical: 4,
@@ -390,13 +394,13 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     height: 20,
-    backgroundColor: '#333',
+    backgroundColor: '#2c5364',
     borderRadius: 4,
   },
   // Etiqueta de fecha
   dateLabelContainer: {
     alignSelf: 'center',
-    backgroundColor: '#333',
+    backgroundColor: '#2c5364',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -407,4 +411,3 @@ const styles = StyleSheet.create({
     color: '#E0E0E0',
   },
 });
-

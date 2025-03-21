@@ -58,9 +58,35 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#121212', justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, marginBottom: 20, textAlign: 'center', color: '#E0E0E0' },
-  input: { height: 40, backgroundColor: '#1E1E1E', borderColor: '#03DAC5', borderWidth: 1, marginBottom: 10, paddingHorizontal: 10, color: '#E0E0E0', borderRadius: 5 },
-  buttonSpacing: { marginVertical: 10 },
-  errorText: { color: '#FF5252', textAlign: 'center', marginBottom: 10 }, // Estilo para el mensaje de error
+  container: {
+    flex: 1,
+    backgroundColor: '#0f2027', // Fondo principal
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#E0E0E0',
+    fontWeight: 'bold',
+  },
+  input: {
+    height: 40,
+    backgroundColor: '#203a43', // Sección secundaria
+    borderColor: '#2c5364', // Borde activo
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 10,
+    color: '#E0E0E0',
+    borderRadius: 5,
+  },
+  buttonSpacing: {
+    marginVertical: 10,
+  },
+  errorText: {
+    color: '#FF5252',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
 });

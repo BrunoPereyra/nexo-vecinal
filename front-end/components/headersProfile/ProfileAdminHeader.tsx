@@ -43,7 +43,7 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
                     const result = await ImagePicker.launchImageLibraryAsync({
                         mediaTypes: ImagePicker.MediaTypeOptions.Images,
                         allowsEditing: true,
-                        aspect: [1, 1],
+                        aspect: [1, 1], // Esto fuerza a que la imagen se mantenga cuadrada
                         quality: 1,
                     });
                     if (!result.canceled) {
@@ -57,15 +57,18 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
 
     const processImage = async (uri: string) => {
         try {
+            // Redimensiona la imagen a un cuadrado de 612x612 píxeles
             const resized = await ImageManipulator.manipulateAsync(
                 uri,
                 [{ resize: { width: 612, height: 612 } }],
                 { compress: 1, format: ImageManipulator.SaveFormat.PNG }
             );
+            // Calcula el margen de recorte (5% del ancho)
             const cropPercentage = 0.05;
             const offset = Math.floor(612 * cropPercentage);
             const newDimension = 612 - 2 * offset;
 
+            // Recorta la imagen para quitar los márgenes sobrantes y centrar la imagen
             const cropped = await ImageManipulator.manipulateAsync(
                 resized.uri,
                 [
@@ -81,6 +84,7 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
                 { compress: 1, format: ImageManipulator.SaveFormat.PNG }
             );
 
+            // Envía la imagen recortada al servidor
             const response = await EditAvatar(cropped.uri, token as string);
             if (response && response.avatar) {
                 setAvatar(response.avatar);
@@ -94,53 +98,43 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
     };
 
     return (
-        <View style={styles.container}>
-            {/* Encabezado con degradado completo */}
-            <LinearGradient
-                colors={["#0f2027", "#203a43", "#2c5364"]}
-                style={styles.coverGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-            >
-                <View style={styles.topSection}>
-                    <TouchableOpacity onPress={handleAvatarEdit} style={styles.avatarWrapper}>
-                        <Image source={{ uri: avatar }} style={styles.avatar} />
-                        <View style={styles.editIcon}>
-                            <MaterialIcons name="edit" size={20} color="#fff" />
-                        </View>
-                    </TouchableOpacity>
-
-                    <View style={styles.nameContainer}>
-                        <Text style={styles.fullName}>{user.FullName || "Sin Nombre"}</Text>
-                        <Text style={styles.username}>@{user.NameUser || "usuario"}</Text>
+        <LinearGradient
+            colors={["#0f2027", "#203a43", "#2c5364"]}
+            style={styles.coverGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+        >
+            {/* Fila con avatar y nombres */}
+            <View style={styles.topSection}>
+                <TouchableOpacity onPress={handleAvatarEdit} style={styles.avatarWrapper}>
+                    <Image source={{ uri: avatar }} style={styles.avatar} />
+                    <View style={styles.editIcon}>
+                        <MaterialIcons name="edit" size={20} color="#fff" />
                     </View>
+                </TouchableOpacity>
+                <View style={styles.nameContainer}>
+                    <Text style={styles.fullName}>{user.FullName || "Sin Nombre"}</Text>
+                    <Text style={styles.username}>@{user.NameUser || "usuario"}</Text>
                 </View>
-            </LinearGradient>
-
-            {/* Biografía en un contenedor con fondo neutro */}
-            <View style={styles.bioContainer}>
-                <Text style={styles.biography}>{user.biography || "Sin descripción"}</Text>
             </View>
-        </View>
+            {/* Biografía debajo de la fila */}
+            <Text style={styles.biography}>{user.biography || "Sin descripción"}</Text>
+        </LinearGradient>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-        overflow: "hidden",
-    },
     coverGradient: {
         width: windowWidth,
         paddingVertical: 30,
         paddingHorizontal: 20,
-        alignItems: "center",
-        justifyContent: "center",
         borderBottomLeftRadius: 12,
         borderBottomRightRadius: 12,
     },
     topSection: {
+        flexDirection: "row",
         alignItems: "center",
+        marginBottom: 10,
     },
     avatarWrapper: {
         position: "relative",
@@ -150,7 +144,6 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: "#fff",
         overflow: "hidden",
-        marginBottom: 12,
     },
     avatar: {
         width: "100%",
@@ -166,10 +159,10 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     nameContainer: {
-        alignItems: "center",
+        marginLeft: 16,
     },
     fullName: {
-        fontSize: 22,
+        fontSize: 20,
         fontWeight: "bold",
         color: "#fff",
         marginBottom: 4,
@@ -179,19 +172,13 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontStyle: "italic",
     },
-    bioContainer: {
-        backgroundColor: "#0f2027",
-        paddingVertical: 10,
-        paddingHorizontal: 16,
-        alignItems: "center",
-        // Añadimos un pequeño margen inferior para separarlo del toggle
-        marginBottom: 8,
-    },
     biography: {
         fontSize: 14,
-        color: "#E0E0E0",
-        textAlign: "center",
         lineHeight: 20,
-        minWidth: windowWidth * 0.8,
+        marginTop: 8,
+        color: "#B0B0B0",
+        textAlign: "left",
     },
 });
+
+export default ProfileAdminHeader;

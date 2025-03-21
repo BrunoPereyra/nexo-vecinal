@@ -44,23 +44,19 @@ export const SignupService = async (
     sex: string
 ) => {
     try {
-        console.log(API + "/user/signupNotConfirmed");
-
         const res = await fetch(API + "/user/signupNotConfirmed", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email, password, nameUser, fullName, BirthDate: birthDate, sex }),
         });
-        console.log(res);
-
         if (!res.ok) {
             throw new Error(`Error ${res.status}: ${res.statusText}`);
         }
 
         return await processResponse(res);
     } catch (error) {
-        console.error(error);
-        alert("Ocurrió un error");
+        return error
+
     }
 };
 
