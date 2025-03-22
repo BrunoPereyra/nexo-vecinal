@@ -10,7 +10,6 @@ import {
     Alert,
     Modal,
     TextInput,
-    Dimensions,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -26,7 +25,6 @@ import SupportChat from "@/components/chatsupport/SupportChat";
 import { JobCardProfiles } from "@/components/jobCards/JobCardProfiles";
 import { MaterialIcons } from "@expo/vector-icons";
 
-const windowWidth = Dimensions.get("window").width;
 
 export default function ProfileScreen() {
     const { token, logout } = useAuth();
@@ -399,8 +397,9 @@ const styles = StyleSheet.create({
     },
     // 2. Agregar más espacios y separaciones
     listContainer: {
-        paddingHorizontal: 10,
-        paddingBottom: 16,
+        flexGrow: 1,
+        padding: 16,
+        backgroundColor: '#0f2027',
     },
     center: {
         flex: 1,
@@ -426,21 +425,24 @@ const styles = StyleSheet.create({
     toggleButton: {
         flexDirection: "row",
         alignItems: "center",
-        paddingVertical: 12,
-        paddingHorizontal: 20,
+        paddingVertical: 10,
+        paddingHorizontal: 14,
         borderRadius: 30,
         backgroundColor: "#203a43",
         borderWidth: 1,
         borderColor: "#2c5364",
-        marginHorizontal: 6,
+        marginHorizontal: 4, // Menos margen lateral
+        flexShrink: 1, // Permite que se encoja si es necesario
     },
     toggleIcon: {
         marginRight: 6,
     },
     // 3. Contraste de texto asegurado (color claro vs. fondo oscuro)
     toggleButtonText: {
-        fontSize: 15,
+        fontSize: 14,
+        flexShrink: 1,
         color: "#E0E0E0",
+        textAlign: "center",
     },
     // 4. Consistencia de botones: usar #03DAC5 como color de acento en toggles activos
     activeToggle: {

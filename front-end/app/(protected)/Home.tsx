@@ -26,8 +26,12 @@ const Home: React.FC = () => {
     };
     try {
       const data = await getJobsByFilters(apiFilters, token);
+      console.log("ola");
+
       setJobs(data || []);
     } catch (error) {
+      console.log("ola");
+
       console.error("Error fetching jobs:", error);
     }
   };
@@ -61,10 +65,11 @@ const Home: React.FC = () => {
           location: parsedLocation,
           radius: parsedRadius || 10,
         };
-
-        if (filters.location) {
-          await handleSearch(filters);
+        if (!filters.location) {
+          filters.location = { latitude: -31.4201, longitude: -64.1888 };
         }
+        await handleSearch(filters);
+
       } catch (error) {
         console.error("Error cargando los filtros guardados:", error);
       }

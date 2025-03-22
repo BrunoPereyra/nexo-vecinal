@@ -6,7 +6,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     Alert,
-    Dimensions,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -24,7 +23,6 @@ type ProfileAdminHeaderProps = {
     };
 };
 
-const windowWidth = Dimensions.get("window").width;
 
 export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) => {
     const { token } = useAuth();
@@ -125,7 +123,7 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
 
 const styles = StyleSheet.create({
     coverGradient: {
-        width: windowWidth,
+        width: "100%",
         paddingVertical: 30,
         paddingHorizontal: 20,
         borderBottomLeftRadius: 12,
