@@ -9,7 +9,7 @@ import {
     TouchableOpacity,
     Image,
 } from 'react-native';
-import MapView, { Marker, UrlTile } from 'react-native-maps';
+import MapView, { Marker, } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { GetJobDetailvisited, provideWorkerFeedback } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -105,10 +105,10 @@ func setupMongoDB() *mongo.Client {
 	if err = client.Ping(ctx, nil); err != nil {
 		log.Fatalf("Error al hacer ping a MongoDB: %v", err)
 	}
-	collectionChat := client.Database("NEXO-VECINAL").Collection("chat_messages")
-	if err := createTTLIndex(ctx, collectionChat, 1000); err != nil {
-		log.Printf("Error al crear el índice TTL para chat_messages: %v", err)
-	}
+	// collectionChat := client.Database("NEXO-VECINAL").Collection("chat_messages")
+	// if err := createTTLIndex(ctx, collectionChat, 1000); err != nil {
+	// 	log.Printf("Error al crear el índice TTL para chat_messages: %v", err)
+	// }
 
 	collectionSupport := client.Database("NEXO-VECINAL").Collection("support_messages")
 	if err := createTTLIndex(ctx, collectionSupport, 1000); err != nil {

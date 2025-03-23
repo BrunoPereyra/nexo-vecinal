@@ -1,7 +1,7 @@
+// package chatroutes
 package chatroutes
 
 import (
-	jobinfrastructure "back-end/internal/Job/Job-infrastructure"
 	"back-end/internal/chat/chatapplication"
 	"back-end/internal/chat/chatinfrastructure"
 	"back-end/internal/chat/chatinterfaces"
@@ -15,15 +15,16 @@ import (
 
 func ChatRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *mongo.Client) {
 	chatRepo := chatinfrastructure.NewChatRepository(mongoClient, redisClient)
-	// Se inyecta el repositorio de trabajos para validar condiciones en el chat.
-	jobRepo := jobinfrastructure.NewjobRepository(redisClient, mongoClient)
-	chatService := chatapplication.NewChatService(chatRepo, jobRepo)
+	chatService := chatapplication.NewChatService(chatRepo)
 	chatHandler := chatinterfaces.NewChatHandler(chatService)
 
 	chatGroup := app.Group("/chat")
+	chatGroup.Get("/room", middleware.UseExtractor(), chatHandler.GetChatRoom)
 	chatGroup.Post("/messages", middleware.UseExtractor(), chatHandler.SendMessage)
 	chatGroup.Get("/messages", middleware.UseExtractor(), chatHandler.GetMessagesBetween)
 	chatGroup.Post("/messages/:id/read", middleware.UseExtractor(), chatHandler.MarkMessageAsRead)
-	// Nueva ruta para suscripción vía WebSocket
-	chatGroup.Get("/subscribe/:jobID", websocket.New(chatHandler.SubscribeMessages))
+	chatGroup.Get("/subscribe/:chatRoomId", websocket.New(chatHandler.SubscribeMessages))
+	chatGroup.Post("/block", middleware.UseExtractor(), chatHandler.BlockChat)
+	chatGroup.Get("/rooms", middleware.UseExtractor(), chatHandler.GetChatRooms)
+
 }

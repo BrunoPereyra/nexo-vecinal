@@ -5,6 +5,8 @@ import (
 	"back-end/internal/chat/chatapplication"
 	"back-end/internal/chat/chatdomain"
 	"context"
+	"fmt"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
@@ -23,15 +25,33 @@ func NewChatHandler(service *chatapplication.ChatService) *ChatHandler {
 	}
 }
 
+// GetChatRoom endpoint para obtener o crear un ChatRoom.
+// Se toma el ID del usuario autenticado (Participant1) desde useExtractor y se recibe el partner via query.
+func (h *ChatHandler) GetChatRoom(c *fiber.Ctx) error {
+	// Se obtiene el ID del usuario autenticado desde useExtractor.
+	idValue := c.Context().UserValue("_id").(string)
+	// Se espera que el partner venga en la query.
+	partnerID := c.Query("partner")
+	if idValue == "" || partnerID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "El usuario y el partner son requeridos"})
+	}
+
+	room, err := h.ChatService.GetChatRoom(c.Context(), idValue, partnerID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(room)
+}
+
 // SendMessage endpoint para enviar un mensaje (POST /chat/messages).
-// Se espera en el body JSON: senderId, receiverId, text y opcionalmente jobId.
+// Se espera en el body JSON: senderId, receiverId y text.
 func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
 	var msg chatdomain.ChatMessage
 	if err := c.BodyParser(&msg); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
 	}
 
-	// Convertir senderId si es necesario
+	// Convertir senderId si es necesario.
 	if msg.SenderID.IsZero() {
 		senderStr := c.FormValue("senderId")
 		senderID, err := primitive.ObjectIDFromHex(senderStr)
@@ -41,7 +61,7 @@ func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
 		msg.SenderID = senderID
 	}
 
-	// Convertir receiverId si es necesario
+	// Convertir receiverId si es necesario.
 	if msg.ReceiverID.IsZero() {
 		receiverStr := c.FormValue("receiverId")
 		receiverID, err := primitive.ObjectIDFromHex(receiverStr)
@@ -51,25 +71,16 @@ func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
 		msg.ReceiverID = receiverID
 	}
 
-	// Convertir jobId si se envía
-	jobIdStr := c.FormValue("jobId")
-	if jobIdStr != "" {
-		jobID, err := primitive.ObjectIDFromHex(jobIdStr)
-		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "jobId inválido"})
-		}
-		msg.JobID = jobID
-	}
-	msjsave, err := h.ChatService.SendMessage(context.Background(), msg)
+	savedMsg, err := h.ChatService.SendMessage(context.Background(), msg)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "StatusInternalServerError",
+			"message": "Error interno",
 			"data":    err.Error(),
 		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "StatusCreated",
-		"data":    msjsave,
+		"message": "Mensaje enviado",
+		"data":    savedMsg,
 	})
 }
 
@@ -101,27 +112,76 @@ func (h *ChatHandler) MarkMessageAsRead(c *fiber.Ctx) error {
 }
 
 // SubscribeMessages endpoint para recibir mensajes en tiempo real vía WebSocket.
-// Los clientes se conectan a /chat/subscribe/:jobID y se suscriben al canal de Redis.
+// Los clientes se conectan a /chat/subscribe/:chatRoomId y se suscriben al canal de Redis.
 func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
-	jobID := c.Params("jobID")
-	if jobID == "" {
-		c.WriteMessage(websocket.TextMessage, []byte("jobID es requerido"))
+	chatRoomID := c.Params("chatRoomId")
+	if chatRoomID == "" {
+		c.WriteMessage(websocket.TextMessage, []byte("chatRoomId es requerido"))
 		return
 	}
-
 	ctx := context.Background()
-	pubsub := h.ChatService.ChatRepo.SubscribeMessages(ctx, jobID)
+	pubsub := h.ChatService.ChatRepo.SubscribeMessages(ctx, chatRoomID)
 	defer pubsub.Close()
 
 	for {
 		msg, err := pubsub.ReceiveMessage(ctx)
 		if err != nil {
-			// Si hay error (por ejemplo, conexión cerrada), salimos del loop
-			break
+			break // Por ejemplo, conexión cerrada.
 		}
-		// Enviar el mensaje recibido al cliente WebSocket
 		if err := c.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
 			break
 		}
 	}
+}
+
+// BlockChat endpoint para bloquear un chat (POST /chat/block).
+// Se espera en el body JSON: chatRoomId y blockerId.
+func (h *ChatHandler) BlockChat(c *fiber.Ctx) error {
+	var payload struct {
+		ChatRoomID string `json:"chatRoomId"`
+		BlockerID  string `json:"blockerId"`
+	}
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	if payload.ChatRoomID == "" || payload.BlockerID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "chatRoomId y blockerId son requeridos"})
+	}
+	err := h.ChatService.BlockUser(context.Background(), payload.ChatRoomID, payload.BlockerID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "chat bloqueado"})
+}
+
+// internal/chat/chatinterfaces/chat_handler.go
+
+// GetChatRooms endpoint para obtener los chat rooms paginados (GET /chat/rooms).
+// Se espera que el usuario autenticado venga en el contexto (useExtractor)
+// y que se reciban query parameters: limit y page (opcional, page por defecto 1).
+func (h *ChatHandler) GetChatRooms(c *fiber.Ctx) error {
+	// Obtenemos el userID del usuario autenticado
+	idValue := c.Context().UserValue("_id").(string)
+	if idValue == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "userID requerido"})
+	}
+
+	// Obtenemos el límite y la página de la query
+	limitParam := c.Query("limit", "10")
+	pageParam := c.Query("page", "1")
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil || limit <= 0 {
+		limit = 10
+	}
+	page, err := strconv.Atoi(pageParam)
+	if err != nil || page <= 0 {
+		page = 1
+	}
+
+	rooms, err := h.ChatService.GetChatRooms(c.Context(), idValue, limit, page)
+	if err != nil {
+		fmt.Println(err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(rooms)
 }

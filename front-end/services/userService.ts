@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
 
-const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
+const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:9000";
 
 // Función para hacer un GET que envía un token en el header Authorization
 export const getUserToken = async (token: string) => {
