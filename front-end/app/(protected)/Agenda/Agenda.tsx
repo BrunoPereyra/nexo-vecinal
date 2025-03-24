@@ -27,6 +27,7 @@ export default function Agenda() {
 
     // Efecto para cargar la primera página al montar
     useEffect(() => {
+
         fetchChats(1);
     }, [token]);
     function formatLastActivity(dateString = "") {
@@ -74,6 +75,9 @@ export default function Agenda() {
 
     // Función para obtener chats
     const fetchChats = async (pageNumber: number) => {
+        console.log("AA");
+        console.log(chats);
+
         if (!token) {
             setError("No hay token disponible.");
             setLoading(false);
@@ -122,7 +126,7 @@ export default function Agenda() {
         router.push(
             `/(protected)/(chat)/ChatScreen?employerProfile=${encodeURIComponent(
                 JSON.stringify(chat.otherUser)
-            )}`
+            )}&origin=agenda`
         );
     };
 

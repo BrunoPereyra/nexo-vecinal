@@ -6,7 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Image
+  Image,
+  Platform,
+  BackHandler
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../../context/AuthContext';
@@ -36,7 +38,7 @@ export default function ChatJobs() {
   const ws = useRef<WebSocket | null>(null);
   const params = useLocalSearchParams();
   // Se espera que el partner venga de employerProfile
-  const { employerProfile } = params;
+  const { employerProfile, origin } = params;
   const employerProfileStr = Array.isArray(employerProfile)
     ? employerProfile[0]
     : employerProfile;
@@ -51,7 +53,32 @@ export default function ChatJobs() {
       }
     }
   }, [employerProfileStr]);
+  // Manejo del botón de hardware "back"
 
+  useEffect(() => {
+    const onBackPress = () => {
+      // Si el parámetro "origin" existe, se navega a esa pestaña.
+      if (origin) {
+        // Por ejemplo, si origin === 'agenda', se navega a la pestaña Agenda.
+        // Ajusta las rutas según tu estructura.
+        if (origin === 'agenda') {
+          router.push("/(protected)/Agenda/Agenda");
+
+        } else if (origin === 'jobstatus') {
+          router.push("/(protected)/jobsStatus/jobs");
+        } else {
+          router.back();
+        }
+        return true; // se consume el evento
+      }
+      return false;
+    };
+
+    if (Platform.OS === "android") {
+      const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+      return () => subscription.remove();
+    }
+  }, [origin, router]);
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {

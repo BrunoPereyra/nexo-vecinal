@@ -44,6 +44,7 @@ export default function ProtectedLayout() {
             name="home"
             options={{
               title: 'Home',
+              unmountOnBlur: false, 
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="home-outline" size={size} color={color} />
               ),
@@ -59,6 +60,7 @@ export default function ProtectedLayout() {
             name="jobsStatus"
             options={{
               title: 'Jobs Status',
+              unmountOnBlur: false, 
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="briefcase-outline" size={size} color={color} />
               ),
@@ -74,6 +76,7 @@ export default function ProtectedLayout() {
             name="cursos"
             options={{
               title: 'Cursos',
+              unmountOnBlur: false, 
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="book-outline" size={size} color={color} />
               ),
@@ -89,6 +92,7 @@ export default function ProtectedLayout() {
             name="Agenda" // Usa el mismo nombre en minúsculas que la carpeta
             options={{
               title: "Agenda",
+              unmountOnBlur: false,   
               tabBarIcon: ({ color, size }) => (
                 <Ionicons name="people-outline" size={size} color={color} />
               ),
@@ -97,6 +101,18 @@ export default function ProtectedLayout() {
                   {...props}
                   onPress={() => router.replace("/(protected)/Agenda/Agenda")}
                 />
+              ),
+            }}
+          />
+                <Tabs.Screen
+            name="(chat)" // Usa el mismo nombre en minúsculas que la carpeta
+            options={{ 
+              title: "(chat)",
+              href:null,
+              unmountOnBlur: false,   
+              tabBarStyle: { display: 'none' },
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="people-outline" size={size} color={color} />
               ),
             }}
           />
