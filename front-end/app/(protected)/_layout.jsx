@@ -85,23 +85,21 @@ export default function ProtectedLayout() {
               ),
             }}
           />
-<Tabs.Screen
-  name="agenda" // Usa el mismo nombre en minúsculas que la carpeta
-  options={{
-    title: "Agenda",
-    tabBarIcon: ({ color, size }) => (
-      <Ionicons name="people-outline" size={size} color={color} />
-    ),
-    tabBarButton: (props) => (
-      <TouchableOpacity
-        {...props}
-        onPress={() => router.replace("/(protected)/agenda/Agenda")}
-      />
-    ),
-  }}
-/>
-
-
+          <Tabs.Screen
+            name="Agenda" // Usa el mismo nombre en minúsculas que la carpeta
+            options={{
+              title: "Agenda",
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="people-outline" size={size} color={color} />
+              ),
+              tabBarButton: (props) => (
+                <TouchableOpacity
+                  {...props}
+                  onPress={() => router.replace("/(protected)/Agenda/Agenda")}
+                />
+              ),
+            }}
+          />
         </Tabs>
       </SafeAreaView>
     </ProtectedRoute>

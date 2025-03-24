@@ -1,4 +1,3 @@
-// internal/chat/chatdomain/chat.go
 package chatdomain
 
 import (
@@ -8,10 +7,10 @@ import (
 )
 
 // ChatRoom representa el documento central que identifica el chat entre dos usuarios.
+// Se utiliza el campo "participants" para almacenar de forma ordenada los IDs de los dos participantes.
 type ChatRoom struct {
 	ID           primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
-	Participant1 primitive.ObjectID   `json:"participant1" bson:"participant1"`
-	Participant2 primitive.ObjectID   `json:"participant2" bson:"participant2"`
+	Participants []primitive.ObjectID `json:"participants" bson:"participants"`
 	BlockedBy    []primitive.ObjectID `json:"blockedBy,omitempty" bson:"blockedBy,omitempty"`
 	CreatedAt    time.Time            `json:"createdAt" bson:"createdAt"`
 	UpdatedAt    time.Time            `json:"updatedAt" bson:"updatedAt"`
@@ -27,10 +26,12 @@ type ChatMessage struct {
 	CreatedAt  time.Time          `json:"createdAt" bson:"createdAt"`
 	IsRead     bool               `json:"isRead" bson:"isRead"`
 }
+
+// ChatDetails es utilizado para retornar la información agregada de una sala de chat,
+// incluyendo el otro participante, el cual se obtiene mediante una agregación.
 type ChatDetails struct {
 	ID           primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
-	Participant1 primitive.ObjectID   `bson:"participant1" json:"participant1"`
-	Participant2 primitive.ObjectID   `bson:"participant2" json:"participant2"`
+	Participants []primitive.ObjectID `bson:"participants" json:"participants"`
 	BlockedBy    []primitive.ObjectID `bson:"blockedBy,omitempty" json:"blockedBy,omitempty"`
 	CreatedAt    time.Time            `bson:"createdAt" json:"createdAt"`
 	UpdatedAt    time.Time            `bson:"updatedAt" json:"updatedAt"`

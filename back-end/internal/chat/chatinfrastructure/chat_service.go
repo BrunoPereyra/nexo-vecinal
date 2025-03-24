@@ -1,4 +1,3 @@
-// internal/chat/chatinfrastructure/chat_repository.go
 package chatinfrastructure
 
 import (
@@ -33,42 +32,9 @@ func NewChatRepository(mongoClient *mongo.Client, redisClient *redis.Client) *Ch
 	}
 }
 
-// findOrCreateChatRoom busca un ChatRoom entre dos usuarios o lo crea si no existe.
-func (r *ChatRepository) findOrCreateChatRoom(ctx context.Context, user1, user2 primitive.ObjectID) (chatdomain.ChatRoom, error) {
-	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_rooms")
-	// Buscar sin importar el orden de los participantes.
-	filter := bson.M{
-		"$or": []bson.M{
-			{"participant1": user1, "participant2": user2},
-			{"participant1": user2, "participant2": user1},
-		},
-	}
-	var room chatdomain.ChatRoom
-	err := collection.FindOne(ctx, filter).Decode(&room)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			// Crear un nuevo ChatRoom.
-			room = chatdomain.ChatRoom{
-				ID:           primitive.NewObjectID(),
-				Participant1: user1,
-				Participant2: user2,
-				CreatedAt:    time.Now(),
-				UpdatedAt:    time.Now(),
-			}
-			_, err = collection.InsertOne(ctx, room)
-			if err != nil {
-				return chatdomain.ChatRoom{}, fmt.Errorf("error creando chat room: %v", err)
-			}
-			return room, nil
-		}
-		return chatdomain.ChatRoom{}, err
-	}
-	return room, nil
-}
-
 // SendMessage guarda un mensaje en la colección "chat_messages" y lo publica en Redis.
 func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMessage, senderName string) (chatdomain.ChatMessage, error) {
-	// Obtener o crear ChatRoom entre sender y receiver.
+	// Obtener o crear ChatRoom entre sender y receiver usando el arreglo "participants".
 	chatRoom, err := r.findOrCreateChatRoom(ctx, msg.SenderID, msg.ReceiverID)
 	if err != nil {
 		return chatdomain.ChatMessage{}, err
@@ -106,7 +72,6 @@ func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMes
 // GetMessagesBetween obtiene los mensajes intercambiados entre dos usuarios.
 func (r *ChatRepository) GetMessagesBetween(ctx context.Context, user1, user2 string) ([]chatdomain.ChatMessage, error) {
 	// Convertir IDs.
-
 	u1, err := primitive.ObjectIDFromHex(user1)
 	if err != nil {
 		return nil, fmt.Errorf("user1 inválido: %v", err)
@@ -153,7 +118,6 @@ func (r *ChatRepository) MarkMessageAsRead(ctx context.Context, messageID string
 }
 
 // SubscribeMessages se subscribe a un canal específico basado en el ChatRoomID.
-// Por ejemplo, para chatRoomID "123", se suscribe al canal "chat:room:123".
 func (r *ChatRepository) SubscribeMessages(ctx context.Context, chatRoomID string) *redis.PubSub {
 	channel := fmt.Sprintf("chat:room:%s", chatRoomID)
 	return r.redisClient.Subscribe(ctx, channel)
@@ -176,12 +140,10 @@ func (r *ChatRepository) BlockUser(ctx context.Context, chatRoomID, blockerID st
 }
 
 func (r *ChatRepository) notifyMessage(user primitive.ObjectID, messageText, senderName string) error {
-	// Se asume que existe una función para obtener el token de push del usuario.
 	pushToken, err := r.getPushTokenUser(user)
 	if err != nil {
 		return err
 	}
-	// Construir payload para notificación push (se utiliza Expo).
 	payload := map[string]interface{}{
 		"to":    pushToken,
 		"title": senderName,
@@ -218,64 +180,102 @@ func (r *ChatRepository) getPushTokenUser(userID primitive.ObjectID) (string, er
 	}
 	return user.PushToken, nil
 }
+
+// GetOrCreateChatRoom utiliza el campo "participants" para evitar duplicados.
+// Se asegura de que el arreglo de participantes esté ordenado.
 func (r *ChatRepository) GetOrCreateChatRoom(ctx context.Context, user1, user2 primitive.ObjectID) (chatdomain.ChatRoom, error) {
-	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_rooms")
-	filter := bson.M{
-		"$or": []bson.M{
-			{"participant1": user1, "participant2": user2},
-			{"participant1": user2, "participant2": user1},
+	if user1 == user2 {
+		return chatdomain.ChatRoom{}, errors.New("no puedes chatear contigo mismo")
+	}
+
+	var participants []primitive.ObjectID
+	if user1.Hex() < user2.Hex() {
+		participants = []primitive.ObjectID{user1, user2}
+	} else {
+		participants = []primitive.ObjectID{user2, user1}
+	}
+
+	filter := bson.M{"participants": participants}
+
+	update := bson.M{
+		"$setOnInsert": bson.M{
+			"participants": participants,
+			"createdAt":    time.Now(),
+		},
+		"$set": bson.M{
+			"updatedAt": time.Now(),
 		},
 	}
+
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_rooms")
 	var room chatdomain.ChatRoom
-	err := collection.FindOne(ctx, filter).Decode(&room)
+	err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&room)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			// El primer que solicita abrir el chat se registra como Participant1
-			room = chatdomain.ChatRoom{
-				ID:           primitive.NewObjectID(),
-				Participant1: user1,
-				Participant2: user2,
-				CreatedAt:    time.Now(),
-				UpdatedAt:    time.Now(),
-			}
-			_, err = collection.InsertOne(ctx, room)
-			if err != nil {
-				return chatdomain.ChatRoom{}, err
-			}
-			return room, nil
-		}
 		return chatdomain.ChatRoom{}, err
 	}
 	return room, nil
 }
 
-// GetChatRooms obtiene los ChatRooms del usuario, paginados.
+// findOrCreateChatRoom es similar a GetOrCreateChatRoom y se usa internamente.
+func (r *ChatRepository) findOrCreateChatRoom(ctx context.Context, user1, user2 primitive.ObjectID) (chatdomain.ChatRoom, error) {
+	if user1 == user2 {
+		return chatdomain.ChatRoom{}, errors.New("no puedes chatear contigo mismo")
+	}
+
+	var participants []primitive.ObjectID
+	if user1.Hex() < user2.Hex() {
+		participants = []primitive.ObjectID{user1, user2}
+	} else {
+		participants = []primitive.ObjectID{user2, user1}
+	}
+
+	filter := bson.M{"participants": participants}
+
+	update := bson.M{
+		"$setOnInsert": bson.M{
+			"participants": participants,
+			"createdAt":    time.Now(),
+		},
+		"$set": bson.M{
+			"updatedAt": time.Now(),
+		},
+	}
+
+	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
+
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_rooms")
+	var room chatdomain.ChatRoom
+	err := collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&room)
+	if err != nil {
+		return chatdomain.ChatRoom{}, err
+	}
+	return room, nil
+}
+
 func (r *ChatRepository) GetChatRooms(ctx context.Context, userID primitive.ObjectID, limit int, skip int) ([]chatdomain.ChatDetails, error) {
 	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_rooms")
 
 	pipeline := mongo.Pipeline{
-		// 1. Filtrar los chats donde el usuario es participante
 		{{
 			Key: "$match", Value: bson.M{
-				"$or": []bson.M{
-					{"participant1": userID},
-					{"participant2": userID},
-				},
+				"participants": bson.M{"$in": []primitive.ObjectID{userID}},
 			},
 		}},
-		// 2. Determinar el otro participante
 		{{
 			Key: "$addFields", Value: bson.M{
 				"otherParticipant": bson.M{
-					"$cond": bson.M{
-						"if":   bson.M{"$eq": bson.A{"$participant1", userID}},
-						"then": "$participant2",
-						"else": "$participant1",
+					"$arrayElemAt": bson.A{
+						bson.M{"$filter": bson.M{
+							"input": "$participants",
+							"as":    "participant",
+							"cond":  bson.M{"$ne": []interface{}{"$$participant", userID}},
+						}}, 0,
 					},
 				},
 			},
 		}},
-		// 3. Lookup para obtener detalles del otro participante
 		{{
 			Key: "$lookup", Value: bson.M{
 				"from":         "Users",
@@ -284,7 +284,6 @@ func (r *ChatRepository) GetChatRooms(ctx context.Context, userID primitive.Obje
 				"as":           "otherUserDetails",
 			},
 		}},
-		// 4. Extraer los detalles del usuario en una sola estructura
 		{{
 			Key: "$addFields", Value: bson.M{
 				"otherUser": bson.M{
@@ -292,23 +291,19 @@ func (r *ChatRepository) GetChatRooms(ctx context.Context, userID primitive.Obje
 				},
 			},
 		}},
-		// 5. Proyectar solo los campos necesarios
 		{{
 			Key: "$project", Value: bson.M{
 				"_id":                1,
-				"participant1":       1,
-				"participant2":       1,
+				"participants":       1,
 				"updatedAt":          1,
 				"otherUser._id":      1,
 				"otherUser.NameUser": 1,
 				"otherUser.Avatar":   1,
 			},
 		}},
-		// 6. Ordenar por fecha de actualización (más recientes primero)
 		{{
 			Key: "$sort", Value: bson.D{{Key: "updatedAt", Value: -1}},
 		}},
-		// 7. Aplicar paginación
 		{{
 			Key: "$skip", Value: skip,
 		}},

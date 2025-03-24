@@ -139,6 +139,9 @@ func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
 	if err != nil {
 		return err
 	}
+	if job.UserID == applicantID {
+		return errors.New("no puedes asignarte a ti mismo")
+	}
 
 	var selectedApp jobdomain.Application
 	found := false

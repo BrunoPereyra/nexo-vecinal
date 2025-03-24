@@ -217,7 +217,7 @@ export default function EmployerJobDetail() {
         style={styles.fab}
         onPress={() =>
           router.push(
-            `/jobsStatus/ChatJobs?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
+            `/(protected)/(chat)/ChatScreen?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
               JSON.stringify(jobDetail.assignedTo.userData)
             )}`
           )

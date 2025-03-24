@@ -120,7 +120,7 @@ export default function Agenda() {
     // Abrir un chat en la ruta deseada
     const openChat = (chat: any) => {
         router.push(
-            `/jobsStatus/ChatJobs?employerProfile=${encodeURIComponent(
+            `/(protected)/(chat)/ChatScreen?employerProfile=${encodeURIComponent(
                 JSON.stringify(chat.otherUser)
             )}`
         );

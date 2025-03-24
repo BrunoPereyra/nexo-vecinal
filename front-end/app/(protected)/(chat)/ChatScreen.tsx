@@ -6,14 +6,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Alert,
   Image
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../../context/AuthContext';
-import { getChatRoom, sendChatMessage, getMessagesBetween, markMessageAsRead, Message, ChatRoom } from '@/services/chatService';
+import { getChatRoom, sendChatMessage, getMessagesBetween, Message, ChatRoom } from '@/services/chatService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import Constants from "expo-constants";
 
 const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "http://192.168.0.28:90000";
