@@ -19,6 +19,7 @@ import {
 } from '@/services/JobsService';
 import { JobCardProfiles } from '../jobCards/JobCardProfiles';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 interface VisitedProfileModalProps {
     visible: boolean;
@@ -212,6 +213,22 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                         onEndReachedThreshold={0.5}
                         contentContainerStyle={styles.listContainer}
                     />
+                    {/* Botón flotante para abrir el chat */}
+                    {
+                        userProfile &&
+                        <TouchableOpacity
+                            style={styles.fab}
+                            onPress={() =>
+                                router.push(
+                                    `/(protected)/(chat)/ChatScreen?employerProfile=${encodeURIComponent(
+                                        JSON.stringify({ id: userProfile.id, avatar: userProfile.Avatar, nameUser: userProfile.NameUser })
+                                    )}&origin=profileVisited`
+                                )
+                            }
+                        >
+                            <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
+                        </TouchableOpacity>
+                    }
                 </View>
             </Modal>
         </>
@@ -290,6 +307,29 @@ const styles = StyleSheet.create({
     },
     activeToggleText: {
         color: '#0f2027',
+        fontWeight: 'bold',
+    },
+    fab: {
+        position: 'absolute',
+        bottom: 30,
+        right: 30,
+        backgroundColor: '#03DAC5',
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: '#2c5364',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    fabText: {
+        color: '#0f2027',
+        fontSize: 30,
         fontWeight: 'bold',
     },
 });

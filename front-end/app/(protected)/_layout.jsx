@@ -18,13 +18,77 @@ export default function ProtectedLayout() {
           screenOptions={{
             headerShown: false,
             tabBarStyle: {
-              backgroundColor: '#0f2027', // Fondo principal
-              borderTopWidth: 0, // Sin borde superior
+              backgroundColor: '#0f2027',
+              borderTopWidth: 0,
             },
             tabBarActiveTintColor: '#FFFFFF',
             tabBarInactiveTintColor: '#A0A0A0',
           }}
         >
+          <Tabs.Screen
+            name="home"
+            options={{
+              title: 'Home',
+              unmountOnBlur: false,
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="home-outline" size={size} color={color} />
+              ),
+              tabBarButton: (props) => (
+                <TouchableOpacity
+                  {...props}
+                  onPress={() => router.replace('/(protected)/home')}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="Agenda"
+            options={{
+              title: 'Agenda',
+              unmountOnBlur: false,
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="people-outline" size={size} color={color} />
+              ),
+              tabBarButton: (props) => (
+                <TouchableOpacity
+                  {...props}
+                  onPress={() => router.replace('/(protected)/Agenda/Agenda')}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="jobsStatus"
+            options={{
+              title: 'Jobs Status',
+              unmountOnBlur: false,
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="briefcase-outline" size={size} color={color} />
+              ),
+              tabBarButton: (props) => (
+                <TouchableOpacity
+                  {...props}
+                  onPress={() => router.replace('/(protected)/jobsStatus/jobs')}
+                />
+              ),
+            }}
+          />
+          <Tabs.Screen
+            name="cursos"
+            options={{
+              title: 'Cursos',
+              unmountOnBlur: false,
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="book-outline" size={size} color={color} />
+              ),
+              tabBarButton: (props) => (
+                <TouchableOpacity
+                  {...props}
+                  onPress={() => router.replace('/(protected)/cursos/cursos')}
+                />
+              ),
+            }}
+          />
           <Tabs.Screen
             name="profile"
             options={{
@@ -41,78 +105,14 @@ export default function ProtectedLayout() {
             }}
           />
           <Tabs.Screen
-            name="home"
+            name="(chat)"
             options={{
-              title: 'Home',
-              unmountOnBlur: false, 
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="home-outline" size={size} color={color} />
-              ),
-              tabBarButton: (props) => (
-                <TouchableOpacity
-                  {...props}
-                  onPress={() => router.replace('/(protected)/home')}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="jobsStatus"
-            options={{
-              title: 'Jobs Status',
-              unmountOnBlur: false, 
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="briefcase-outline" size={size} color={color} />
-              ),
-              tabBarButton: (props) => (
-                <TouchableOpacity
-                  {...props}
-                  onPress={() => router.replace('/(protected)/jobsStatus/jobs')}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="cursos"
-            options={{
-              title: 'Cursos',
-              unmountOnBlur: false, 
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="book-outline" size={size} color={color} />
-              ),
-              tabBarButton: (props) => (
-                <TouchableOpacity
-                  {...props}
-                  onPress={() => router.replace('/(protected)/cursos/cursos')}
-                />
-              ),
-            }}
-          />
-          <Tabs.Screen
-            name="Agenda" // Usa el mismo nombre en minúsculas que la carpeta
-            options={{
-              title: "Agenda",
-              unmountOnBlur: false,   
-              tabBarIcon: ({ color, size }) => (
-                <Ionicons name="people-outline" size={size} color={color} />
-              ),
-              tabBarButton: (props) => (
-                <TouchableOpacity
-                  {...props}
-                  onPress={() => router.replace("/(protected)/Agenda/Agenda")}
-                />
-              ),
-            }}
-          />
-                <Tabs.Screen
-            name="(chat)" // Usa el mismo nombre en minúsculas que la carpeta
-            options={{ 
-              title: "(chat)",
-              href:null,
-              unmountOnBlur: false,   
+              title: '(chat)',
+              href: null,
+              unmountOnBlur: false,
               tabBarStyle: { display: 'none' },
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="people-outline" size={size} color={color} />
+                <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
               ),
             }}
           />

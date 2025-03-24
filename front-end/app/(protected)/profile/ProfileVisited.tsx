@@ -21,6 +21,7 @@ import {
 import { ProfileVisitedHeader } from '@/components/headersProfile/ProfileVisitedHeader';
 import { createReports } from '@/services/admin';
 import { JobCardProfiles } from '@/components/jobCards/JobCardProfiles';
+import { Ionicons } from '@expo/vector-icons';
 
 type Job = {
     id: string;
@@ -63,6 +64,8 @@ export default function VisitedProfileScreen() {
                 const data = await getUserByid(id as string);
                 if (data?.data) {
                     setUserProfile(data.data);
+                    console.log(data.data);
+
                     setLoading(false)
                 }
             } catch (err: any) {
@@ -308,6 +311,23 @@ export default function VisitedProfileScreen() {
                     </View>
                 </View>
             </Modal>
+
+            {/* Botón flotante para abrir el chat */}
+            {
+                userProfile &&
+                <TouchableOpacity
+                    style={styles.fab}
+                    onPress={() =>
+                        router.push(
+                            `/(protected)/(chat)/ChatScreen?employerProfile=${encodeURIComponent(
+                                JSON.stringify({ id: userProfile.id, avatar: userProfile.Avatar, nameUser: userProfile.NameUser })
+                            )}&origin=profileVisited`
+                        )
+                    }
+                >
+                    <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
+                </TouchableOpacity>
+            }
         </View>
     );
 }

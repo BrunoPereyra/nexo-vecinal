@@ -66,7 +66,11 @@ export default function ChatJobs() {
 
         } else if (origin === 'jobstatus') {
           router.push("/(protected)/jobsStatus/jobs");
-        } else {
+        }
+        else if (origin === 'profileVisited') {
+          router.push("/(protected)/profile/ProfileVisited");
+        }
+        else {
           router.back();
         }
         return true; // se consume el evento
