@@ -65,12 +65,15 @@ export default function ChatJobs() {
           router.push("/(protected)/Agenda/Agenda");
 
         } else if (origin === 'jobstatus') {
-          router.push("/(protected)/jobsStatus/jobs");
+          router.push("/(protected)/jobsStatus/JobDetailWorker");
         }
         else if (origin === 'profileVisited') {
           router.push("/(protected)/profile/ProfileVisited");
-        }
-        else {
+        } else if (origin === 'EmployerJobDetail') {
+          router.push("/(protected)/profile/EmployerJobDetail");
+        } else if (origin === 'jobDetailWorker') {
+          router.push("/(protected)/profile/JobDetailWorker");
+        } else {
           router.back();
         }
         return true; // se consume el evento

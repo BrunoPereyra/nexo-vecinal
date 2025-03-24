@@ -202,7 +202,7 @@ export default function ProfileDetailWorker() {
                     router.push(
                         `/(protected)/(chat)/ChatScreen?jobId=${jobDetail.id}&employerProfile=${encodeURIComponent(
                             JSON.stringify(jobDetail.userDetails)
-                        )}`
+                        )}&origin=jobDetailWorker`
                     )
                 }
             >
