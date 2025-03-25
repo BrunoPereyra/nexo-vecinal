@@ -51,6 +51,7 @@ export default function ProfileScreen() {
     // -------------------------------------------------------------
 
     useEffect(() => {
+
         const fetchProfile = async () => {
             if (!token) {
                 setError("Token no proporcionado");

@@ -36,7 +36,7 @@ export default function ProtectedLayout() {
               tabBarButton: (props) => (
                 <TouchableOpacity
                   {...props}
-                  onPress={() => router.replace('/(protected)/home')}
+                  onPress={() => router.push('/(protected)/home')}
                 />
               ),
             }}
@@ -52,7 +52,7 @@ export default function ProtectedLayout() {
               tabBarButton: (props) => (
                 <TouchableOpacity
                   {...props}
-                  onPress={() => router.replace('/(protected)/Agenda/Agenda')}
+                  onPress={() => router.push('/(protected)/Agenda/Agenda')}
                 />
               ),
             }}
@@ -68,7 +68,7 @@ export default function ProtectedLayout() {
               tabBarButton: (props) => (
                 <TouchableOpacity
                   {...props}
-                  onPress={() => router.replace('/(protected)/jobsStatus/jobs')}
+                  onPress={() => router.push('/(protected)/jobsStatus/jobs')}
                 />
               ),
             }}
@@ -84,7 +84,7 @@ export default function ProtectedLayout() {
               tabBarButton: (props) => (
                 <TouchableOpacity
                   {...props}
-                  onPress={() => router.replace('/(protected)/cursos/cursos')}
+                  onPress={() => router.push('/(protected)/cursos/cursos')}
                 />
               ),
             }}
@@ -99,7 +99,7 @@ export default function ProtectedLayout() {
               tabBarButton: (props) => (
                 <TouchableOpacity
                   {...props}
-                  onPress={() => router.replace('/(protected)/profile/Profile')}
+                  onPress={() => router.push('/(protected)/profile/Profile')}
                 />
               ),
             }}

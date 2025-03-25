@@ -8,7 +8,7 @@ export default function Index() {
 
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            router.replace('/(protected)/home');
+            router.push('/(protected)/home');
         }, 0);
         return () => clearTimeout(timeoutId);
     }, []);

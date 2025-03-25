@@ -35,6 +35,11 @@ export default function JobDetailWorker() {
     const [isMapReady, setIsMapReady] = useState(false);
 
     useEffect(() => {
+        if (!jobId) {
+            router.push(
+                `/(protected)/jobsStatus/jobs`
+            )
+        }
         AsyncStorage.getItem('id').then((id) => setCurrentUserId(id));
     }, []);
 

@@ -3,7 +3,6 @@ import {
     View,
     Text,
     ActivityIndicator,
-    Button,
     ScrollView,
     StyleSheet,
     TouchableOpacity,
@@ -38,6 +37,11 @@ export default function ProfileDetailWorker() {
     const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!jobId) {
+            router.push(
+                `/profile/Profile`
+            )
+        }
         AsyncStorage.getItem('id').then((id) => setCurrentUserId(id));
     }, []);
 

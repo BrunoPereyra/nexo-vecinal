@@ -40,6 +40,11 @@ export default function EmployerJobDetail() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!jobId) {
+      router.push(
+        `/profile/Profile`
+      )
+    }
     AsyncStorage.getItem('id').then((id) => setCurrentUserId(id));
   }, []);
 

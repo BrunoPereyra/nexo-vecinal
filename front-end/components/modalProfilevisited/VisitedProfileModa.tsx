@@ -214,7 +214,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                         contentContainerStyle={styles.listContainer}
                     />
                     {/* Botón flotante para abrir el chat */}
-                    {
+                    {/* {
                         userProfile &&
                         <TouchableOpacity
                             style={styles.fab}
@@ -228,7 +228,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                         >
                             <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
                         </TouchableOpacity>
-                    }
+                    } */}
                 </View>
             </Modal>
         </>

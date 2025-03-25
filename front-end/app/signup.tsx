@@ -79,7 +79,7 @@ export default function SignupScreen() {
     try {
       const resConfirm = await SaveUserCodeConfirm(code);
       await login(resConfirm.token, resConfirm._id, resConfirm.avatar, resConfirm.nameUser);
-      router.replace('/(protected)/home');
+      router.push('/(protected)/home');
     } catch (error) {
       console.error(error);
       setErrorMessage('Error al confirmar el código');
