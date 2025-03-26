@@ -153,7 +153,7 @@ func nameUserValidator(fl validator.FieldLevel) bool {
 	nameUser := fl.Field().String()
 
 	// Verifica la longitud
-	if len(nameUser) < 5 || len(nameUser) > 20 {
+	if len(nameUser) < 3 || len(nameUser) > 20 {
 		return false
 	}
 

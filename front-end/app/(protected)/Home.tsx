@@ -1,11 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, FlatList, StyleSheet, Modal } from "react-native";
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  Text
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getJobsByFilters } from "@/services/JobsService";
 import { useAuth } from "@/context/AuthContext";
 import JobCard from "@/components/JobCardHome";
 import JobSearchFilters, { FilterParams } from "@/components/jobCards/JobSearchFilters";
 import JobDetailView, { Job } from "@/components/jobCards/JobDetailView";
+import RecommendedWorkersRow from "@/components/RecommendedWorkersRow";
+import { Ionicons } from "@expo/vector-icons";
 
 let savedScrollOffset = 0;
 
@@ -15,7 +24,21 @@ const Home: React.FC = () => {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const flatListRef = useRef<FlatList<any>>(null);
 
+  // Estado para los filtros usados
+  const [filterParams, setFilterParams] = useState<FilterParams>({
+    searchTitle: "",
+    selectedTags: [],
+    location: { latitude: -31.4201, longitude: -64.1888 },
+    radius: 10,
+  });
+
+  // Estado para controlar si se muestra la fila de recomendados
+  const [showRecommended, setShowRecommended] = useState<boolean>(false);
+
   const handleSearch = async (filters: FilterParams) => {
+
+    console.log("-->", filters.selectedTags);
+
     if (!token || !filters.location) return;
     const apiFilters = {
       tags: filters.selectedTags,
@@ -26,10 +49,8 @@ const Home: React.FC = () => {
     };
     try {
       const data = await getJobsByFilters(apiFilters, token);
-
       setJobs(data || []);
     } catch (error) {
-
       console.error("Error fetching jobs:", error);
     }
   };
@@ -60,14 +81,11 @@ const Home: React.FC = () => {
         const filters: FilterParams = {
           searchTitle: cachedTitle || "",
           selectedTags: parsedTags,
-          location: parsedLocation,
+          location: parsedLocation || { latitude: -31.4201, longitude: -64.1888 },
           radius: parsedRadius || 10,
         };
-        if (!filters.location) {
-          filters.location = { latitude: -31.4201, longitude: -64.1888 };
-        }
+        setFilterParams(filters);
         await handleSearch(filters);
-
       } catch (error) {
         console.error("Error cargando los filtros guardados:", error);
       }
@@ -82,6 +100,26 @@ const Home: React.FC = () => {
       <View style={styles.filterContainer}>
         <JobSearchFilters onSearch={handleSearch} />
       </View>
+
+      {/* Botón para mostrar/ocultar recomendados */}
+      <TouchableOpacity
+        style={styles.toggleButton}
+        onPress={() => setShowRecommended((prev) => !prev)}
+      >
+        <Text style={styles.toggleButtonText}>
+          {showRecommended ? "Ocultar" : "Trabajadores recomendados"}
+        </Text>
+        <Ionicons
+          name={showRecommended ? "chevron-up-outline" : "chevron-down-outline"}
+          size={18} // reducido
+          color="#FFF"
+        />
+      </TouchableOpacity>
+
+      {/* Sección de trabajadores recomendados */}
+      {showRecommended && (
+        <RecommendedWorkersRow />
+      )}
 
       {/* Lista de trabajos */}
       <FlatList
@@ -107,14 +145,31 @@ const Home: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f2027", // Fondo principal
+    backgroundColor: "#0f2027",
   },
   filterContainer: {
-    backgroundColor: "#203a43", // Contenedor secundario
+    backgroundColor: "#203a43",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderColor: "#2c5364", // Borde para separar la sección
+    borderColor: "#2c5364",
+  },
+  toggleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    // Color más suave y tamaño reducido
+    backgroundColor: "#2c5364", // menos chillón que #03DAC5
+    paddingVertical: 4,         // más pequeño
+    marginHorizontal: 16,
+    borderRadius: 6,            // un poco más pequeño
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  toggleButtonText: {
+    color: "#fff",
+    fontSize: 14,    // más pequeño
+    marginRight: 6,  // ajustado
   },
   listContainer: {
     padding: 16,
