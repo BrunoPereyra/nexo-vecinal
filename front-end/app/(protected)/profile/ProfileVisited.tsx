@@ -64,7 +64,6 @@ export default function VisitedProfileScreen() {
                 const data = await getUserByid(id as string);
                 if (data?.data) {
                     setUserProfile(data.data);
-                    console.log(data.data);
 
                     setLoading(false)
                 }

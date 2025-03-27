@@ -319,7 +319,7 @@ export default function ProfileScreen() {
                     </TouchableOpacity>
                     {userProfile?.PanelAdminNexoVecinal?.Level > 0 && (
                         <TouchableOpacity
-                            onPress={() => router.push("/profile/adminPanel")}
+                            onPress={() => router.push("/(protected)/(admin)/adminPanel")}
                             style={styles.dropdownButton}
                         >
                             <Text style={styles.dropdownButtonText}>Administrador</Text>

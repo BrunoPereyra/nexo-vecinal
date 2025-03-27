@@ -37,7 +37,6 @@ const Home: React.FC = () => {
 
   const handleSearch = async (filters: FilterParams) => {
 
-    console.log("-->", filters.selectedTags);
 
     if (!token || !filters.location) return;
     const apiFilters = {

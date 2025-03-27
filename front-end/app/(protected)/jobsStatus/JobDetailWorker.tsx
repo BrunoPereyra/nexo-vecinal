@@ -163,7 +163,6 @@ export default function JobDetailWorker() {
                                 }}
                                 onMapReady={() => {
                                     setIsMapReady(true);
-                                    console.log('Mapa listo');
                                 }}
                             >
                                 {isMapReady && (

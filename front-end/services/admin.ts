@@ -255,4 +255,31 @@ export const removeTag = async (tag: string, token: string) => {
         console.error("Error en removeTag:", error);
         throw error;
     }
+};/**
+* Realiza una petición para deletear job
+* @param jobId - ID del Job
+* @param token - Token del usuario para autorización.
+* @returns La respuesta de la API en formato JSON.
+*/
+export const DeleteJob = async (jobId: string, code: string, token: string) => {
+    try {
+        const res = await fetch(`${API}/admin/deleteJob`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ JobId: jobId, AdminCode: code }), // Se envía también el código
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en DeleteJob:", error);
+        throw error;
+    }
 };

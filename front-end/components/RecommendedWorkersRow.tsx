@@ -47,7 +47,7 @@ const RecommendedWorkersRow = () => {
                         userData: {
                             id: `default-${i + 1}`,
                             nameUser: `User ${i + 1}`,
-                            avatar: "https://www.pinkker.tv/uploads/nexo-vecinal/assets/avatar_default/Fotoperfil1.png",
+                            avatar: "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
                         },
                     }));
                     const dt = { workers: defaultWorkers };

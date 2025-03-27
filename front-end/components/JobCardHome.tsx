@@ -1,21 +1,9 @@
+import { Job } from "@/services/JobsService";
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 
-export interface JobUserDetails {
-    avatar: string;
-    id: string;
-    nameUser: string;
-}
 
-export interface Job {
-    id: string;
-    title: string;
-    description: string;
-    tags: string[];
-    budget: number;
-    userDetails: JobUserDetails;
-    status: string;
-}
+
 
 interface JobCardProps {
     job: Job;

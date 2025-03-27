@@ -83,12 +83,10 @@ const SupportChatAdmin: React.FC<SupportChatProps> = ({
                         (message.senderId === supportAgent.id && message.receiverId === userProfile.id) ||
                         (message.senderId === userProfile.id && message.receiverId === supportAgent.id)
                     ) {
-                        console.log("AA");
 
                         setSupportMessages((prev) => [...prev, message]);
                     }
                 } catch (error) {
-                    console.log("cccccccc");
 
                     console.error("Error al parsear mensaje de soporte:", error);
                 }

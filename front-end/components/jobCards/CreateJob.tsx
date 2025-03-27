@@ -154,7 +154,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
               onPress={handleMapPress}
               onMapReady={() => {
                 setIsMapReady(true);
-                console.log("Mapa listo");
               }}
             >
               {location && isMapReady && (

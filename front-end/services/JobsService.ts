@@ -1,5 +1,19 @@
 import Constants from "expo-constants";
-const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
+const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:9000";
+export interface Job {
+    id: string;
+    title: string;
+    description: string;
+    tags: string[];
+    budget: number;
+    userDetails: JobUserDetails;
+    status: string;
+}
+export interface JobUserDetails {
+    avatar: string;
+    id: string;
+    nameUser: string;
+}
 
 /**
  * Realiza una petición POST para crear un nuevo trabajo.
@@ -245,8 +259,10 @@ export const getJobsByFilters = async (filters: {
     longitude: number;
     latitude: number;
     radius: number;
+    title: string;
 }, token: string) => {
     try {
+
         const res = await fetch(`${API}/job/get-jobsBy-filters`, {
             method: 'POST',
             headers: {

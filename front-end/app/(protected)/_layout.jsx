@@ -116,6 +116,18 @@ export default function ProtectedLayout() {
               ),
             }}
           />
+           <Tabs.Screen
+            name="(admin)"
+            options={{
+              title: '(admin)',
+              href: null,
+              unmountOnBlur: false,
+              tabBarStyle: { display: 'none' },
+              tabBarIcon: ({ color, size }) => (
+                <Ionicons name="chatbubble-ellipses-outline" size={size} color={color} />
+              ),
+            }}
+          />
         </Tabs>
       </SafeAreaView>
     </ProtectedRoute>

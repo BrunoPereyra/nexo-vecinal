@@ -75,8 +75,6 @@ export default function Agenda() {
 
     // Función para obtener chats
     const fetchChats = async (pageNumber: number) => {
-        console.log("AA");
-        console.log(chats);
 
         if (!token) {
             setError("No hay token disponible.");
