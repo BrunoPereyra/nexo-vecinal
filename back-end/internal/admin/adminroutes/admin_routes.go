@@ -27,6 +27,8 @@ func AdminReportRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *m
 	adminGroup.Post("/reports/:id/read", reportHandler.MarkReportAsRead)               // Marcar reporte como leído
 	adminGroup.Post("/block", reportHandler.BlockUser)                                 // Bloquear usuario (requiere autorización de admin)
 
+	adminGroup.Delete("/deleteJob", middleware.UseExtractor(), reportHandler.DeleteJob) // delete job(requiere autorización de admin)
+
 	// admin tags
 	adminGroup.Get("/tags", reportHandler.GetAllTagsHandler)
 	adminGroup.Post("/tags", middleware.UseExtractor(), reportHandler.AddTagHandler)

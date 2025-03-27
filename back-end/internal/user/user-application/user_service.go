@@ -45,7 +45,7 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	modelNewUser.Avatar = avatarUrl
 	if modelNewUser.Avatar == "" {
 		// avatarConf := config.FotoPerfilAleatoria()
-		modelNewUser.Avatar = "https://www.pinkker.tv/uploads/nexo-vecinal/assets/avatar_default/Fotoperfil1.png"
+		modelNewUser.Avatar = "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png"
 	}
 	modelNewUser.NameUser = newUser.NameUser
 

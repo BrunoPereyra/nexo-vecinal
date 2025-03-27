@@ -64,3 +64,8 @@ func (s *ReportService) AddTag(ctx context.Context, tag string) error {
 func (s *ReportService) RemoveTag(ctx context.Context, tag string) error {
 	return s.ReportRepository.RemoveTag(ctx, tag)
 }
+
+// BlockUser bloquea a un usuario.
+func (s *ReportService) DeleteJob(ctx context.Context, userID string) error {
+	return s.ReportRepository.DeleteJob(ctx, userID)
+}

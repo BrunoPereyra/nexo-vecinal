@@ -140,3 +140,21 @@ func (h *ReportHandler) RemoveTagHandler(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"message": "Tag removed successfully"})
 }
+func (h *ReportHandler) DeleteJob(c *fiber.Ctx) error {
+	type request struct {
+		JobId     string `json:"JobId"`
+		AdminCode string `json:"AdminCode"`
+	}
+	var req request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	idValue := c.Context().UserValue("_id").(string)
+	if err := h.ReportService.CheckAdminAuthorization(context.Background(), idValue, req.AdminCode); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No autorizado: " + err.Error()})
+	}
+	if err := h.ReportService.DeleteJob(context.Background(), req.JobId); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "job delete"})
+}

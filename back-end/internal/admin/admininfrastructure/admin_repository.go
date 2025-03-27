@@ -171,7 +171,8 @@ func (r *ReportRepository) CheckAdminAuthorization(ctx context.Context, adminID 
 	if err != nil {
 		return fmt.Errorf("admin not found: %v", err)
 	}
-	if admin.PanelAdminNexoVecinal.Level != 1 || !admin.PanelAdminNexoVecinal.Asset || admin.PanelAdminNexoVecinal.Code != code {
+	if admin.PanelAdminNexoVecinal.Level > 1 || admin.PanelAdminNexoVecinal.Code != code {
+
 		return fmt.Errorf("usuario no autorizado")
 	}
 	return nil
@@ -217,4 +218,21 @@ func (r *ReportRepository) RemoveTag(ctx context.Context, tag string) error {
 	coll := r.mongoClient.Database("NEXO-VECINAL").Collection("Tags")
 	_, err := coll.DeleteOne(ctx, bson.M{"tag": tag})
 	return err
+}
+
+// Ddlete job
+func (r *ReportRepository) DeleteJob(ctx context.Context, jobId string) error {
+	oid, err := primitive.ObjectIDFromHex(jobId)
+	if err != nil {
+		return fmt.Errorf("invalid job id: %v", err)
+	}
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+	res, err := collection.DeleteOne(ctx, bson.M{"_id": oid})
+	if err != nil {
+		return fmt.Errorf("failed to delete job: %v", err)
+	}
+	if res.DeletedCount == 0 {
+		return errors.New("job not found")
+	}
+	return nil
 }
