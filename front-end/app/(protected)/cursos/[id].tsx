@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getCourseById } from '@/services/cursos';
+import colors from '@/style/colors';
 
 interface Course {
     id: string;
@@ -40,23 +41,23 @@ const SocialLinks = ({ socials }: { socials: Course['socials'] }) => {
         <View style={styles.socialContainer}>
             {socials?.instagram && (
                 <TouchableOpacity onPress={() => handlePress(socials.instagram!)}>
-                    <FontAwesome name="instagram" size={28} color="#03DAC5" style={styles.icon} />
+                    <FontAwesome name="instagram" size={28} color="#textDark" style={styles.icon} />
                 </TouchableOpacity>
 
             )}
             {socials?.youtube && (
                 <TouchableOpacity onPress={() => handlePress(socials.youtube!)}>
-                    <FontAwesome name="youtube-play" size={28} color="#03DAC5" style={styles.icon} />
+                    <FontAwesome name="youtube-play" size={28} color="#textDark" style={styles.icon} />
                 </TouchableOpacity>
             )}
             {socials?.website && (
                 <TouchableOpacity onPress={() => handlePress(socials.website!)}>
-                    <MaterialCommunityIcons name="web" size={28} color="#03DAC5" style={styles.icon} />
+                    <MaterialCommunityIcons name="web" size={28} color="#textDark" style={styles.icon} />
                 </TouchableOpacity>
             )}
             {socials?.twitter && (
                 <TouchableOpacity onPress={() => handlePress(socials.twitter!)}>
-                    <FontAwesome name="twitter" size={28} color="#03DAC5" style={styles.icon} />
+                    <FontAwesome name="twitter" size={28} color="#textDark" style={styles.icon} />
                 </TouchableOpacity>
             )}
         </View>
@@ -85,7 +86,7 @@ export default function CursoDetailScreen() {
     if (loading) {
         return (
             <View style={styles.container}>
-                <ActivityIndicator size="large" color="#03DAC5" />
+                <ActivityIndicator size="large" color="#textDark" />
             </View>
         );
     }
@@ -102,7 +103,7 @@ export default function CursoDetailScreen() {
         <ScrollView style={styles.container}>
             {/* Botón de volver rediseñado */}
             <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                <FontAwesome name="arrow-left" size={20} color="#03DAC5" />
+                <FontAwesome name="arrow-left" size={20} color="#textDark" />
             </TouchableOpacity>
 
             <Text style={styles.title}>{course.title}</Text>
@@ -119,57 +120,57 @@ export default function CursoDetailScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.background, // "#FFFFFF"
         padding: 16,
     },
     backButton: {
         width: 40,
         height: 40,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.warmWhite, // "#textDark"
         borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
         marginBottom: 16,
     },
     title: {
         fontSize: 28,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
+        fontWeight: "bold",
+        color: colors.textDark, // "#333"
         marginBottom: 8,
     },
     description: {
         fontSize: 18,
-        color: '#B0B0B0',
+        color: colors.textMuted, // "#888"
         marginBottom: 16,
     },
     contentContainer: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderRadius: 8,
         padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     contentTitle: {
         fontSize: 20,
-        fontWeight: '600',
-        color: '#03DAC5',
+        fontWeight: "600",
+        color: colors.textDark, // "#textDark"
         marginBottom: 8,
     },
     content: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
     },
     errorText: {
         fontSize: 18,
-        color: '#CF6679',
-        textAlign: 'center',
+        color: colors.errorRed, // "#CF6679"
+        textAlign: "center",
     },
     socialContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
+        flexDirection: "row",
+        justifyContent: "center",
         marginTop: 16,
     },
     icon: {

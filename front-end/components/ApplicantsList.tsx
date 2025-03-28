@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { LayoutAnimation, UIManager, Platform, View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { assignJob, reassignJob, getRecommendedWorkers } from '../services/JobsService';
 import { useRouter } from 'expo-router';
+import colors from '@/style/colors';
 
 // Habilitar animaciones en Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -262,43 +263,43 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 16,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.background, // "#FFFFFF"
     },
     sectionContainer: {
         marginBottom: 16,
         borderRadius: 8,
         overflow: 'hidden',
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         padding: 12,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream,
         borderBottomWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     sectionHeaderText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
     },
     expandIcon: {
         fontSize: 18,
-        color: '#E0E0E0',
+        color: colors.textDark,
     },
     sectionContent: {
         padding: 12,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream,
     },
     applicantContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#2c5364',
+        borderBottomColor: colors.borderLight,
     },
     avatar: {
         width: 50,
@@ -311,36 +312,36 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 25,
         marginRight: 12,
-        backgroundColor: '#2c5364',
+        backgroundColor: colors.borderLight,
     },
     infoContainer: {
         flex: 1,
     },
     applicantName: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark,
         marginBottom: 2,
         fontWeight: 'bold',
     },
     proposalText: {
         fontSize: 14,
-        color: '#B0B0B0',
+        color: colors.textMuted, // "#888"
     },
     priceText: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#E0E0E0',
+        color: colors.gold, // "#FFD700"
     },
     assignButton: {
         paddingHorizontal: 10,
         paddingVertical: 6,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.gold, // "#FFD700"
         borderRadius: 4,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     assignButtonText: {
-        color: '#E0E0E0',
+        color: colors.textDark,
         fontSize: 14,
     },
     assignedContainer: {
@@ -349,11 +350,12 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     noDataText: {
-        color: '#B0B0B0',
+        color: colors.textMuted,
         textAlign: 'center',
         padding: 8,
     },
 });
+
 
 
 export default ApplicantsList;

@@ -16,6 +16,7 @@ import JobDetailView, { Job } from "@/components/jobCards/JobDetailView";
 import RecommendedWorkersRow from "@/components/RecommendedWorkersRow";
 import { Ionicons } from "@expo/vector-icons";
 
+import colors from "@/style/colors";
 let savedScrollOffset = 0;
 
 const Home: React.FC = () => {
@@ -101,19 +102,21 @@ const Home: React.FC = () => {
       </View>
 
       {/* Botón para mostrar/ocultar recomendados */}
-      <TouchableOpacity
-        style={styles.toggleButton}
-        onPress={() => setShowRecommended((prev) => !prev)}
-      >
-        <Text style={styles.toggleButtonText}>
-          {showRecommended ? "Ocultar" : "Trabajadores recomendados"}
+      <View style={styles.recommendedHeader}>
+        <Text style={styles.recommendedHeaderText}>
+          Trabajadores recomendados
         </Text>
-        <Ionicons
-          name={showRecommended ? "chevron-up-outline" : "chevron-down-outline"}
-          size={18} // reducido
-          color="#FFF"
-        />
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setShowRecommended(!showRecommended)}
+          style={styles.iconButton}
+        >
+          <Ionicons
+            name={showRecommended ? "chevron-up-outline" : "chevron-down-outline"}
+            size={20}
+            color="#FFF"
+          />
+        </TouchableOpacity>
+      </View>
 
       {/* Sección de trabajadores recomendados */}
       {showRecommended && (
@@ -144,35 +147,53 @@ const Home: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0f2027",
+    backgroundColor: colors.background,
   },
   filterContainer: {
-    backgroundColor: "#203a43",
+    backgroundColor: colors.warmWhite,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderColor: "#2c5364",
+    borderColor: colors.borderLight,
   },
   toggleButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    // Color más suave y tamaño reducido
-    backgroundColor: "#2c5364", // menos chillón que #03DAC5
-    paddingVertical: 4,         // más pequeño
+    backgroundColor: colors.gold,
+    paddingVertical: 6,
     marginHorizontal: 16,
-    borderRadius: 6,            // un poco más pequeño
+    borderRadius: 8,
     marginTop: 8,
     marginBottom: 8,
   },
   toggleButtonText: {
-    color: "#fff",
-    fontSize: 14,    // más pequeño
-    marginRight: 6,  // ajustado
+    color: colors.textDark,
+    fontSize: 14,
+    marginRight: 6,
   },
   listContainer: {
     padding: 16,
     paddingBottom: 16,
+  },
+  recommendedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.cream,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: colors.borderLight,
+  },
+  recommendedHeaderText: {
+    color: colors.textDark,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  iconButton: {
+    padding: 6,
   },
 });
 

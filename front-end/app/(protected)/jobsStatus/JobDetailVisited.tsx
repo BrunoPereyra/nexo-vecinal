@@ -15,6 +15,7 @@ import { GetJobDetailvisited, } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedbackSection } from '@/components/FeedbackSection';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import colors from '@/style/colors';
 
 export default function JobDetailVisited() {
     // Obtenemos el parámetro "id" de la URL
@@ -51,7 +52,7 @@ export default function JobDetailVisited() {
 
     if (loading) {
         return (
-            <View style={darkStyles.center}>
+            <View style={styles.center}>
                 <ActivityIndicator size="large" color="#ffffff" />
             </View>
         );
@@ -60,8 +61,8 @@ export default function JobDetailVisited() {
     if (error) {
         if (!jobDetail) {
             return (
-                <View style={darkStyles.center}>
-                    <Text style={darkStyles.errorText}>No se encontró el detalle del trabajo</Text>
+                <View style={styles.center}>
+                    <Text style={styles.errorText}>No se encontró el detalle del trabajo</Text>
                 </View>
             );
         }
@@ -76,23 +77,23 @@ export default function JobDetailVisited() {
         : applicants;
 
     if (jobDetail) {
-        return (<ScrollView style={darkStyles.container} contentContainerStyle={{ paddingBottom: 20 }}>
+        return (<ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
             {/* Información principal del trabajo */}
-            <Text style={darkStyles.title}>{jobDetail.title}</Text>
-            <Text style={darkStyles.description}>{jobDetail.description}</Text>
-            <Text style={darkStyles.detail}>Precio: ${jobDetail.budget}</Text>
-            <Text style={darkStyles.detail}>Estado: {jobDetail.status}</Text>
+            <Text style={styles.title}>{jobDetail.title}</Text>
+            <Text style={styles.description}>{jobDetail.description}</Text>
+            <Text style={styles.detail}>Precio: ${jobDetail.budget}</Text>
+            <Text style={styles.detail}>Estado: {jobDetail.status}</Text>
             {assignedCandidate && (
-                <Text style={darkStyles.detail}>
+                <Text style={styles.detail}>
                     Asignado a: {assignedCandidate.nameUser}
                 </Text>
             )}
 
             {jobDetail.location && jobDetail.location.coordinates && (
-                <View style={darkStyles.mapContainer}>
+                <View style={styles.mapContainer}>
                     <ErrorBoundary>
                         <MapView
-                            style={darkStyles.map}
+                            style={styles.map}
                             initialRegion={{
                                 latitude: jobDetail.location.coordinates[1],
                                 longitude: jobDetail.location.coordinates[0],
@@ -139,161 +140,161 @@ export default function JobDetailVisited() {
     }
 }
 
-const darkStyles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.background, // "#FFFFFF"
     },
     title: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         marginBottom: 8,
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
     },
     description: {
         fontSize: 16,
         marginBottom: 8,
-        color: '#E0E0E0',
+        color: colors.textDark,
     },
     detail: {
         fontSize: 16,
         marginBottom: 4,
-        color: '#E0E0E0',
+        color: colors.textDark,
     },
     mapContainer: {
         height: 200,
-        width: '100%',
+        width: "100%",
         marginVertical: 16,
         borderRadius: 8,
-        overflow: 'hidden',
-        backgroundColor: '#203a43',
+        overflow: "hidden",
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     map: {
         flex: 1,
     },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         marginVertical: 8,
-        color: '#03DAC5',
+        color: colors.primary, // "#03DAC5"
     },
     ratingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginBottom: 10,
     },
     ratingLabel: {
         fontSize: 16,
         marginRight: 8,
-        color: '#E0E0E0',
+        color: colors.textDark,
     },
     star: {
         fontSize: 24,
         marginHorizontal: 2,
     },
     selectedStar: {
-        color: '#03DAC5',
+        color: colors.primary,
     },
     unselectedStar: {
-        color: '#2c5364',
+        color: colors.borderLight,
     },
     feedbackContainer: {
         marginTop: 16,
         padding: 12,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     feedbackInput: {
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         borderRadius: 5,
         padding: 8,
         minHeight: 60,
         marginBottom: 10,
-        backgroundColor: '#0f2027',
-        color: '#E0E0E0',
+        backgroundColor: colors.background,
+        color: colors.textDark,
     },
     feedbackButton: {
-        backgroundColor: '#03DAC5',
+        backgroundColor: colors.primary,
         paddingVertical: 10,
         borderRadius: 5,
-        alignItems: 'center',
+        alignItems: "center",
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     feedbackButtonText: {
         fontSize: 16,
-        fontWeight: 'bold',
-        color: '#0f2027',
+        fontWeight: "bold",
+        color: colors.textDark,
     },
     existingFeedbackContainer: {
         marginTop: 8,
         padding: 8,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream,
         borderRadius: 5,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         marginBottom: 16,
     },
     feedbackTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         marginBottom: 4,
-        color: '#03DAC5',
+        color: colors.primary,
     },
     feedbackText: {
         fontSize: 16,
         marginBottom: 4,
-        color: '#E0E0E0',
+        color: colors.textDark,
     },
     candidateCard: {
         padding: 8,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         borderRadius: 4,
         marginBottom: 8,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#203a43',
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        backgroundColor: colors.cream,
     },
     candidateName: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark,
     },
     assignedCandidateCard: {
         padding: 12,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         borderRadius: 4,
         marginBottom: 8,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream,
     },
     completeButton: {
-        backgroundColor: '#03DAC5',
+        backgroundColor: colors.primary,
         paddingVertical: 10,
         borderRadius: 5,
         marginTop: 16,
-        alignItems: 'center',
+        alignItems: "center",
     },
     completeButtonText: {
-        color: '#0f2027',
-        fontWeight: 'bold',
+        color: colors.textDark,
+        fontWeight: "bold",
         fontSize: 16,
     },
     errorText: {
-        color: '#CF6679',
+        color: colors.errorRed,
         marginBottom: 16,
     },
     center: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#0f2027',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: colors.background,
     },
 });

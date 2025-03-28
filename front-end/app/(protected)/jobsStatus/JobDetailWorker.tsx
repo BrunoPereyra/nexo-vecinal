@@ -16,6 +16,7 @@ import { FeedbackSection } from '@/components/FeedbackSection';
 import { useAuth } from '@/context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import colors from '@/style/colors';
 
 export default function JobDetailWorker() {
     // Obtenemos el parámetro "id" de la URL
@@ -214,33 +215,35 @@ export default function JobDetailWorker() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.background, // "#FFFFFF"
     },
     contentContainer: {
         padding: 6,
         paddingBottom: 30,
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
     },
     center: {
         flex: 1,
-        backgroundColor: '#0f2027',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: colors.warmWhite,
+        justifyContent: "center",
+        alignItems: "center",
     },
     errorText: {
-        color: '#CF6679',
-        marginBottom: 16,
+        color: colors.errorRed, // "#CF6679"
+        marginBottom: 20,
+        fontSize: 16,
     },
     // Card del Empleador
     employerCard: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#203a43',
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: colors.cream, // "#FFF8DC"
         padding: 12,
         borderRadius: 10,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#2c5364',
-        shadowColor: '#000',
+        borderColor: colors.borderLight, // "#EAE6DA"
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
@@ -249,9 +252,9 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: '#03DAC5', // Acento para avatar
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: colors.primary, // "#03DAC5"
+        justifyContent: "center",
+        alignItems: "center",
         marginRight: 12,
     },
     employerAvatar: {
@@ -260,62 +263,62 @@ const styles = StyleSheet.create({
         borderRadius: 30,
     },
     avatarPlaceholderText: {
-        color: '#0f2027',
+        color: colors.textDark, // "#333"
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
     employerName: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
+        fontWeight: "bold",
+        color: colors.textDark, // "#333"
     },
     // Card de Detalle del Trabajo
     jobCard: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderRadius: 10,
         padding: 16,
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#2c5364',
-        shadowColor: '#000',
+        borderColor: colors.borderLight, // "#EAE6DA"
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
     },
     jobTitle: {
         fontSize: 24,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
+        fontWeight: "bold",
+        color: colors.textDark, // "#333"
         marginBottom: 8,
     },
     jobDescription: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textMuted, // "#888"
         marginBottom: 12,
     },
     detailRow: {
-        flexDirection: 'row',
+        flexDirection: "row",
         marginBottom: 4,
     },
     detailLabel: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#03DAC5',
+        fontWeight: "600",
+        color: colors.primary, // "#03DAC5"
         marginRight: 8,
     },
     detailValue: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
     },
     // Mapa
     mapCard: {
         height: 200,
         borderRadius: 10,
-        overflow: 'hidden',
+        overflow: "hidden",
         marginBottom: 16,
         borderWidth: 1,
-        borderColor: '#2c5364',
-        shadowColor: '#000',
+        borderColor: colors.borderLight,
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
@@ -325,21 +328,22 @@ const styles = StyleSheet.create({
     },
     // Botón flotante de Chat
     fab: {
-        position: 'absolute',
+        position: "absolute",
         bottom: 30,
         right: 20,
-        backgroundColor: '#03DAC5',
+        backgroundColor: colors.primary,
         width: 60,
         height: 60,
         borderRadius: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         elevation: 5,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
 });
+

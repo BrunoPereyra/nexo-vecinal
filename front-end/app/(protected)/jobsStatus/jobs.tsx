@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { GetJobsAssignedNoCompleted, GetJobsAssignedCompleted } from '@/services/JobsService';
 import * as Notifications from 'expo-notifications';
+import colors from '@/style/colors';
 
 const JobsStatusScreen: React.FC = () => {
   const { token } = useAuth();
@@ -135,7 +136,7 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f2027', // Fondo principal
+    backgroundColor: colors.background, // "#FFFFFF"
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -146,35 +147,36 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 30,
-    backgroundColor: '#203a43',
+    backgroundColor: colors.cream, // "#FFF8DC"
     borderWidth: 1,
-    borderColor: '#2c5364',
+    borderColor: colors.borderLight, // "#EAE6DA"
     marginHorizontal: 5,
   },
   activeTab: {
-    backgroundColor: '#03DAC5',
-    borderColor: '#03DAC5',
+    backgroundColor: colors.gold, // "#FFD700"
+    borderColor: colors.gold,
   },
   tabText: {
-    color: '#E0E0E0',
     fontSize: 16,
+    color: colors.textDark, // "#333"
   },
   activeTabText: {
     fontWeight: 'bold',
-    color: '#0f2027',
+    color: colors.textDark, // "#333"
   },
   listContainer: {
     paddingHorizontal: 16,
     paddingBottom: 16,
+    backgroundColor: colors.warmWhite, // "#FAF9F6"
   },
   center: {
     flex: 1,
-    backgroundColor: '#0f2027',
+    backgroundColor: colors.background, // "#FFFFFF"
     justifyContent: 'center',
     alignItems: 'center',
   },
   errorText: {
-    color: '#CF6679',
+    color: colors.errorRed, // "#CF6679"
     marginBottom: 20,
     fontSize: 16,
   },
@@ -182,35 +184,33 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 20,
     fontSize: 16,
-    color: '#B0B0B0',
+    color: colors.textMuted, // "#888"
   },
   card: {
-    backgroundColor: '#203a43',
+    backgroundColor: colors.cream, // "#FFF8DC"
     padding: 16,
     borderRadius: 8,
     marginVertical: 6,
     borderWidth: 1,
-    borderColor: '#2c5364',
-    // sombra suave
+    borderColor: colors.borderLight, // "#EAE6DA"
     elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
   },
   highlightedCard: {
-    borderColor: '#F44336', // Borde rojo para destacar
+    borderColor: "#F44336", // Borde rojo para destacar
     borderWidth: 2,
   },
   title: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#E0E0E0',
+    color: colors.textDark, // "#333"
   },
   status: {
     fontSize: 14,
-    color: '#B0B0B0',
+    color: colors.textMuted, // "#888"
     marginTop: 4,
   },
 });
-
 export default JobsStatusScreen;

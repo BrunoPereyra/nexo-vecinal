@@ -1,18 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
+    Animated,
     View,
     Text,
     Image,
     StyleSheet,
     TouchableOpacity,
     Alert,
+    Modal,
+    Easing,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { useAuth } from "@/context/AuthContext";
 import { EditAvatar } from "@/services/userService";
 import { MaterialIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
+import colors from "@/style/colors";
 
 type ProfileAdminHeaderProps = {
     user: {
@@ -23,10 +26,20 @@ type ProfileAdminHeaderProps = {
     };
 };
 
-
 export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) => {
     const { token } = useAuth();
     const [avatar, setAvatar] = useState(user.Avatar);
+    const [modalVisible, setModalVisible] = useState(false);
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+
+    const animateScale = (toValue: number) => {
+        Animated.timing(scaleAnim, {
+            toValue,
+            duration: 150,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+        }).start();
+    };
 
     const handleAvatarEdit = async () => {
         const { status: libraryStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -41,7 +54,7 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
                     const result = await ImagePicker.launchImageLibraryAsync({
                         mediaTypes: ImagePicker.MediaTypeOptions.Images,
                         allowsEditing: true,
-                        aspect: [1, 1], // Esto fuerza a que la imagen se mantenga cuadrada
+                        aspect: [1, 1],
                         quality: 1,
                     });
                     if (!result.canceled) {
@@ -53,20 +66,20 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
         ]);
     };
 
+    const handleAvatarLongPress = () => {
+        setModalVisible(true);
+    };
+
     const processImage = async (uri: string) => {
         try {
-            // Redimensiona la imagen a un cuadrado de 612x612 píxeles
             const resized = await ImageManipulator.manipulateAsync(
                 uri,
                 [{ resize: { width: 612, height: 612 } }],
                 { compress: 1, format: ImageManipulator.SaveFormat.PNG }
             );
-            // Calcula el margen de recorte (5% del ancho)
             const cropPercentage = 0.05;
             const offset = Math.floor(612 * cropPercentage);
             const newDimension = 612 - 2 * offset;
-
-            // Recorta la imagen para quitar los márgenes sobrantes y centrar la imagen
             const cropped = await ImageManipulator.manipulateAsync(
                 resized.uri,
                 [
@@ -81,8 +94,6 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
                 ],
                 { compress: 1, format: ImageManipulator.SaveFormat.PNG }
             );
-
-            // Envía la imagen recortada al servidor
             const response = await EditAvatar(cropped.uri, token as string);
             if (response && response.avatar) {
                 setAvatar(response.avatar);
@@ -96,56 +107,76 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
     };
 
     return (
-        <LinearGradient
-            colors={["#0f2027", "#203a43", "#2c5364"]}
-            style={styles.coverGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-        >
-            {/* Fila con avatar y nombres */}
-            <View style={styles.topSection}>
-                <TouchableOpacity onPress={handleAvatarEdit} style={styles.avatarWrapper}>
-                    <Image source={{ uri: avatar }} style={styles.avatar} />
-                    <View style={styles.editIcon}>
-                        <MaterialIcons name="edit" size={20} color="#fff" />
-                    </View>
-                </TouchableOpacity>
-                <View style={styles.nameContainer}>
-                    <Text style={styles.fullName}>{user.FullName || "Sin Nombre"}</Text>
-                    <Text style={styles.username}>@{user.NameUser || "usuario"}</Text>
-                </View>
+        <>
+
+            <View style={styles.centerContainer}>
+                {/* Avatar con animación de escala */}
+                <Animated.View style={[styles.avatarWrapper, { transform: [{ scale: scaleAnim }] }]}>
+                    <TouchableOpacity
+                        onPress={handleAvatarEdit}
+                        onLongPress={handleAvatarLongPress}
+                        onPressIn={() => animateScale(0.95)}
+                        onPressOut={() => animateScale(1)}
+                        activeOpacity={0.8}
+                    >
+                        <Image source={{ uri: avatar }} style={styles.avatar} />
+                        <View style={styles.editIcon}>
+                            <MaterialIcons name="edit" size={20} color="#fff" />
+                        </View>
+                    </TouchableOpacity>
+                </Animated.View>
+
+                {/* Nombre y Usuario */}
+                <Text style={styles.fullName}>{user.FullName || "Sin Nombre"}</Text>
+                <Text style={styles.username}>@{user.NameUser || "usuario"}</Text>
+
+                {/* Biografía */}
+                {!!user.biography && (
+                    <Text style={styles.biography}>{user.biography}</Text>
+                )}
             </View>
-            {/* Biografía debajo de la fila */}
-            <Text style={styles.biography}>{user.biography || "Sin descripción"}</Text>
-        </LinearGradient>
+
+            {/* Modal para mostrar el avatar en grande */}
+            <Modal
+                visible={modalVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    onPress={() => setModalVisible(false)}
+                    activeOpacity={1}
+                >
+                    <Image source={{ uri: avatar }} style={styles.fullAvatar} />
+                </TouchableOpacity>
+            </Modal>
+        </>
     );
 };
 
 const styles = StyleSheet.create({
     coverGradient: {
         width: "100%",
-        paddingVertical: 30,
+        paddingVertical: 40,
         paddingHorizontal: 20,
         borderBottomLeftRadius: 12,
         borderBottomRightRadius: 12,
+        backgroundColor: colors.cream, // "#FFF8DC"
     },
-    topSection: {
-        flexDirection: "row",
+    centerContainer: {
         alignItems: "center",
-        marginBottom: 10,
+        justifyContent: "center",
     },
     avatarWrapper: {
-        position: "relative",
         width: 110,
         height: 110,
-        borderRadius: 55,
-        borderWidth: 2,
-        borderColor: "#fff",
-        overflow: "hidden",
+        marginBottom: 12,
     },
     avatar: {
         width: "100%",
         height: "100%",
+        borderRadius: 55,
         resizeMode: "cover",
     },
     editIcon: {
@@ -156,26 +187,38 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 4,
     },
-    nameContainer: {
-        marginLeft: 16,
-    },
     fullName: {
         fontSize: 20,
         fontWeight: "bold",
-        color: "#fff",
+        color: colors.textDark, // "#333"
         marginBottom: 4,
+        textAlign: "center",
     },
     username: {
         fontSize: 16,
-        color: "#fff",
+        color: colors.gold, // "#FFD700"
         fontStyle: "italic",
+        marginBottom: 8,
+        textAlign: "center",
     },
     biography: {
         fontSize: 14,
         lineHeight: 20,
-        marginTop: 8,
-        color: "#B0B0B0",
-        textAlign: "left",
+        color: colors.textMuted, // "#888"
+        textAlign: "center",
+        marginHorizontal: 16,
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(255,255,255,0.8)", // Fondo claro con transparencia
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    fullAvatar: {
+        width: "80%",
+        height: "80%",
+        resizeMode: "contain",
+        borderRadius: 12,
     },
 });
 

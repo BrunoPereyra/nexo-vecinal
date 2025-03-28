@@ -1,4 +1,5 @@
 import { Job } from "@/services/JobsService";
+import colors from "@/style/colors";
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 
@@ -46,13 +47,13 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
     );
 };
 
+
 const styles = StyleSheet.create({
     cardContainer: {
-        backgroundColor: "#203a43",
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
         padding: 16,
         marginVertical: 12,
         borderRadius: 12,
-        // Sombra suave
         shadowColor: "#000",
         shadowOpacity: 0.15,
         shadowOffset: { width: 0, height: 2 },
@@ -72,18 +73,18 @@ const styles = StyleSheet.create({
     },
     userName: {
         fontSize: 14,
-        color: "#AAAAAA",
+        color: colors.textMuted, // "#888" o puedes usar colors.textDark si prefieres más contraste
         fontWeight: "bold",
     },
     title: {
         fontSize: 18,
         fontWeight: "bold",
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         marginBottom: 4,
     },
     description: {
         fontSize: 14,
-        color: "#B0B0B0",
+        color: colors.textMuted, // "#888"
         marginBottom: 8,
         lineHeight: 20,
     },
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
     },
     budgetText: {
         fontSize: 14,
-        color: "#03DAC5", // color de acento
+        color: colors.gold, // "#FFD700"
     },
     tagsContainer: {
         flexDirection: "row",
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     tag: {
-        backgroundColor: "#2c5364",
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderRadius: 16,
         paddingHorizontal: 10,
         paddingVertical: 5,
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     },
     tagText: {
         fontSize: 12,
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
     },
 });
 

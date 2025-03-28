@@ -15,6 +15,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { getChatRoom, sendChatMessage, getMessagesBetween, Message, ChatRoom } from '@/services/chatService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Constants from "expo-constants";
+import colors from '@/style/colors';
 
 const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "http://192.168.0.28:90000";
 
@@ -321,24 +322,23 @@ export default function ChatJobs() {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f2027',
+    backgroundColor: colors.background, // "#FFFFFF"
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#203a43',
+    backgroundColor: colors.cream, // "#FFF8DC"
   },
   backButton: {
     marginRight: 12,
   },
   profileInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerAvatar: {
     width: 40,
@@ -348,72 +348,72 @@ const styles = StyleSheet.create({
   },
   headerName: {
     fontSize: 18,
-    color: '#E0E0E0',
-    fontWeight: 'bold',
+    color: colors.textDark, // "#333"
+    fontWeight: "bold",
   },
   messagesContainer: {
     flex: 1,
     marginHorizontal: 16,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: '#203a43',
+    backgroundColor: colors.cream, // "#FFF8DC"
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#2c5364',
+    borderColor: colors.borderLight, // "#EAE6DA"
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    color: '#E0E0E0',
-    backgroundColor: '#0f2027',
+    color: colors.textDark, // "#333"
+    backgroundColor: colors.warmWhite, // "#FAF9F6"
   },
   sendButton: {
-    backgroundColor: '#03DAC5',
+    backgroundColor: colors.gold, // "#FFD700"
     padding: 12,
     borderRadius: 8,
     marginLeft: 8,
   },
   sendButtonText: {
-    color: '#0f2027',
-    fontWeight: 'bold',
+    color: colors.textDark, // "#333"
+    fontWeight: "bold",
   },
   messageBubble: {
-    maxWidth: '75%',
+    maxWidth: "75%",
     borderRadius: 16,
     padding: 12,
     marginVertical: 4,
   },
   myMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#03DAC5',
+    alignSelf: "flex-end",
+    backgroundColor: colors.gold, // "#03DAC5"
   },
   partnerMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#203a43',
+    alignSelf: "flex-start",
+    backgroundColor: colors.cream, // "#FFF8DC"
     borderWidth: 1,
-    borderColor: '#2c5364',
+    borderColor: colors.borderLight,
   },
   messageText: {
     fontSize: 16,
-    color: '#0f2027',
+    color: colors.textDark, // "#333"
   },
   messageTextPartner: {
     fontSize: 16,
-    color: '#E0E0E0',
+    color: colors.textMuted, // "#888"
   },
   messageDate: {
     fontSize: 12,
-    color: '#2c5364',
-    textAlign: 'right',
+    color: colors.borderLight, // "#EAE6DA"
+    textAlign: "right",
     marginTop: 4,
   },
   placeholderBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#203a43',
+    alignSelf: "flex-start",
+    backgroundColor: colors.cream,
     borderRadius: 16,
     padding: 12,
     marginVertical: 4,
@@ -421,12 +421,12 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     height: 20,
-    backgroundColor: '#2c5364',
+    backgroundColor: colors.borderLight,
     borderRadius: 4,
   },
   dateLabelContainer: {
-    alignSelf: 'center',
-    backgroundColor: '#2c5364',
+    alignSelf: "center",
+    backgroundColor: colors.borderLight,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 12,
@@ -434,6 +434,6 @@ const styles = StyleSheet.create({
   },
   dateLabelText: {
     fontSize: 14,
-    color: '#E0E0E0',
+    color: colors.textDark,
   },
 });

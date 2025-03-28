@@ -16,6 +16,7 @@ import MapView, {
 import { createJob } from "@/services/JobsService";
 import { useAuth } from "@/context/AuthContext";
 import ErrorBoundary from "../ErrorBoundary";
+import colors from "@/style/colors";
 
 type CreateJobProps = {
   visible: boolean;
@@ -216,12 +217,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: "rgba(255,255,224,0.7)", // Overlay amarillo claro
     justifyContent: "center",
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#203a43",
+    backgroundColor: colors.warmWhite, // "#FAF9F6"
     padding: 20,
     borderRadius: 10,
     width: "90%",
@@ -231,16 +232,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
     textAlign: "center",
-    color: "#03DAC5",
+    color: colors.gold, // "#FFD700"
   },
   input: {
     borderWidth: 1,
-    borderColor: "#2c5364",
+    borderColor: colors.borderLight, // "#EAE6DA"
     borderRadius: 5,
     marginBottom: 10,
     padding: 10,
-    backgroundColor: "#0f2027",
-    color: "#E0E0E0",
+    backgroundColor: colors.background, // "#FFFFFF"
+    color: colors.textDark, // "#333"
   },
   multilineInput: {
     height: 80,
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: "bold",
     marginBottom: 5,
-    color: "#E0E0E0",
+    color: colors.textDark, // "#333"
   },
   map: {
     width: "100%",
@@ -263,9 +264,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   tag: {
-    backgroundColor: "#0f2027",
+    backgroundColor: colors.background, // "#FFFFFF"
     borderWidth: 1,
-    borderColor: "#2c5364",
+    borderColor: colors.borderLight, // "#EAE6DA"
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -273,31 +274,31 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tagSelected: {
-    backgroundColor: "#03DAC5",
+    backgroundColor: colors.gold, // "#FFD700"
   },
   tagText: {
     fontSize: 12,
-    color: "#E0E0E0",
+    color: colors.textDark, // "#333"
   },
   tagTextSelected: {
-    color: "#0f2027",
+    color: colors.textDark, // "#333"
   },
   buttonContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
   },
   button: {
-    backgroundColor: "#03DAC5",
+    backgroundColor: colors.gold, // "#FFD700"
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
     margin: 5,
   },
   cancelButton: {
-    backgroundColor: "#2c5364",
+    backgroundColor: colors.cream, // "#FFF8DC"
   },
   buttonText: {
-    color: "#0f2027",
+    color: colors.textDark, // "#333"
     fontWeight: "bold",
   },
 });

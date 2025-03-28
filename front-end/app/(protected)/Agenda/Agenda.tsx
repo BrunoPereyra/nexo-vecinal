@@ -11,6 +11,7 @@ import {
 import { useRouter } from "expo-router";
 import { useAuth } from "@/context/AuthContext";
 import { getChatRooms } from "@/services/chatService";
+import colors from "@/style/colors";
 
 export default function Agenda() {
     const router = useRouter();
@@ -84,6 +85,7 @@ export default function Agenda() {
 
         try {
             const data = await getChatRooms(token, pageNumber);
+            console.log(data);
 
             if (pageNumber === 1) {
                 setChats(data || []);
@@ -197,41 +199,42 @@ export default function Agenda() {
     );
 }
 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#0f2027", // Fondo principal
+        backgroundColor: colors.background, // "#FFFFFF"
         padding: 16,
     },
     center: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#0f2027",
+        backgroundColor: colors.background, // "#FFFFFF"
     },
     loadingText: {
-        color: "#fff",
+        color: colors.textDark, // "#333"
         fontSize: 16,
         marginTop: 8,
     },
     errorText: {
-        color: "red",
+        color: colors.errorRed, // "#D32F2F" (Rojo)
         fontSize: 16,
     },
     title: {
         fontSize: 20,
-        color: "#fff",
+        color: colors.textDark, // "#333"
         marginBottom: 12,
     },
     chatContainer: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#203a43", // Sección secundaria
+        backgroundColor: colors.cream, // "#FFF8DC" (Sección secundaria)
         marginBottom: 12,
         padding: 10,
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: "#2c5364", // Bordes
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     avatar: {
         width: 50,
@@ -242,12 +245,12 @@ const styles = StyleSheet.create({
         marginLeft: 12,
     },
     name: {
-        color: "#fff",
+        color: colors.textDark, // "#333"
         fontSize: 16,
         marginBottom: 4,
     },
     subText: {
-        color: '#B0B0B0',
+        color: colors.textMuted, // "#888"
         fontSize: 14,
     },
 });

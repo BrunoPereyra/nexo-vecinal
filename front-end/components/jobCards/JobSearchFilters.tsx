@@ -15,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/context/AuthContext';
 import * as Location from 'expo-location';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import colors from '@/style/colors';
+
 
 export interface FilterParams {
     searchTitle: string;
@@ -234,7 +236,7 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 16,
-        backgroundColor: "#0f2027",
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
         borderRadius: 10,
         marginHorizontal: 5,
         elevation: 3,
@@ -242,7 +244,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         borderWidth: 1,
-        borderColor: "#2c5364",
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     searchRow: {
         flexDirection: "row",
@@ -251,19 +253,19 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: "#2c5364",
+        borderColor: colors.borderLight, // "#EAE6DA"
         borderRadius: 8,
         padding: 10,
-        backgroundColor: "#203a43",
-        color: "#E0E0E0",
+        backgroundColor: colors.background, // "#FFFFFF"
+        color: colors.textDark, // "#333"
     },
     filterIconButton: {
         marginLeft: 8,
         padding: 8,
-        backgroundColor: "#203a43",
+        backgroundColor: colors.background, // "#FFFFFF"
         borderRadius: 8,
         borderWidth: 1,
-        borderColor: "#2c5364",
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     modalOverlay: {
         flex: 1,
@@ -274,21 +276,21 @@ const styles = StyleSheet.create({
     modalContent: {
         width: "90%",
         maxHeight: "80%",
-        backgroundColor: "#203a43",
+        backgroundColor: colors.background, // "#FFFFFF"
         borderRadius: 12,
         overflow: "hidden",
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: "bold",
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         textAlign: "center",
         marginVertical: 10,
     },
     label: {
         fontSize: 16,
         fontWeight: "600",
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         marginBottom: 8,
     },
     tagsContainer: {
@@ -297,24 +299,24 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     tag: {
-        backgroundColor: "#0f2027",
+        backgroundColor: colors.background, // "#FFFFFF"
         paddingHorizontal: 10,
         paddingVertical: 4,
         borderRadius: 20,
         marginRight: 8,
         marginBottom: 8,
         borderWidth: 1,
-        borderColor: "#2c5364",
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     tagSelected: {
-        backgroundColor: "#03DAC5",
+        backgroundColor: colors.gold, // "#FFD700"
     },
     tagText: {
         fontSize: 12,
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
     },
     tagTextSelected: {
-        color: "#0f2027",
+        color: colors.textDark, // "#333"
     },
     mapContainer: {
         width: "100%",
@@ -335,11 +337,11 @@ const styles = StyleSheet.create({
     },
     radiusLabel: {
         fontSize: 16,
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         marginRight: 10,
     },
     radiusButton: {
-        backgroundColor: "#03DAC5",
+        backgroundColor: colors.gold, // "#FFD700"
         borderRadius: 20,
         paddingHorizontal: 12,
         paddingVertical: 6,
@@ -348,16 +350,16 @@ const styles = StyleSheet.create({
     radiusButtonText: {
         fontSize: 20,
         fontWeight: "bold",
-        color: "#0f2027",
+        color: colors.textDark, // "#333"
     },
     radiusText: {
         fontSize: 16,
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
     },
     modalButtons: {
         flexDirection: "row",
         borderTopWidth: 1,
-        borderColor: "#2c5364",
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     modalButton: {
         flex: 1,
@@ -367,8 +369,7 @@ const styles = StyleSheet.create({
     modalButtonText: {
         fontSize: 16,
         fontWeight: "bold",
-        color: "#03DAC5",
+        color: colors.gold, // "#FFD700"
     },
 });
-
 export default JobSearchFilters;

@@ -2,6 +2,7 @@ import React from "react";
 import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
+import colors from "@/style/colors";
 
 interface JobCardProfilesProps {
     item: any;
@@ -64,11 +65,10 @@ export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: "#203a43",
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
         padding: 16,
         borderRadius: 12,
         marginVertical: 8,
-        // Sombra suave
         elevation: 3,
         shadowColor: "#000",
         shadowOpacity: 0.2,
@@ -77,23 +77,23 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: 18,
         fontWeight: "bold",
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         marginBottom: 4,
     },
     cardStatus: {
         fontSize: 14,
-        color: "#B0B0B0",
+        color: colors.textMuted, // "#888"
         marginBottom: 6,
     },
     feedbackContainer: {
         marginTop: 8,
         padding: 10,
-        backgroundColor: "#2c5364",
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderRadius: 8,
     },
     feedbackText: {
         fontSize: 14,
-        color: "#D0D0D0",
+        color: colors.textDark, // "#333"
     },
     starContainer: {
         flexDirection: "row",

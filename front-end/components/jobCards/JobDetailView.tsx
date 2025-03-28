@@ -13,6 +13,7 @@ import {
 import { applyToJob } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
+import colors from '@/style/colors';
 
 export interface JobUserDetails {
     avatar: string;
@@ -159,7 +160,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 12,
-        backgroundColor: "#0f2027",
+        backgroundColor: colors.background, // "#FFFFFF"
         flexGrow: 1,
     },
     employerContainer: {
@@ -167,14 +168,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 16,
         padding: 12,
-        backgroundColor: "#203a43",
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderRadius: 8,
     },
     avatarPlaceholder: {
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: "#03DAC5",
+        backgroundColor: colors.gold, // "#FFD700"
         justifyContent: "center",
         alignItems: "center",
         marginRight: 12,
@@ -185,17 +186,17 @@ const styles = StyleSheet.create({
         borderRadius: 30,
     },
     avatarText: {
-        color: "#0f2027",
+        color: colors.textDark, // "#333"
         fontSize: 24,
         fontWeight: "bold",
     },
     employerName: {
         fontSize: 18,
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         fontWeight: "bold",
     },
     card: {
-        backgroundColor: "#203a43",
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
         borderRadius: 10,
         padding: 16,
         marginBottom: 20,
@@ -207,12 +208,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: "bold",
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         marginBottom: 10,
     },
     description: {
         fontSize: 16,
-        color: "#B0B0B0",
+        color: colors.textMuted, // "#888"
         marginBottom: 20,
         lineHeight: 22,
     },
@@ -223,12 +224,12 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         fontWeight: "600",
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         marginRight: 8,
     },
     value: {
         fontSize: 16,
-        color: "#B0B0B0",
+        color: colors.textMuted, // "#888"
     },
     tagsContainer: {
         flexDirection: "row",
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     tag: {
-        backgroundColor: "#2c5364",
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -245,30 +246,30 @@ const styles = StyleSheet.create({
     },
     tagText: {
         fontSize: 12,
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
     },
     applyForm: {
         marginBottom: 20,
     },
     input: {
         height: 45,
-        borderColor: "#03DAC5",
+        borderColor: colors.gold, // "#FFD700"
         borderWidth: 1,
         borderRadius: 8,
         marginBottom: 12,
         paddingHorizontal: 12,
-        backgroundColor: "#203a43",
-        color: "#E0E0E0",
+        backgroundColor: colors.background, // "#FFFFFF"
+        color: colors.textDark, // "#333"
     },
     applyButton: {
-        backgroundColor: "#03DAC5",
+        backgroundColor: colors.gold, // "#FFD700"
         paddingVertical: 14,
         borderRadius: 8,
         alignItems: "center",
         marginBottom: 20,
     },
     applyButtonText: {
-        color: "#0f2027",
+        color: colors.textDark, // "#333"
         fontSize: 16,
         fontWeight: "bold",
     },
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     closeButtonText: {
-        color: "#03DAC5",
+        color: colors.gold, // "#FFD700"
         fontSize: 16,
     },
     profileModalContainer: {
@@ -287,5 +288,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
 });
+
 
 export default JobDetailView;

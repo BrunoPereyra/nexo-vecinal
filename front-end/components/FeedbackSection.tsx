@@ -1,3 +1,4 @@
+import colors from '@/style/colors';
 import React, { useState } from 'react';
 import {
     View,
@@ -154,114 +155,116 @@ export const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 
 const styles = StyleSheet.create({
     feedbackCard: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderRadius: 10,
         padding: 16,
         marginVertical: 16,
         borderWidth: 1,
-        borderColor: '#2c5364',
-        shadowColor: '#000',
+        borderColor: colors.borderLight, // "#EAE6DA"
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
     },
     sectionTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
-        color: '#03DAC5',
+        fontWeight: "bold",
+        color: colors.gold, // "#FFD700"
         marginBottom: 8,
     },
     existingFeedback: {
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
         borderRadius: 8,
         padding: 12,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     feedbackHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
     },
     uploader: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark,
         flex: 1,
         marginHorizontal: 8,
     },
     toggleText: {
         fontSize: 14,
-        color: '#03DAC5',
+        color: colors.gold,
     },
     feedbackContent: {
         marginTop: 8,
     },
     feedbackComment: {
         fontSize: 16,
-        color: '#B0B0B0',
+        color: colors.textMuted,
     },
     feedbackDate: {
         fontSize: 14,
-        color: '#888',
+        color: colors.textMuted,
         marginTop: 4,
     },
     ratingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
     },
     star: {
         fontSize: 24,
         marginHorizontal: 2,
     },
     selectedStar: {
-        color: '#03DAC5',
+        color: colors.gold,
     },
     unselectedStar: {
-        color: '#2c5364',
+        color: colors.textMuted,
     },
     feedbackForm: {
         marginTop: 12,
     },
     formTitle: {
         fontSize: 18,
-        fontWeight: '600',
-        color: '#E0E0E0',
+        fontWeight: "600",
+        color: colors.textDark,
         marginBottom: 8,
     },
     ratingSection: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginBottom: 8,
     },
     ratingLabel: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark,
         marginRight: 8,
     },
     input: {
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         borderRadius: 8,
         padding: 10,
         minHeight: 60,
-        color: '#E0E0E0',
-        backgroundColor: '#0f2027',
+        color: colors.textDark,
+        backgroundColor: colors.warmWhite,
         marginBottom: 12,
     },
     feedbackButton: {
-        backgroundColor: '#03DAC5',
+        backgroundColor: colors.gold,
         paddingVertical: 12,
         borderRadius: 8,
-        alignItems: 'center',
+        alignItems: "center",
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     feedbackButtonText: {
         fontSize: 16,
-        fontWeight: 'bold',
-        color: '#0f2027',
+        fontWeight: "bold",
+        color: colors.textDark,
     },
 });
+
+
 
 export default FeedbackSection;

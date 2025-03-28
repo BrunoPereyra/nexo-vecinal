@@ -24,6 +24,8 @@ import { useAuth } from "@/context/AuthContext";
 import SupportChat from "@/components/chatsupport/SupportChat";
 import { JobCardProfiles } from "@/components/jobCards/JobCardProfiles";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Clipboard from 'expo-clipboard';
+import colors from "@/style/colors";
 
 
 export default function ProfileScreen() {
@@ -45,6 +47,7 @@ export default function ProfileScreen() {
     const [editBioVisible, setEditBioVisible] = useState(false);
     const [biografia, setBiografia] = useState("");
     const [loadingJobs, setLoadingJobs] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
 
     // ---------------------- Chat de Soporte ----------------------
     const [supportChatVisible, setSupportChatVisible] = useState<boolean>(false);
@@ -173,7 +176,6 @@ export default function ProfileScreen() {
         <View style={styles.headerContainer}>
             {userProfile && <ProfileAdminHeader user={userProfile} />}
             {/* Más espacio para separar la biografía de los toggles */}
-            <View style={{ marginTop: 10 }} />
             <View style={styles.toggleContainer}>
                 {/* Toggle "Trabajos realizados" */}
                 <TouchableOpacity
@@ -317,6 +319,12 @@ export default function ProfileScreen() {
                     >
                         <Text style={styles.dropdownButtonText}>Chat de Soporte</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.dropdownButton}
+                        onPress={() => setModalVisible(true)}
+                    >
+                        <Text style={styles.dropdownButtonText}>agrega curso</Text>
+                    </TouchableOpacity>
                     {userProfile?.PanelAdminNexoVecinal?.Level > 0 && (
                         <TouchableOpacity
                             onPress={() => router.push("/(protected)/(admin)/adminPanel")}
@@ -331,9 +339,38 @@ export default function ProfileScreen() {
                     >
                         <Text style={styles.dropdownButtonText}>Cerrar sesión</Text>
                     </TouchableOpacity>
+
                 </View>
             )}
+            <Modal
+                visible={modalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setModalVisible(false)}
+            >
 
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContentmail}>
+                        <Text style={styles.modalTitlemail}>Agregar Curso</Text>
+                        <Text style={styles.modalText}>
+                            Para agregar tu curso, envía un email a:
+                        </Text>
+                        <View style={styles.emailContainer}>
+                            <Text style={styles.modalEmail}>nexovecinal@gmail.com</Text>
+                            <TouchableOpacity
+                                style={styles.copyButton}
+                                onPress={async () => {
+                                    await Clipboard.setStringAsync("nexovecinal@gmail.com");
+                                    Alert.alert("Copiado", "El email se ha copiado al portapapeles.");
+                                }}
+                            >
+                                <Text style={styles.copyButtonText}>Copiar</Text>
+                            </TouchableOpacity>
+                        </View>
+                        <Button title="Cerrar" onPress={() => setModalVisible(false)} color="#03DAC5" />
+                    </View>
+                </View>
+            </Modal>
             {/* Modal para editar biografía */}
             <Modal visible={editBioVisible} transparent animationType="slide">
                 <View style={styles.modalContainer}>
@@ -391,25 +428,23 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-    // 1. Unificar la paleta en el contenedor principal
     container: {
         flex: 1,
-        backgroundColor: "#0f2027",
+        backgroundColor: colors.background, // "#FFFFFF"
     },
-    // 2. Agregar más espacios y separaciones
     listContainer: {
         flexGrow: 1,
         padding: 16,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
     },
     center: {
         flex: 1,
         justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "#0f2027",
+        backgroundColor: colors.warmWhite,
     },
     errorText: {
-        color: "#CF6679",
+        color: colors.errorRed, // "#CF6679"
         marginBottom: 20,
         fontSize: 16,
     },
@@ -429,32 +464,29 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 14,
         borderRadius: 30,
-        backgroundColor: "#203a43",
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderWidth: 1,
-        borderColor: "#2c5364",
-        marginHorizontal: 4, // Menos margen lateral
-        flexShrink: 1, // Permite que se encoja si es necesario
+        borderColor: colors.borderLight, // "#EAE6DA"
+        marginHorizontal: 4,
+        flexShrink: 1,
     },
     toggleIcon: {
         marginRight: 6,
     },
-    // 3. Contraste de texto asegurado (color claro vs. fondo oscuro)
     toggleButtonText: {
         fontSize: 14,
         flexShrink: 1,
-        color: "#E0E0E0",
+        color: colors.textDark, // "#333"
         textAlign: "center",
     },
-    // 4. Consistencia de botones: usar #03DAC5 como color de acento en toggles activos
     activeToggle: {
-        backgroundColor: "#03DAC5",
-        borderColor: "#03DAC5",
+        backgroundColor: colors.gold,
+        borderColor: colors.gold,
     },
     activeToggleText: {
-        color: "#121212",
+        color: colors.background, // Blanco para contraste sobre primary
         fontWeight: "bold",
     },
-    // 5. Pequeños detalles de estilo
     emptyContainer: {
         flex: 1,
         justifyContent: "center",
@@ -462,7 +494,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     emptyText: {
-        color: "#E0E0E0",
+        color: colors.textDark,
         fontSize: 16,
         textAlign: "center",
     },
@@ -471,7 +503,7 @@ const styles = StyleSheet.create({
         top: 10,
         right: 10,
         padding: 8,
-        backgroundColor: "#203a43",
+        backgroundColor: colors.cream,
         borderRadius: 30,
         elevation: 5,
         shadowColor: "#000",
@@ -484,7 +516,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         top: 50,
         right: 10,
-        backgroundColor: "#203a43",
+        backgroundColor: colors.cream,
         borderRadius: 8,
         paddingVertical: 8,
         paddingHorizontal: 10,
@@ -500,15 +532,14 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
     },
     dropdownButtonText: {
-        color: "#E0E0E0",
+        color: colors.textDark,
         fontSize: 16,
     },
     dropdownLogout: {
         borderTopWidth: 1,
-        borderColor: "#444",
+        borderColor: colors.borderLight,
         marginTop: 8,
     },
-    // 6. Biografía / Descripción con más espacio en el header (hecho en ListHeader con marginTop)
     modalContainer: {
         flex: 1,
         justifyContent: "center",
@@ -517,25 +548,27 @@ const styles = StyleSheet.create({
     },
     modalContent: {
         width: "85%",
-        backgroundColor: "#203a43",
+        backgroundColor: colors.cream,
         borderRadius: 12,
         padding: 20,
         elevation: 6,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
     },
     modalTitle: {
         fontSize: 20,
         fontWeight: "bold",
-        color: "#E0E0E0",
+        color: colors.textDark,
         marginBottom: 16,
     },
     modalTextInput: {
         height: 100,
-        borderColor: "#2c5364",
+        borderColor: colors.borderLight,
         borderWidth: 1,
         borderRadius: 8,
         padding: 12,
-        color: "#E0E0E0",
-        backgroundColor: "#0f2027",
+        color: colors.textDark,
+        backgroundColor: colors.background,
         textAlignVertical: "top",
         marginBottom: 20,
         fontSize: 16,
@@ -544,12 +577,11 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
     },
-    // FAB unificado con el color de acento
     fab: {
         position: "absolute",
-        bottom: 30,
-        right: 30,
-        backgroundColor: "#03DAC5",
+        bottom: 90,
+        right: 12,
+        backgroundColor: colors.cream,
         width: 60,
         height: 60,
         borderRadius: 30,
@@ -561,4 +593,75 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
+    addCourseButton: {
+        backgroundColor: colors.primary,
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: 8,
+        alignSelf: "center",
+        marginTop: 16,
+    },
+    addCourseButtonText: {
+        color: colors.textDark,
+        fontSize: 16,
+        fontWeight: "bold",
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.6)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContentmail: {
+        width: "80%",
+        backgroundColor: colors.cream,
+        borderRadius: 12,
+        padding: 20,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+    },
+    modalTitlemail: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: colors.primary,
+        marginBottom: 12,
+        textAlign: "center",
+    },
+    modalText: {
+        fontSize: 16,
+        color: colors.textDark,
+        textAlign: "center",
+        marginBottom: 8,
+    },
+    emailContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderRadius: 8,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        marginBottom: 12,
+        backgroundColor: colors.background,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+    },
+    modalEmail: {
+        fontSize: 18,
+        color: colors.textDark,
+        fontWeight: "bold",
+        textAlign: "center",
+        marginBottom: 8,
+    },
+    copyButton: {
+        backgroundColor: colors.primary,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        marginHorizontal: 12,
+        borderRadius: 8,
+    },
+    copyButtonText: {
+        color: colors.textDark,
+        fontSize: 16,
+        fontWeight: "bold",
+    },
 });
+

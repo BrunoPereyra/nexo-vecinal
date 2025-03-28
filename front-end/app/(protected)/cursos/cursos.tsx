@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { getActiveCourses } from '@/services/cursos';
+import colors from '@/style/colors';
 
 interface Course {
     id: string;
@@ -70,10 +71,11 @@ export default function CursosScreen() {
     );
 }
 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.background, // "#FFFFFF"
         padding: 16,
     },
     sectionContainer: {
@@ -81,27 +83,27 @@ const styles = StyleSheet.create({
     },
     sectionTitle: {
         fontSize: 22,
-        fontWeight: '600',
-        color: '#03DAC5',
+        fontWeight: "600",
+        color: colors.textDark, // "#03DAC5"
         marginBottom: 8,
     },
     courseCard: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         padding: 16,
         borderRadius: 8,
         marginRight: 12,
         width: 280,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     courseTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
+        fontWeight: "bold",
+        color: colors.textDark, // "#333"
         marginBottom: 8,
     },
     courseDescription: {
         fontSize: 14,
-        color: '#B0B0B0',
+        color: colors.textMuted, // "#888"
     },
 });

@@ -22,6 +22,7 @@ import { ProfileVisitedHeader } from '@/components/headersProfile/ProfileVisited
 import { createReports } from '@/services/admin';
 import { JobCardProfiles } from '@/components/jobCards/JobCardProfiles';
 import { Ionicons } from '@expo/vector-icons';
+import colors from '@/style/colors';
 
 type Job = {
     id: string;
@@ -213,7 +214,7 @@ export default function VisitedProfileScreen() {
     if (loading || !userProfile) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#03DAC5" />
+                <ActivityIndicator size="large" color="#FFD700" />
             </View>
         );
     }
@@ -229,7 +230,7 @@ export default function VisitedProfileScreen() {
     if (globalLoading) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#03DAC5" />
+                <ActivityIndicator size="large" color="#FFD700" />
             </View>
         );
     }
@@ -238,14 +239,14 @@ export default function VisitedProfileScreen() {
         return (
             <View style={styles.center}>
                 <Text style={styles.errorText}>{error}</Text>
-                <Button title="Cerrar sesión" onPress={handleLogout} color="#03DAC5" />
+                <Button title="Cerrar sesión" onPress={handleLogout} color="#FFD700" />
             </View>
         );
     }
     if (loading || !userProfile) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#03DAC5" />
+                <ActivityIndicator size="large" color="#FFD700" />
             </View>
         );
     }
@@ -303,9 +304,9 @@ export default function VisitedProfileScreen() {
                                         alert('Ocurrió un error al enviar el reporte');
                                     }
                                 }}
-                                color="#03DAC5"
+                                color="#FFD700"
                             />
-                            <Button title="Cancelar" onPress={() => setReportModalVisible(false)} color="#03DAC5" />
+                            <Button title="Cancelar" onPress={() => setReportModalVisible(false)} color="#FFD700" />
                         </View>
                     </View>
                 </View>
@@ -335,41 +336,41 @@ const styles = StyleSheet.create({
     listContainer: {
         flexGrow: 1,
         padding: 16,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.background, // "#FFFFFF"
     },
     center: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#0f2027',
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: colors.background,
     },
     errorText: {
-        color: '#CF6679',
+        color: colors.errorRed, // "#CF6679"
         marginBottom: 20,
         fontSize: 16,
     },
     descriptionContainer: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         padding: 8,
         borderRadius: 5,
         marginBottom: 10,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     userDescription: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
     },
     seeMoreText: {
         fontSize: 14,
-        color: '#03DAC5',
+        color: colors.primary, // "#FFD700"
         marginTop: 4,
-        textDecorationLine: 'underline',
+        textDecorationLine: "underline",
     },
     starContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
         marginVertical: 8,
     },
     star: {
@@ -377,136 +378,134 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
     },
     selectedStar: {
-        color: '#03DAC5',
+        color: colors.primary,
     },
     unselectedStar: {
-        color: '#2c5364',
+        color: colors.borderDark, // "#2c5364"
     },
     ratingText: {
         fontSize: 16,
-        color: '#03DAC5',
-        textAlign: 'center',
+        color: colors.primary,
+        textAlign: "center",
         marginLeft: 8,
-        fontWeight: '600',
+        fontWeight: "600",
     },
     toggleContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
+        flexDirection: "row",
+        justifyContent: "space-evenly",
         marginVertical: 12,
     },
     toggleButton: {
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 30,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
+        marginHorizontal: 4,
+        flexShrink: 1,
     },
     activeToggle: {
-        backgroundColor: '#03DAC5',
-        borderColor: '#03DAC5',
+        backgroundColor: colors.gold,
+        borderColor: colors.gold,
     },
     toggleButtonText: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
+        textAlign: "center",
     },
     activeToggleText: {
-        color: '#0f2027',
-        fontWeight: 'bold',
+        color: colors.background, // "#FFFFFF"
+        fontWeight: "bold",
     },
     reportButton: {
-        position: 'absolute',
+        position: "absolute",
         top: 16,
         right: 16,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         paddingHorizontal: 12,
         paddingVertical: 8,
         borderRadius: 5,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         zIndex: 10,
     },
     reportButtonText: {
-        color: '#E0E0E0',
-        fontWeight: 'bold',
+        color: colors.textDark,
+        fontWeight: "bold",
         fontSize: 14,
     },
     card: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         padding: 16,
         borderRadius: 12,
         marginVertical: 8,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         elevation: 3,
     },
     cardTitle: {
         fontSize: 18,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
+        fontWeight: "bold",
+        color: colors.textDark,
         marginBottom: 4,
     },
     cardStatus: {
         fontSize: 14,
-        color: '#B0B0B0',
+        color: colors.textMuted, // "#888"
         marginTop: 4,
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: "rgba(0,0,0,0.7)",
+        justifyContent: "center",
+        alignItems: "center",
     },
     modalContent: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         padding: 20,
         borderRadius: 8,
-        width: '80%',
+        width: "80%",
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
     },
     modalTitle: {
         fontSize: 20,
-        fontWeight: 'bold',
-        color: '#03DAC5',
+        fontWeight: "bold",
+        color: colors.primary,
         marginBottom: 12,
-        textAlign: 'center',
+        textAlign: "center",
     },
     modalInput: {
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         borderRadius: 5,
         padding: 10,
         minHeight: 80,
         marginBottom: 12,
-        backgroundColor: '#0f2027',
-        color: '#E0E0E0',
+        backgroundColor: colors.background,
+        color: colors.textDark,
     },
     modalButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
+        flexDirection: "row",
+        justifyContent: "space-around",
     },
     fab: {
-        position: 'absolute',
-        bottom: 30,
-        right: 30,
-        backgroundColor: '#03DAC5',
+        position: "absolute",
+        bottom: 90,
+        right: 10,
+        backgroundColor: colors.cream,
         width: 60,
         height: 60,
         borderRadius: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: "center",
+        justifyContent: "center",
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight,
         elevation: 5,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
-    },
-    fabText: {
-        color: '#0f2027',
-        fontSize: 30,
-        fontWeight: 'bold',
     },
 });

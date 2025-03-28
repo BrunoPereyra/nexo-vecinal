@@ -234,14 +234,15 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
         </>
     );
 };
+import colors from "@/style/colors";
 
 const styles = StyleSheet.create({
     fullScreenContainer: {
         flex: 1,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
     },
     closeButton: {
-        position: 'absolute',
+        position: "absolute",
         top: 10,
         right: 20,
         zIndex: 10,
@@ -249,89 +250,90 @@ const styles = StyleSheet.create({
     },
     closeButtonText: {
         fontSize: 24,
-        color: '#03DAC5',
+        color: colors.gold, // "#FFD700"
     },
     listContainer: {
         flexGrow: 1,
         padding: 6,
-        backgroundColor: '#0f2027',
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
         paddingTop: 10,
     },
     center: {
         flex: 1,
-        backgroundColor: '#0f2027',
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: colors.warmWhite, // "#FAF9F6"
+        justifyContent: "center",
+        alignItems: "center",
     },
     errorText: {
-        color: '#CF6679',
+        color: colors.errorRed,
         fontSize: 16,
         marginBottom: 20,
     },
     descriptionContainer: {
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         padding: 8,
         borderRadius: 5,
         marginBottom: 10,
     },
     userDescription: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
     },
     seeMoreText: {
         fontSize: 14,
-        color: '#03DAC5',
+        color: colors.gold, // "#FFD700"
         marginTop: 4,
-        textDecorationLine: 'underline',
+        textDecorationLine: "underline",
     },
     toggleContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-evenly',
+        flexDirection: "row",
+        justifyContent: "space-evenly",
         marginVertical: 12,
     },
     toggleButton: {
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 30,
-        backgroundColor: '#203a43',
+        backgroundColor: colors.cream, // "#FFF8DC"
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
     },
     toggleButtonText: {
         fontSize: 16,
-        color: '#E0E0E0',
+        color: colors.textDark, // "#333"
     },
     activeToggle: {
-        backgroundColor: '#03DAC5',
-        borderColor: '#03DAC5',
+        backgroundColor: colors.gold, // "#FFD700"
+        borderColor: colors.gold, // "#FFD700"
     },
     activeToggleText: {
-        color: '#0f2027',
-        fontWeight: 'bold',
+        color: colors.textDark, // "#333"
+        fontWeight: "bold",
     },
     fab: {
-        position: 'absolute',
+        position: "absolute",
         bottom: 30,
         right: 30,
-        backgroundColor: '#03DAC5',
+        backgroundColor: colors.gold, // "#FFD700"
         width: 60,
         height: 60,
         borderRadius: 30,
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: "center",
+        justifyContent: "center",
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderLight, // "#EAE6DA"
         elevation: 5,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
     fabText: {
-        color: '#0f2027',
+        color: colors.textDark, // "#333"
         fontSize: 30,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
 });
+
 
 export default VisitedProfileModal;

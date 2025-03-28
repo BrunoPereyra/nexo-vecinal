@@ -1,6 +1,14 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+    View,
+    Text,
+    Image,
+    StyleSheet,
+    TouchableOpacity,
+    Modal
+} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import colors from '@/style/colors';
 
 type ProfileHeaderProps = {
     user: {
@@ -8,21 +16,24 @@ type ProfileHeaderProps = {
         FullName: string;
         NameUser: string;
         biography: string;
-        // Otros campos si es necesario
     };
 };
 
 export const ProfileVisitedHeader: React.FC<ProfileHeaderProps> = ({ user }) => {
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const handleLongPress = () => {
+        setModalVisible(true);
+    };
+
     return (
-        <LinearGradient
-            colors={["#0f2027", "#203a43", "#2c5364"]}
-            style={styles.gradientContainer}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-        >
+        <>
+
             <View style={styles.container}>
                 <View style={styles.topRow}>
-                    <Image source={{ uri: user.Avatar }} style={styles.avatar} />
+                    <TouchableOpacity onLongPress={handleLongPress}>
+                        <Image source={{ uri: user.Avatar }} style={styles.avatar} />
+                    </TouchableOpacity>
                     <View style={styles.infoContainer}>
                         <Text style={styles.fullName}>{user.FullName}</Text>
                         <Text style={styles.username}>@{user.NameUser}</Text>
@@ -30,7 +41,29 @@ export const ProfileVisitedHeader: React.FC<ProfileHeaderProps> = ({ user }) => 
                 </View>
                 <Text style={styles.biography}>{user.biography}</Text>
             </View>
-        </LinearGradient>
+
+            {/* Modal para mostrar el avatar ampliado */}
+            {
+                user.Avatar && (
+
+                    <Modal
+                        visible={modalVisible}
+                        transparent
+                        animationType="fade"
+                        onRequestClose={() => setModalVisible(false)}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <TouchableOpacity
+                                style={styles.modalOverlay}
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Image source={{ uri: user.Avatar }} style={styles.fullAvatar} />
+                            </TouchableOpacity>
+                        </View>
+                    </Modal>
+                )
+            }
+        </>
     );
 };
 
@@ -38,20 +71,20 @@ const styles = StyleSheet.create({
     gradientContainer: {
         borderRadius: 12,
         marginBottom: 20,
-        overflow: 'hidden',
+        overflow: "hidden",
         elevation: 3,
-        shadowColor: '#000',
+        shadowColor: "#000",
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
     },
     container: {
-        backgroundColor: 'transparent', // Transparente para ver el degradado
+        backgroundColor: "transparent",
         padding: 16,
     },
     topRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginBottom: 12,
     },
     avatar: {
@@ -59,7 +92,7 @@ const styles = StyleSheet.create({
         height: 100,
         borderRadius: 50,
         borderWidth: 2,
-        borderColor: '#03DAC5',
+        borderColor: colors.gold, // "#FFD700"
     },
     infoContainer: {
         flex: 1,
@@ -67,18 +100,33 @@ const styles = StyleSheet.create({
     },
     fullName: {
         fontSize: 22,
-        fontWeight: 'bold',
-        color: '#E0E0E0',
+        fontWeight: "bold",
+        color: colors.textLight, // "#E0E0E0"
         marginBottom: 4,
     },
     username: {
         fontSize: 16,
-        color: '#03DAC5',
+        color: colors.gold, // "#FFD700"
         marginBottom: 8,
     },
     biography: {
         fontSize: 14,
-        color: '#B0B0B0',
-        textAlign: 'left',
+        color: colors.textGrey, // "#B0B0B0"
+        textAlign: "left",
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.8)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    fullAvatar: {
+        width: "80%",
+        height: "80%",
+        resizeMode: "contain",
+        borderRadius: 12,
     },
 });
+
+
+export default ProfileVisitedHeader;
