@@ -195,9 +195,6 @@ func ProcessImage(fileHeader *multipart.FileHeader, PostImageChanel chan string,
 		return
 	}
 
-	// Redimensionar la imagen (ajusta las dimensiones según tus necesidades)
-	img = resize.Resize(172, 216, img, resize.Lanczos3)
-
 	// Ruta base de almacenamiento local
 	basePath := filepath.Join(config.BasePathUpload(), "images")
 	if err := os.MkdirAll(basePath, os.ModePerm); err != nil {
