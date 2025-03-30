@@ -5,7 +5,6 @@ import (
 	"back-end/internal/chat/chatapplication"
 	"back-end/internal/chat/chatdomain"
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -122,8 +121,6 @@ func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
 	pubsub := h.ChatService.ChatRepo.SubscribeMessages(ctx, chatRoomID)
 	defer pubsub.Close()
 
-	fmt.Println("Cliente suscrito al chatRoomID:", chatRoomID)
-
 	// Canal para detectar cuando el cliente cierra la conexión
 	closed := make(chan struct{})
 
@@ -133,7 +130,6 @@ func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
 		for {
 			_, _, err := c.ReadMessage()
 			if err != nil {
-				fmt.Println("Cliente desconectado:", err)
 				return
 			}
 		}
@@ -143,16 +139,13 @@ func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
 	for {
 		select {
 		case <-closed:
-			fmt.Println("Conexión cerrada, saliendo del loop")
 			return
 		default:
 			msg, err := pubsub.ReceiveMessage(ctx)
 			if err != nil {
-				fmt.Println("Error al recibir mensaje o conexión cerrada:", err)
 				return
 			}
 			if err := c.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
-				fmt.Println("Error al enviar mensaje, posible desconexión:", err)
 				return
 			}
 		}

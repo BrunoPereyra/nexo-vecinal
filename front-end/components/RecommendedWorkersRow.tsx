@@ -105,7 +105,7 @@ const RecommendedWorkersRow = () => {
                                 </Text>
                             </View>
                         )}
-                        <Text style={styles.workerName}>{worker.userData.nameUser}</Text>
+                        {/* <Text style={styles.workerName}>{worker.userData.nameUser}</Text> */}
                     </TouchableOpacity>
                 ))}
             </ScrollView>

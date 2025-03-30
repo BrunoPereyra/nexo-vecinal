@@ -9,7 +9,6 @@ import {
   Image,
   Platform,
   BackHandler,
-  ActivityIndicator
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../../context/AuthContext';
@@ -125,7 +124,6 @@ export default function ChatJobs() {
     setLoading(true);
     try {
       const data = await getMessagesBetween(currentUser.id, chatPartner.id, token);
-      console.log('Mensajes cargados:', data);
       setMessages(data || []);
     } catch (err) {
       console.error('Error al cargar mensajes:', err);
@@ -153,7 +151,6 @@ export default function ChatJobs() {
       try {
         const message = JSON.parse(event.data);
         if (message.type && message.type === 'pong') return;
-        console.log("Añadiendo mensaje:", message.text);
         setMessages(prevMessages => [...prevMessages, message]);
       } catch (error) {
         console.error('Error al parsear mensaje de WebSocket:', error);
@@ -176,7 +173,6 @@ export default function ChatJobs() {
       }
       return () => {
         // Al perder foco, cerramos la conexión
-        console.log("Limpiando WebSocket al perder el foco");
         if (ws.current) {
           ws.current.close();
           ws.current = null;
@@ -184,6 +180,13 @@ export default function ChatJobs() {
       };
     }, [chatRoom, subscribeWebSocket])
   );
+  useEffect(() => {
+    if (!loading) {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [messages, loading]);
 
   // Limpieza final cuando se desmonta el componente
   useEffect(() => {
@@ -204,11 +207,7 @@ export default function ChatJobs() {
         text: newMessage.trim(),
       };
       setNewMessage('');
-      console.log('Enviando mensaje:', messageData);
-      const res = await sendChatMessage(messageData, token);
-      if (res) {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }
+      await sendChatMessage(messageData, token);
     } catch (err) {
       console.error('Error al enviar mensaje:', err);
     }
