@@ -116,15 +116,14 @@ const styles = StyleSheet.create({
     },
     modalOverlay: {
         flex: 1,
-        backgroundColor: "rgba(0,0,0,0.8)",
         justifyContent: "center",
         alignItems: "center",
     },
     fullAvatar: {
-        width: "80%",
-        height: "80%",
+        width: 300,
+        height: 300,
         resizeMode: "contain",
-        borderRadius: 12,
+        borderRadius: 1000,
     },
 });
 

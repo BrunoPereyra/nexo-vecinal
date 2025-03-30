@@ -85,7 +85,6 @@ export default function Agenda() {
 
         try {
             const data = await getChatRooms(token, pageNumber);
-            console.log(data);
 
             if (pageNumber === 1) {
                 setChats(data || []);

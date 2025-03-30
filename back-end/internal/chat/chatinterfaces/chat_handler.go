@@ -111,25 +111,50 @@ func (h *ChatHandler) MarkMessageAsRead(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "mensaje marcado como leído"})
 }
 
-// SubscribeMessages endpoint para recibir mensajes en tiempo real vía WebSocket.
-// Los clientes se conectan a /chat/subscribe/:chatRoomId y se suscriben al canal de Redis.
 func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
 	chatRoomID := c.Params("chatRoomId")
 	if chatRoomID == "" {
 		c.WriteMessage(websocket.TextMessage, []byte("chatRoomId es requerido"))
 		return
 	}
+
 	ctx := context.Background()
 	pubsub := h.ChatService.ChatRepo.SubscribeMessages(ctx, chatRoomID)
 	defer pubsub.Close()
 
-	for {
-		msg, err := pubsub.ReceiveMessage(ctx)
-		if err != nil {
-			break // Por ejemplo, conexión cerrada.
+	fmt.Println("Cliente suscrito al chatRoomID:", chatRoomID)
+
+	// Canal para detectar cuando el cliente cierra la conexión
+	closed := make(chan struct{})
+
+	// Goroutine para escuchar si el cliente cierra la conexión
+	go func() {
+		defer close(closed)
+		for {
+			_, _, err := c.ReadMessage()
+			if err != nil {
+				fmt.Println("Cliente desconectado:", err)
+				return
+			}
 		}
-		if err := c.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
-			break
+	}()
+
+	// Loop principal para recibir mensajes de Redis y enviarlos al cliente
+	for {
+		select {
+		case <-closed:
+			fmt.Println("Conexión cerrada, saliendo del loop")
+			return
+		default:
+			msg, err := pubsub.ReceiveMessage(ctx)
+			if err != nil {
+				fmt.Println("Error al recibir mensaje o conexión cerrada:", err)
+				return
+			}
+			if err := c.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
+				fmt.Println("Error al enviar mensaje, posible desconexión:", err)
+				return
+			}
 		}
 	}
 }
@@ -167,20 +192,15 @@ func (h *ChatHandler) GetChatRooms(c *fiber.Ctx) error {
 	}
 
 	// Obtenemos el límite y la página de la query
-	limitParam := c.Query("limit", "10")
 	pageParam := c.Query("page", "1")
-	limit, err := strconv.Atoi(limitParam)
-	if err != nil || limit <= 0 {
-		limit = 10
-	}
+
 	page, err := strconv.Atoi(pageParam)
 	if err != nil || page <= 0 {
 		page = 1
 	}
 
-	rooms, err := h.ChatService.GetChatRooms(c.Context(), idValue, limit, page)
+	rooms, err := h.ChatService.GetChatRooms(c.Context(), idValue, 10, page)
 	if err != nil {
-		fmt.Println(err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(rooms)

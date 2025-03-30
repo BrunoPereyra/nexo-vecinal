@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
+import colors from '@/style/colors';
 
 export default function ProtectedLayout() {
   const router = useRouter();
@@ -11,12 +12,7 @@ export default function ProtectedLayout() {
   return (
     <ProtectedRoute>
       <SafeAreaView style={styles.container}>
-        <StatusBar
-          style="dark"
-          translucent={false}
-          backgroundColor="#F5F5F5"
-        />
-
+        <StatusBar backgroundColor={colors.textDark} barStyle="light-content" />
         <View style={styles.absoluteWrapper}>
           <Tabs
             initialRouteName="home"
@@ -129,7 +125,7 @@ export default function ProtectedLayout() {
               options={{
                 title: '(chat)',
                 href: null,
-                unmountOnBlur: false,
+                unmountOnBlur: true,
                 tabBarStyle: { display: 'none' },
               }}
             />
@@ -164,7 +160,9 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     height: 60,
-    backgroundColor: '#B0B0B0',
+    // backgroundColor: '#B0B0B0',
+    backgroundColor: colors.cream,
+
     borderTopWidth: 0,
     borderRadius: 30,
     shadowColor: '#000',
@@ -188,7 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   iconWrapperActive: {
-    backgroundColor: '#FFCC00',
+    backgroundColor: colors.background,
     transform: [{ scale: 1.3 }, { translateY: -10 }],
     zIndex: 1000,
     ...Platform.select({

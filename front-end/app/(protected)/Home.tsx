@@ -113,7 +113,7 @@ const Home: React.FC = () => {
           <Ionicons
             name={showRecommended ? "chevron-up-outline" : "chevron-down-outline"}
             size={20}
-            color="#FFF"
+            color={colors.textDark}
           />
         </TouchableOpacity>
       </View>

@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { loginNameUser } from '../services/authService';
 import { savePushToken } from '../services/userService';
+import colors from '@/style/colors';
 
 export default function LoginScreen() {
   const [nameUser, setNameUser] = useState('');
@@ -49,44 +50,46 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-      <Button title="Login" onPress={handleLogin} color="#03DAC5" />
+      <Button title="Login" onPress={handleLogin} color={colors.gold} />
       <View style={styles.buttonSpacing}>
-        <Button title="Ir a Signup" onPress={() => router.push('/signup')} color="#03DAC5" />
+        <Button title="Ir a Signup" onPress={() => router.push('/signup')} color={colors.gold} />
       </View>
     </View>
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f2027', // Fondo principal
-    justifyContent: 'center',
+    backgroundColor: colors.background, // "#FFFFFF" (Fondo claro)
+    justifyContent: "center",
     padding: 20,
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
-    textAlign: 'center',
-    color: '#E0E0E0',
-    fontWeight: 'bold',
+    textAlign: "center",
+    color: colors.textDark, // "#333333" (Texto oscuro para contraste)
+    fontWeight: "bold",
   },
   input: {
     height: 40,
-    backgroundColor: '#203a43', // Sección secundaria
-    borderColor: '#2c5364', // Borde activo
+    backgroundColor: colors.cream, // "#F5F5F5" (Campo de entrada claro)
+    borderColor: colors.gold, // "#BDBDBD" (Borde sutil)
     borderWidth: 1,
     marginBottom: 10,
     paddingHorizontal: 10,
-    color: '#E0E0E0',
+    color: colors.textDark, // "#333333" (Texto oscuro)
     borderRadius: 5,
   },
   buttonSpacing: {
     marginVertical: 10,
   },
   errorText: {
-    color: '#FF5252',
-    textAlign: 'center',
+    color: colors.errorRed, // "#D32F2F" (Rojo para errores)
+    textAlign: "center",
     marginBottom: 10,
   },
 });
+

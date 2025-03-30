@@ -4,12 +4,15 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet
+  StyleSheet,
+  Platform
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { SaveUserCodeConfirm, SignupService } from '@/services/authService';
+import colors from '@/style/colors';
 
 export default function SignupScreen() {
   const [nameUser, setNameUser] = useState('');
@@ -17,8 +20,9 @@ export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  // Fecha de nacimiento en formato "DD-MM-YYYY"
-  const [birthDate, setBirthDate] = useState('');
+  // Estado para la fecha de nacimiento: se inicia con la fecha actual
+  const [birthDate, setBirthDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [sex, setSex] = useState<'Masculino' | 'Femenino'>('Masculino');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -27,14 +31,46 @@ export default function SignupScreen() {
   const { login } = useAuth();
   const router = useRouter();
 
-  // Validación básica para el formato "DD-MM-YYYY"
-  const validateBirthDate = (dateStr: string): boolean => {
-    const regex = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/;
-    return regex.test(dateStr);
+  // Función para validar el nameUser según las reglas:
+  // Longitud entre 3 y 20 y solo caracteres alfanuméricos
+  const validateNameUser = (name: string): boolean => {
+    if (name.length < 3 || name.length > 20) return false;
+    const regex = /^[a-zA-Z0-9]+$/;
+    return regex.test(name);
+  };
+
+  // Formatear la fecha para mostrarla en el botón (DD-MM-YYYY)
+  const getDisplayBirthDate = (): string => {
+    const dd = String(birthDate.getDate()).padStart(2, '0');
+    const mm = String(birthDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = birthDate.getFullYear();
+    return `${dd}-${mm}-${yyyy}`;
+  };
+
+  // Formatear la fecha para enviarla al backend (YYYY-MM-DD)
+  const getFormattedBirthDate = (): string => {
+    const dd = String(birthDate.getDate()).padStart(2, '0');
+    const mm = String(birthDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = birthDate.getFullYear();
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(Platform.OS === 'ios'); // En Android se cierra automáticamente
+    if (selectedDate) {
+      setBirthDate(selectedDate);
+    }
   };
 
   const handleSignup = async () => {
     setErrorMessage('');
+
+    if (!validateNameUser(nameUser)) {
+      setErrorMessage(
+        'El nombre de usuario debe tener entre 3 y 20 caracteres y ser alfanumérico'
+      );
+      return;
+    }
     if (password !== confirmPassword) {
       setErrorMessage('Las contraseñas no coinciden');
       return;
@@ -43,20 +79,25 @@ export default function SignupScreen() {
       setErrorMessage('La contraseña debe tener al menos 8 caracteres');
       return;
     }
-    if (!validateBirthDate(birthDate)) {
-      setErrorMessage('La fecha de nacimiento debe tener el formato DD-MM-YYYY');
-      return;
-    }
     try {
-      // Convertir "DD-MM-YYYY" a "YYYY-MM-DD" para el backend
-      const [dd, mm, yyyy] = birthDate.split('-');
-      const formattedBirthDate = `${yyyy}-${mm}-${dd}`;
-      const data = await SignupService(email, password, nameUser, fullName, formattedBirthDate, sex);
+      const formattedBirthDate = getFormattedBirthDate();
+      const data = await SignupService(
+        email,
+        password,
+        nameUser,
+        fullName,
+        formattedBirthDate,
+        sex
+      );
+
       if (data) {
         if (data.message === "email to confirm") {
           await handleSaveUserCodeConfirm(data.code);
         } else {
-          if (data.code === 409 || data.message.toLowerCase().includes("409")) {
+          if (
+            data.code === 409 ||
+            data.message.toLowerCase().includes("409")
+          ) {
             setErrorMessage("El nombre de usuario o el email ya existen");
           } else {
             setErrorMessage(data.message || "No se pudo crear el usuario.");
@@ -78,7 +119,12 @@ export default function SignupScreen() {
   const handleSaveUserCodeConfirm = async (code: any) => {
     try {
       const resConfirm = await SaveUserCodeConfirm(code);
-      await login(resConfirm.token, resConfirm._id, resConfirm.avatar, resConfirm.nameUser);
+      await login(
+        resConfirm.token,
+        resConfirm._id,
+        resConfirm.avatar,
+        resConfirm.nameUser
+      );
       router.push('/(protected)/home');
     } catch (error) {
       console.error(error);
@@ -89,7 +135,9 @@ export default function SignupScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Registro</Text>
-      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+      {errorMessage ? (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      ) : null}
       <TextInput
         style={styles.input}
         placeholder="Nombre de usuario"
@@ -153,14 +201,24 @@ export default function SignupScreen() {
           />
         </TouchableOpacity>
       </View>
-      <TextInput
-        style={styles.input}
-        placeholder="Fecha de nacimiento (DD-MM-YYYY)"
-        placeholderTextColor="#888"
-        value={birthDate}
-        onChangeText={setBirthDate}
-        keyboardType="numeric"
-      />
+      {/* Selector de fecha de nacimiento usando DateTimePicker */}
+      <TouchableOpacity
+        style={styles.datePickerButton}
+        onPress={() => setShowDatePicker(true)}
+      >
+        <Text style={styles.datePickerText}>
+          Fecha de nacimiento: {getDisplayBirthDate()}
+        </Text>
+      </TouchableOpacity>
+      {showDatePicker && (
+        <DateTimePicker
+          value={birthDate}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+          maximumDate={new Date()} // No se pueden elegir fechas futuras
+        />
+      )}
       {/* Selección de género con check (iconos) */}
       <View style={styles.genderContainer}>
         <Text style={styles.label}>Género / Sexo:</Text>
@@ -174,12 +232,7 @@ export default function SignupScreen() {
               size={24}
               color={sex === 'Masculino' ? "#03DAC5" : "#888"}
             />
-            <Text style={[
-              styles.genderOptionText,
-              // sex === 'Masculino' && styles.genderOptionTextSelected
-            ]}>
-              Masculino
-            </Text>
+            <Text style={styles.genderOptionText}>Masculino</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.genderOption}
@@ -190,12 +243,7 @@ export default function SignupScreen() {
               size={24}
               color={sex === 'Femenino' ? "#03DAC5" : "#888"}
             />
-            <Text style={[
-              styles.genderOptionText,
-              // sex === 'Femenino' && styles.genderOptionTextSelected
-            ]}>
-              Femenino
-            </Text>
+            <Text style={styles.genderOptionText}>Femenino</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -212,99 +260,109 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f2027', // Fondo principal
-    justifyContent: 'center',
+    backgroundColor: colors.background, // Fondo claro
+    justifyContent: "center",
     padding: 20,
   },
   title: {
     fontSize: 28,
     marginBottom: 30,
-    textAlign: 'center',
-    color: '#E0E0E0',
-    fontWeight: 'bold',
+    textAlign: "center",
+    color: colors.textDark,
+    fontWeight: "bold",
   },
   errorText: {
-    color: '#FF5252',
+    color: colors.errorRed,
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   input: {
     height: 50,
-    backgroundColor: '#203a43', // Contenedor secundario
-    borderColor: '#2c5364', // Borde activo
+    backgroundColor: colors.warmWhite,
+    borderColor: colors.borderLight,
     borderWidth: 1,
     marginBottom: 15,
     paddingHorizontal: 15,
-    color: '#E0E0E0',
+    color: colors.textDark,
     borderRadius: 8,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 15,
-    position: 'relative',
+    position: "relative",
   },
   inputWithIcon: {
     flex: 1,
-    paddingRight: 40, // Espacio para el ícono
+    paddingRight: 40,
   },
   iconContainer: {
-    position: 'absolute',
+    position: "absolute",
     right: 10,
+  },
+  datePickerButton: {
+    height: 50,
+    backgroundColor: colors.warmWhite,
+    borderColor: colors.borderLight,
+    borderWidth: 1,
+    borderRadius: 8,
+    justifyContent: "center",
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+  datePickerText: {
+    color: colors.textDark,
+    fontSize: 16,
   },
   genderContainer: {
     marginBottom: 20,
   },
   label: {
-    color: '#E0E0E0',
+    color: colors.textDark,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
   },
   genderOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
   genderOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   genderOptionText: {
-    color: '#E0E0E0',
+    color: colors.textMuted,
     fontSize: 16,
     marginLeft: 5,
   },
-  genderOptionTextSelected: {
-    color: '#0f2027',
-    fontWeight: 'bold',
-  },
   signupButton: {
-    backgroundColor: '#03DAC5', // Botón primario (acento)
+    backgroundColor: colors.primary,
     paddingVertical: 15,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
   },
   signupButtonText: {
-    color: '#0f2027',
+    color: colors.textDark,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   loginButton: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: '#2c5364',
+    borderColor: colors.borderDark,
     paddingVertical: 15,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
   },
   loginButtonText: {
-    color: '#03DAC5',
+    color: colors.primary,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });

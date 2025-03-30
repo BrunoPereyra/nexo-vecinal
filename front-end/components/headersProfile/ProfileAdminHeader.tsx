@@ -215,10 +215,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     fullAvatar: {
-        width: "80%",
-        height: "80%",
+        width: 300,
+        height: 300,
         resizeMode: "contain",
-        borderRadius: 12,
+        borderRadius: 1000,
     },
 });
 

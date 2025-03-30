@@ -9,11 +9,12 @@ import (
 // ChatRoom representa el documento central que identifica el chat entre dos usuarios.
 // Se utiliza el campo "participants" para almacenar de forma ordenada los IDs de los dos participantes.
 type ChatRoom struct {
-	ID           primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
-	Participants []primitive.ObjectID `json:"participants" bson:"participants"`
-	BlockedBy    []primitive.ObjectID `json:"blockedBy,omitempty" bson:"blockedBy,omitempty"`
-	CreatedAt    time.Time            `json:"createdAt" bson:"createdAt"`
-	UpdatedAt    time.Time            `json:"updatedAt" bson:"updatedAt"`
+	ID              primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
+	ParticipantsKey string               `json:"participantsKey" bson:"participantsKey"`
+	Participants    []primitive.ObjectID `json:"participants" bson:"participants"`
+	BlockedBy       []primitive.ObjectID `json:"blockedBy,omitempty" bson:"blockedBy,omitempty"`
+	CreatedAt       time.Time            `json:"createdAt" bson:"createdAt"`
+	UpdatedAt       time.Time            `json:"updatedAt" bson:"updatedAt"`
 }
 
 // ChatMessage representa un mensaje enviado en un chat.

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,8 @@ import {
   ScrollView,
   Image,
   Platform,
-  BackHandler
+  BackHandler,
+  ActivityIndicator
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../../../context/AuthContext';
@@ -16,8 +17,9 @@ import { getChatRoom, sendChatMessage, getMessagesBetween, Message, ChatRoom } f
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Constants from "expo-constants";
 import colors from '@/style/colors';
+import { useFocusEffect } from '@react-navigation/native';
 
-const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "http://192.168.0.28:90000";
+const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "http://192.168.0.28:9000";
 
 interface GroupedItem {
   type: 'date' | 'message';
@@ -38,12 +40,12 @@ export default function ChatJobs() {
   const scrollViewRef = useRef<ScrollView>(null);
   const ws = useRef<WebSocket | null>(null);
   const params = useLocalSearchParams();
-  // Se espera que el partner venga de employerProfile
   const { employerProfile, origin } = params;
   const employerProfileStr = Array.isArray(employerProfile)
     ? employerProfile[0]
     : employerProfile;
 
+  // Parseo del perfil del partner
   useEffect(() => {
     if (employerProfileStr) {
       try {
@@ -54,21 +56,20 @@ export default function ChatJobs() {
       }
     }
   }, [employerProfileStr]);
-  // Manejo del botón de hardware "back"
 
+  // Manejo del botón "back" en Android
   useEffect(() => {
     const onBackPress = () => {
-      // Si el parámetro "origin" existe, se navega a esa pestaña.
+      if (ws.current) {
+        ws.current.close();
+        ws.current = null;
+      }
       if (origin) {
-        // Por ejemplo, si origin === 'agenda', se navega a la pestaña Agenda.
-        // Ajusta las rutas según tu estructura.
         if (origin === 'agenda') {
           router.push("/(protected)/Agenda/Agenda");
-
         } else if (origin === 'jobstatus') {
           router.push("/(protected)/jobsStatus/JobDetailWorker");
-        }
-        else if (origin === 'profileVisited') {
+        } else if (origin === 'profileVisited') {
           router.push("/(protected)/profile/ProfileVisited");
         } else if (origin === 'EmployerJobDetail') {
           router.push("/(protected)/profile/EmployerJobDetail");
@@ -77,16 +78,17 @@ export default function ChatJobs() {
         } else {
           router.back();
         }
-        return true; // se consume el evento
+        return true;
       }
       return false;
     };
-
     if (Platform.OS === "android") {
       const subscription = BackHandler.addEventListener("hardwareBackPress", onBackPress);
       return () => subscription.remove();
     }
   }, [origin, router]);
+
+  // Carga del usuario actual
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
@@ -101,7 +103,7 @@ export default function ChatJobs() {
     loadCurrentUser();
   }, []);
 
-  // Solicita o crea el ChatRoom usando el ID del usuario actual y el del partner.
+  // Carga o creación del ChatRoom
   const loadChatRoom = async () => {
     if (!token || !currentUser || !chatPartner) return;
     try {
@@ -113,18 +115,17 @@ export default function ChatJobs() {
       console.error('Error al cargar chat room:', err);
     }
   };
-
   useEffect(() => {
     loadChatRoom();
   }, [token, currentUser, chatPartner]);
 
+  // Carga de mensajes
   const loadMessages = async () => {
     if (!token || !currentUser || !chatPartner) return;
     setLoading(true);
     try {
       const data = await getMessagesBetween(currentUser.id, chatPartner.id, token);
-
-
+      console.log('Mensajes cargados:', data);
       setMessages(data || []);
     } catch (err) {
       console.error('Error al cargar mensajes:', err);
@@ -132,47 +133,67 @@ export default function ChatJobs() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     loadMessages();
   }, [token, currentUser, chatPartner]);
 
-  // Conecta al WebSocket usando el chatRoom.id (ya no se usa jobId)
-  useEffect(() => {
+  // Función para suscribir el WebSocket
+  const subscribeWebSocket = useCallback(() => {
+    if (!chatRoom) return;
+    ws.current = new WebSocket(`${APIWS}/chat/subscribe/${chatRoom.id}`);
     let pingInterval: NodeJS.Timeout;
-    const subscribeWebSocket = () => {
-      if (!chatRoom) return;
-      ws.current = new WebSocket(`${APIWS}/chat/subscribe/${chatRoom.id}`);
-      ws.current.onopen = () => {
-        pingInterval = setInterval(() => {
-          if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            ws.current.send(JSON.stringify({ type: 'ping' }));
-          }
-        }, 30000);
-      };
-      ws.current.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          if (message.type && message.type === 'pong') return;
-          // Se asume que el mensaje recibido corresponde al chat actual.
-          setMessages(prevMessages => [...prevMessages, message]);
-        } catch (error) {
-          console.error('Error al parsear mensaje de WebSocket:', error);
+    ws.current.onopen = () => {
+      pingInterval = setInterval(() => {
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+          ws.current.send(JSON.stringify({ type: 'ping' }));
         }
-      };
-      ws.current.onerror = () => {
-        console.error('WebSocket error');
-      };
-      ws.current.onclose = () => {
-        if (pingInterval) clearInterval(pingInterval);
-      };
+      }, 30000);
     };
-    subscribeWebSocket();
-    return () => {
-      if (ws.current) ws.current.close();
+    ws.current.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type && message.type === 'pong') return;
+        console.log("Añadiendo mensaje:", message.text);
+        setMessages(prevMessages => [...prevMessages, message]);
+      } catch (error) {
+        console.error('Error al parsear mensaje de WebSocket:', error);
+      }
+    };
+    ws.current.onerror = () => {
+      console.error('WebSocket error');
+    };
+    ws.current.onclose = () => {
       if (pingInterval) clearInterval(pingInterval);
     };
   }, [chatRoom]);
+
+  // useFocusEffect para gestionar la conexión WebSocket
+  useFocusEffect(
+    useCallback(() => {
+      // Al entrar en foco, si tenemos chatRoom y no hay conexión, suscribir
+      if (chatRoom && !ws.current) {
+        subscribeWebSocket();
+      }
+      return () => {
+        // Al perder foco, cerramos la conexión
+        console.log("Limpiando WebSocket al perder el foco");
+        if (ws.current) {
+          ws.current.close();
+          ws.current = null;
+        }
+      };
+    }, [chatRoom, subscribeWebSocket])
+  );
+
+  // Limpieza final cuando se desmonta el componente
+  useEffect(() => {
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+        ws.current = null;
+      }
+    };
+  }, []);
 
   const handleSend = async () => {
     if (!newMessage.trim() || !token || !currentUser || !chatPartner) return;
@@ -183,6 +204,7 @@ export default function ChatJobs() {
         text: newMessage.trim(),
       };
       setNewMessage('');
+      console.log('Enviando mensaje:', messageData);
       const res = await sendChatMessage(messageData, token);
       if (res) {
         scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -192,7 +214,7 @@ export default function ChatJobs() {
     }
   };
 
-  // --- Funciones de Formateo de Fecha ---
+  // Funciones de formateo de fecha y agrupado de mensajes
   const isSameDay = (d1: Date, d2: Date) =>
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
@@ -204,7 +226,6 @@ export default function ChatJobs() {
     const yesterday = new Date(now);
     yesterday.setDate(now.getDate() - 1);
     if (isSameDay(date, yesterday)) return "Ayer";
-    // Calcular inicio de la semana (suponiendo lunes como primer día)
     const dayOfWeek = now.getDay() === 0 ? 7 : now.getDay();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - (dayOfWeek - 1));
@@ -213,13 +234,11 @@ export default function ChatJobs() {
       const dayIndex = date.getDay() === 0 ? 6 : date.getDay() - 1;
       return weekdays[dayIndex];
     }
-    // Si es de otra semana: mostrar día y mes
     const day = date.getDate();
     const month = date.getMonth() + 1;
     return `${day}/${month}`;
   };
 
-  // Agrupa mensajes insertando etiquetas de fecha cuando cambia el día.
   const groupMessages = (msgs: Message[]): GroupedItem[] => {
     const sorted = [...msgs].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     const grouped: GroupedItem[] = [];
@@ -291,7 +310,7 @@ export default function ChatJobs() {
               const isCurrentUser = msg.senderId === currentUser.id;
               return (
                 <View
-                  key={msg.id}
+                  key={`message-${msg.id}-${index}`}
                   style={[
                     styles.messageBubble,
                     isCurrentUser ? styles.myMessage : styles.partnerMessage,
@@ -322,19 +341,17 @@ export default function ChatJobs() {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background, // "#FFFFFF"
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: colors.cream, // "#FFF8DC"
-  },
-  backButton: {
-    marginRight: 12,
+    backgroundColor: colors.cream,
   },
   profileInfo: {
     flexDirection: "row",
@@ -348,7 +365,7 @@ const styles = StyleSheet.create({
   },
   headerName: {
     fontSize: 18,
-    color: colors.textDark, // "#333"
+    color: colors.textDark,
     fontWeight: "bold",
   },
   messagesContainer: {
@@ -359,26 +376,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: colors.cream, // "#FFF8DC"
+    backgroundColor: colors.cream,
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: colors.borderLight, // "#EAE6DA"
+    borderColor: colors.borderLight,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    color: colors.textDark, // "#333"
-    backgroundColor: colors.warmWhite, // "#FAF9F6"
+    color: colors.textDark,
+    backgroundColor: colors.warmWhite,
   },
   sendButton: {
-    backgroundColor: colors.gold, // "#FFD700"
+    backgroundColor: colors.gold,
     padding: 12,
     borderRadius: 8,
     marginLeft: 8,
   },
   sendButtonText: {
-    color: colors.textDark, // "#333"
+    color: colors.textDark,
     fontWeight: "bold",
   },
   messageBubble: {
@@ -389,25 +406,25 @@ const styles = StyleSheet.create({
   },
   myMessage: {
     alignSelf: "flex-end",
-    backgroundColor: colors.gold, // "#03DAC5"
+    backgroundColor: colors.gold,
   },
   partnerMessage: {
     alignSelf: "flex-start",
-    backgroundColor: colors.cream, // "#FFF8DC"
+    backgroundColor: colors.cream,
     borderWidth: 1,
     borderColor: colors.borderLight,
   },
   messageText: {
     fontSize: 16,
-    color: colors.textDark, // "#333"
+    color: colors.textDark,
   },
   messageTextPartner: {
     fontSize: 16,
-    color: colors.textMuted, // "#888"
+    color: colors.textMuted,
   },
   messageDate: {
     fontSize: 12,
-    color: colors.borderLight, // "#EAE6DA"
+    color: colors.borderLight,
     textAlign: "right",
     marginTop: 4,
   },
@@ -437,3 +454,4 @@ const styles = StyleSheet.create({
     color: colors.textDark,
   },
 });
+

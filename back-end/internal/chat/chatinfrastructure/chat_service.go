@@ -181,8 +181,7 @@ func (r *ChatRepository) getPushTokenUser(userID primitive.ObjectID) (string, er
 	return user.PushToken, nil
 }
 
-// GetOrCreateChatRoom utiliza el campo "participants" para evitar duplicados.
-// Se asegura de que el arreglo de participantes esté ordenado.
+// GetOrCreateChatRoom utiliza "participantsKey" para asegurar la unicidad de la combinación completa.
 func (r *ChatRepository) GetOrCreateChatRoom(ctx context.Context, user1, user2 primitive.ObjectID) (chatdomain.ChatRoom, error) {
 	if user1 == user2 {
 		return chatdomain.ChatRoom{}, errors.New("no puedes chatear contigo mismo")
@@ -195,12 +194,16 @@ func (r *ChatRepository) GetOrCreateChatRoom(ctx context.Context, user1, user2 p
 		participants = []primitive.ObjectID{user2, user1}
 	}
 
-	filter := bson.M{"participants": participants}
+	// Generamos la clave compuesta ordenada.
+	participantsKey := participants[0].Hex() + "_" + participants[1].Hex()
+
+	filter := bson.M{"participantsKey": participantsKey}
 
 	update := bson.M{
 		"$setOnInsert": bson.M{
-			"participants": participants,
-			"createdAt":    time.Now(),
+			"participants":    participants,
+			"participantsKey": participantsKey,
+			"createdAt":       time.Now(),
 		},
 		"$set": bson.M{
 			"updatedAt": time.Now(),
@@ -218,7 +221,7 @@ func (r *ChatRepository) GetOrCreateChatRoom(ctx context.Context, user1, user2 p
 	return room, nil
 }
 
-// findOrCreateChatRoom es similar a GetOrCreateChatRoom y se usa internamente.
+// findOrCreateChatRoom es similar y se usa internamente.
 func (r *ChatRepository) findOrCreateChatRoom(ctx context.Context, user1, user2 primitive.ObjectID) (chatdomain.ChatRoom, error) {
 	if user1 == user2 {
 		return chatdomain.ChatRoom{}, errors.New("no puedes chatear contigo mismo")
@@ -231,12 +234,15 @@ func (r *ChatRepository) findOrCreateChatRoom(ctx context.Context, user1, user2 
 		participants = []primitive.ObjectID{user2, user1}
 	}
 
-	filter := bson.M{"participants": participants}
+	participantsKey := participants[0].Hex() + "_" + participants[1].Hex()
+
+	filter := bson.M{"participantsKey": participantsKey}
 
 	update := bson.M{
 		"$setOnInsert": bson.M{
-			"participants": participants,
-			"createdAt":    time.Now(),
+			"participants":    participants,
+			"participantsKey": participantsKey,
+			"createdAt":       time.Now(),
 		},
 		"$set": bson.M{
 			"updatedAt": time.Now(),
@@ -256,7 +262,6 @@ func (r *ChatRepository) findOrCreateChatRoom(ctx context.Context, user1, user2 
 
 func (r *ChatRepository) GetChatRooms(ctx context.Context, userID primitive.ObjectID, limit int, skip int) ([]chatdomain.ChatDetails, error) {
 	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_rooms")
-
 	pipeline := mongo.Pipeline{
 		{{
 			Key: "$match", Value: bson.M{
@@ -305,10 +310,10 @@ func (r *ChatRepository) GetChatRooms(ctx context.Context, userID primitive.Obje
 			Key: "$sort", Value: bson.D{{Key: "updatedAt", Value: -1}},
 		}},
 		{{
-			Key: "$skip", Value: skip,
+			Key: "$skip", Value: 0,
 		}},
 		{{
-			Key: "$limit", Value: limit,
+			Key: "$limit", Value: 10,
 		}},
 	}
 

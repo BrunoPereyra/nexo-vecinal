@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: colors.primary, // "#03DAC5"
+        backgroundColor: colors.warmWhite, // "#03DAC5"
         justifyContent: "center",
         alignItems: "center",
         marginRight: 12,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     detailLabel: {
         fontSize: 16,
         fontWeight: "600",
-        color: colors.primary, // "#03DAC5"
+        color: colors.textDark, // "#03DAC5"
         marginRight: 8,
     },
     detailValue: {
@@ -329,9 +329,9 @@ const styles = StyleSheet.create({
     // Botón flotante de Chat
     fab: {
         position: "absolute",
-        bottom: 30,
+        bottom: 100,
         right: 20,
-        backgroundColor: colors.primary,
+        backgroundColor: colors.gold,
         width: 60,
         height: 60,
         borderRadius: 30,

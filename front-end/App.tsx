@@ -1,8 +1,8 @@
+// app.tsx
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Button, Platform } from 'react-native';
+import { View, Text, Button, Platform, StatusBar } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import Constants from 'expo-constants';
 
 // 1. Configuramos el handler para notificaciones en primer plano
 Notifications.setNotificationHandler({
@@ -56,6 +56,7 @@ export default function App() {
 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <StatusBar backgroundColor="#0f2027" barStyle="light-content" />
             <Text>Prueba de Notificaciones Locales</Text>
             <Button
                 title="Enviar notificación local"
