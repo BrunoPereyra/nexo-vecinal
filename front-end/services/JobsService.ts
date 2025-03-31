@@ -8,6 +8,8 @@ export interface Job {
     budget: number;
     userDetails: JobUserDetails;
     status: string;
+    Images: string[];
+
 }
 export interface JobUserDetails {
     avatar: string;
