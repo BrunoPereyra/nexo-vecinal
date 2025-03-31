@@ -3,6 +3,7 @@ package Jobinterfaces
 import (
 	Jobapplication "back-end/internal/Job/Job-application"
 	jobdomain "back-end/internal/Job/Job-domain"
+	"back-end/pkg/helpers"
 	"strconv"
 	"strings"
 	"time"
@@ -45,6 +46,25 @@ func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 			"message": "Invalid user ID",
 		})
 	}
+	fileHeader, err := c.FormFile("image")
+	if err == nil && fileHeader != nil {
+		postImageCh := make(chan string)
+		errCh := make(chan error)
+
+		// Procesa la imagen de forma asíncrona
+		go helpers.ProcessImage(fileHeader, postImageCh, errCh)
+
+		select {
+		case imageUrl := <-postImageCh:
+			createReq.Image = imageUrl
+		case procErr := <-errCh:
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": "Error processing image",
+				"error":   procErr.Error(),
+			})
+		}
+	}
+
 	jobID, err := j.JobService.CreateJob(createReq, userID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

@@ -55,10 +55,10 @@ type Job struct {
 	WorkerFeedback      *Feedback          `json:"workerFeedback,omitempty" bson:"workerFeedback,omitempty"`
 	CreatedAt           time.Time          `json:"createdAt" bson:"createdAt"`
 	UpdatedAt           time.Time          `json:"updatedAt" bson:"updatedAt"`
-
-	PaymentStatus   string  `json:"paymentStatus" bson:"paymentStatus"`
-	PaymentAmount   float64 `json:"paymentAmount" bson:"paymentAmount"`
-	PaymentIntentID string  `json:"paymentIntentId" bson:"paymentIntentId"`
+	Images              []string           `json:"Images" bson:"Images"`
+	PaymentStatus       string             `json:"paymentStatus" bson:"paymentStatus"`
+	PaymentAmount       float64            `json:"paymentAmount" bson:"paymentAmount"`
+	PaymentIntentID     string             `json:"paymentIntentId" bson:"paymentIntentId"`
 }
 
 // CreateJobRequest representa la información necesaria para crear un job.
@@ -68,6 +68,7 @@ type CreateJobRequest struct {
 	Location    GeoPoint `json:"location" validate:"required"`                    // Ubicación o zona del trabajo (requerido)
 	Tags        []string `json:"tags" validate:"required,dive,required"`          // Etiquetas para clasificar el trabajo (al menos una requerida)
 	Budget      float64  `json:"budget" validate:"required,gt=0"`                 // Presupuesto estimado (debe ser mayor a 2000)
+	Image       string   `json:"Image"`
 }
 
 func (u *CreateJobRequest) ValidateCreateJobRequest() error {

@@ -39,6 +39,7 @@ func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID pri
 		WorkerFeedback:      nil,
 		CreatedAt:           time.Now(),
 		UpdatedAt:           time.Now(),
+		Images:              []string{createReq.Image},
 	}
 
 	jobID, err := js.JobRepository.CreateJob(newJob)
