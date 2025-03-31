@@ -51,53 +51,52 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                 onPress={onPress}
                 activeOpacity={0.7}
             >
-                {/* Sección de usuario en la parte superior */}
-                <View style={styles.userDetailsContainer}>
-                    <Image
-                        source={{
-                            uri: job.userDetails?.avatar || "https://via.placeholder.com/50",
-                        }}
-                        style={styles.avatar}
-                    />
-                    <Text style={styles.userName}>
-                        {job.userDetails?.nameUser || "Usuario Desconocido"}
+                <Image
+                    source={{
+                        uri: job.userDetails?.avatar || "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
+
+                    }}
+                    style={styles.avatar}
+                />
+                <View>
+
+
+                    {/* Sección de usuario en la parte superior */}
+                    <View style={styles.userDetailsContainer}>
+
+                        <Text style={styles.userName}>
+                            {job.userDetails?.nameUser || "Usuario Desconocido"}
+                        </Text>
+                    </View>
+
+                    <Text style={styles.title}>{job.title}</Text>
+                    <Text style={styles.description}>
+                        {truncateDescription(job.description, 100)}
                     </Text>
+
+                    {/* Imagen del trabajo (si existe) */}
+                    {job.Images?.length > 0 && (
+                        <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+                            <TouchableOpacity
+                                activeOpacity={1}
+                                onLongPress={handleLongPressIn}
+                                onPressOut={handleLongPressOut}
+                            >
+                                <Image
+                                    source={{ uri: job.Images[0] }}
+                                    style={styles.jobImage}
+                                />
+                            </TouchableOpacity>
+                        </Animated.View>
+                    )}
+
+                    <View style={styles.budgetContainer}>
+                        <Text style={styles.budgetText}>
+                            Presupuesto: ${job.budget?.toFixed(2) || "N/A"}
+                        </Text>
+                    </View>
                 </View>
 
-                <Text style={styles.title}>{job.title}</Text>
-                <Text style={styles.description}>
-                    {truncateDescription(job.description, 100)}
-                </Text>
-
-                {/* Imagen del trabajo (si existe) */}
-                {job.Images?.length > 0 && (
-                    <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-                        <TouchableOpacity
-                            activeOpacity={1}
-                            onLongPress={handleLongPressIn}
-                            onPressOut={handleLongPressOut}
-                        >
-                            <Image
-                                source={{ uri: job.Images[0] }}
-                                style={styles.jobImage}
-                            />
-                        </TouchableOpacity>
-                    </Animated.View>
-                )}
-
-                <View style={styles.budgetContainer}>
-                    <Text style={styles.budgetText}>
-                        Presupuesto: ${job.budget?.toFixed(2) || "N/A"}
-                    </Text>
-                </View>
-
-                <View style={styles.tagsContainer}>
-                    {job.tags?.map((tag, index) => (
-                        <View key={index} style={styles.tag}>
-                            <Text style={styles.tagText}>{tag}</Text>
-                        </View>
-                    )) || <Text style={styles.noTagsText}>Sin etiquetas</Text>}
-                </View>
             </TouchableOpacity>
 
             {/* Modal para mostrar la imagen en grande */}
@@ -127,26 +126,22 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
 const styles = StyleSheet.create({
     cardContainer: {
-        backgroundColor: colors.warmWhite,
-        padding: 16,
-        marginVertical: 12,
-        borderRadius: 12,
-        shadowColor: "#000",
+        paddingRight: 26,
+        paddingBlock: 16,
         shadowOpacity: 0.15,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-        elevation: 5,
+        flexDirection: "row",
+        // marginRight: 40
     },
     userDetailsContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 10,
+        // marginBottom: 10,
     },
     avatar: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        marginRight: 10,
+        marginRight: 5,
     },
     userName: {
         fontSize: 14,
@@ -161,8 +156,8 @@ const styles = StyleSheet.create({
     },
     description: {
         fontSize: 14,
-        color: colors.textMuted,
-        marginBottom: 8,
+        color: colors.textDark,
+        // marginBottom: 8,
         lineHeight: 20,
     },
     jobImage: {
@@ -174,35 +169,13 @@ const styles = StyleSheet.create({
     budgetContainer: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 8,
     },
     budgetText: {
         fontSize: 14,
         color: colors.gold,
         fontWeight: "bold",
     },
-    tagsContainer: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        marginTop: 8,
-    },
-    tag: {
-        backgroundColor: colors.cream,
-        borderRadius: 16,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        marginRight: 6,
-        marginBottom: 6,
-    },
-    tagText: {
-        fontSize: 12,
-        color: colors.textDark,
-    },
-    noTagsText: {
-        fontSize: 12,
-        color: colors.textMuted,
-        fontStyle: "italic",
-    },
+
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.8)",

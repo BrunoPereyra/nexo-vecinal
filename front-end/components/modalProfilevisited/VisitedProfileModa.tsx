@@ -19,7 +19,6 @@ import {
 } from '@/services/JobsService';
 import { JobCardProfiles } from '../jobCards/JobCardProfiles';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 
 interface VisitedProfileModalProps {
     visible: boolean;

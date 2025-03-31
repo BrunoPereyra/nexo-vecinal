@@ -235,7 +235,7 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
+        padding: 6,
         backgroundColor: colors.warmWhite, // "#FAF9F6"
         borderRadius: 10,
         marginHorizontal: 5,
@@ -249,7 +249,6 @@ const styles = StyleSheet.create({
     searchRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 10,
     },
     input: {
         borderWidth: 1,

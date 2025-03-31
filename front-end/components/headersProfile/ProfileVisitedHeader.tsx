@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     fullName: {
         fontSize: 22,
         fontWeight: "bold",
-        color: colors.textLight, // "#E0E0E0"
+        color: colors.textDark, // "#E0E0E0"
         marginBottom: 4,
     },
     username: {
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     },
     biography: {
         fontSize: 14,
-        color: colors.textGrey, // "#B0B0B0"
+        color: colors.textDark, // "#B0B0B0"
         textAlign: "left",
     },
     modalOverlay: {

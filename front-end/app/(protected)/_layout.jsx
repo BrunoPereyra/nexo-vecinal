@@ -155,16 +155,8 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   tabBarStyle: {
-    position: 'absolute',
-    bottom: 0,
-    left: 16,
-    right: 16,
-    height: 60,
-    // backgroundColor: '#B0B0B0',
     backgroundColor: colors.cream,
-
     borderTopWidth: 0,
-    borderRadius: 30,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
@@ -183,22 +175,6 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E0E0E0',
   },
-  iconWrapperActive: {
-    backgroundColor: colors.background,
-    transform: [{ scale: 1.3 }, { translateY: -10 }],
-    zIndex: 1000,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#757575',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.5,
-        shadowRadius: 10,
-      },
-      android: {
-        elevation: 20,
-      },
-    }),
-  },
+ 
 });
