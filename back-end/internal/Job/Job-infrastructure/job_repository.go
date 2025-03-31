@@ -825,6 +825,7 @@ func (j *JobRepository) GetJobDetailvisited(jobID primitive.ObjectID) (*jobdomai
 				{Key: "paymentIntentId", Value: 1},
 				{Key: "employerFeedback", Value: 1},
 				{Key: "workerFeedback", Value: 1},
+				{Key: "Images", Value: 1},
 			},
 		}},
 	}
@@ -1302,6 +1303,7 @@ func (j *JobRepository) GetJobsAssignedNoCompleted(employerID primitive.ObjectID
 				{Key: "paymentIntentId", Value: 1},
 				{Key: "employerFeedback", Value: 1},
 				{Key: "workerFeedback", Value: 1},
+				{Key: "Images", Value: 1},
 			},
 		}},
 	}

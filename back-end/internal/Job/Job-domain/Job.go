@@ -171,6 +171,7 @@ type JobDetailsUsers struct {
 	PaymentStatus    string            `json:"paymentStatus" bson:"paymentStatus"`
 	PaymentAmount    float64           `json:"paymentAmount" bson:"paymentAmount"`
 	PaymentIntentID  string            `json:"paymentIntentId" bson:"paymentIntentId"`
+	Images           []string          `json:"Images" bson:"Images"`
 }
 
 type GetJobByIDForEmployee struct {
