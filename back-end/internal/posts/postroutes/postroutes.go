@@ -16,16 +16,11 @@ func PostRoutes(App *fiber.App, redisClient *redis.Client, mongoClient *mongo.Cl
 	PostService := postapplication.NewPostService(PostRepository)
 	PostHandler := postinterfaces.NewPostHandler(PostService, mongoClient)
 
-	// Crear un nuevo post (con hasta 3 imágenes)
 	App.Post("/post/create", middleware.UseExtractor(), PostHandler.CreatePost)
-	// Agregar like
 	App.Put("/post/:postId/like", middleware.UseExtractor(), PostHandler.AddLike)
-	// Agregar dislike
 	App.Put("/post/:postId/dislike", middleware.UseExtractor(), PostHandler.AddDislike)
-	// Agregar comentario
 	App.Post("/post/:postId/comment", middleware.UseExtractor(), PostHandler.AddComment)
-	// Obtener últimos posts (con datos del creador)
 	App.Get("/post/latest", middleware.UseExtractor(), PostHandler.GetLatestPosts)
 	App.Get("/post/:postId/getPostId", middleware.UseExtractor(), PostHandler.GetPostByID)
-
+	App.Get("/post/:postId/comments", middleware.UseExtractor(), PostHandler.GetCommentsForPost)
 }

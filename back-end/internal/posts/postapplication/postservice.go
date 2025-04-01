@@ -49,7 +49,7 @@ func (ps *PostService) AddDislike(postID, userID primitive.ObjectID) error {
 }
 
 // AddComment agrega un comentario al post.
-func (ps *PostService) AddComment(postID primitive.ObjectID, comment postdomain.Comment) error {
+func (ps *PostService) AddComment(postID primitive.ObjectID, comment postdomain.Comment) (primitive.ObjectID, error) {
 	comment.ID = primitive.NewObjectID()
 	comment.CreatedAt = time.Now()
 	return ps.PostRepository.AddCommentToPost(postID, comment)
@@ -62,4 +62,12 @@ func (ps *PostService) GetLatestPosts(limit int) ([]postdomain.Post, error) {
 
 func (ps *PostService) GetLatestPostsDetailed(currentUserID primitive.ObjectID, limit int) ([]postdomain.PostResponse, error) {
 	return ps.PostRepository.GetLatestPostsDetailed(currentUserID, limit)
+}
+
+// postapplication/post_service.go
+func (ps *PostService) GetCommentsForPost(postID primitive.ObjectID, page, limit int) ([]postdomain.CommentResponse, error) {
+	return ps.PostRepository.GetCommentsForPost(postID, page, limit)
+}
+func (ps *PostService) GetCommentByID(postID primitive.ObjectID) (postdomain.CommentResponse, error) {
+	return ps.PostRepository.GetCommentByID(postID)
 }

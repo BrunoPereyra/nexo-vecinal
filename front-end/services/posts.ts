@@ -9,7 +9,7 @@ export interface Post {
     Images: string[];
     likeCount: number;
     dislikes: number;
-    commentCount: Comment[];
+    commentCount: number;
     userDetails: PostUserDetails;
     createdAt: string;
     // Agrega otras propiedades según necesites
@@ -112,9 +112,8 @@ export const addComment = async (postId: string, commentData: { text: string }, 
             },
             body: JSON.stringify(commentData)
         });
-        console.log(res.json());
-
-        return await res.json();
+        const json = await res.json();
+        return json;
     } catch (error) {
         console.error("Error in addComment:", error);
     }
@@ -164,20 +163,32 @@ export const getPostByID = async (postId: string, token: string) => {
         console.error("Error in getPostByID:", error);
     }
 };// En services/posts.ts
-export const getCommentsForPost = async (postId: string, token: string) => {
+export const getCommentsForPost = async (postId: string, token: string, page: number = 1, limit: number = 10) => {
     try {
-        const res = await fetch(`${API}/post/${postId}/comments`, {
+        // Construir la URL con los parámetros de página y límite
+        const url = new URL(`${API}/post/${postId}/comments`);
+        url.searchParams.append('page', page.toString());
+        url.searchParams.append('limit', limit.toString());
+
+        // Hacer la solicitud GET con los parámetros de consulta
+        const res = await fetch(url.toString(), {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
             }
         });
+
+        // Manejar la respuesta
         if (!res.ok) {
             throw new Error(`HTTP error: ${res.status}`);
         }
-        return await res.json();
+
+        const data = await res.json(); // Procesar la respuesta correctamente
+        console.log("Comentarios recibidos:", JSON.stringify(data, null, 2)); // Imprimir JSON
+
+        return data;
     } catch (error) {
-        console.error("Error in getCommentsForPost:", error);
+        console.error("Error en getCommentsForPost:", error);
     }
 };

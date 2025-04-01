@@ -5,6 +5,7 @@ import (
 	"back-end/internal/posts/postdomain"
 	"back-end/pkg/helpers"
 	"mime/multipart"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -186,6 +187,7 @@ func (ph *PostHandler) AddComment(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Bad Request"})
 	}
 	idValue := c.Context().UserValue("_id").(string)
+
 	userID, err := primitive.ObjectIDFromHex(idValue)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
@@ -194,10 +196,18 @@ func (ph *PostHandler) AddComment(c *fiber.Ctx) error {
 		UserID: userID,
 		Text:   req.Text,
 	}
-	if err := ph.PostService.AddComment(postID, comment); err != nil {
+	CommentId, err := ph.PostService.AddComment(postID, comment)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Comment added"})
+	commentRes, err := ph.PostService.GetCommentByID(CommentId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Comment added",
+		"comment": commentRes,
+	})
 }
 
 // GetLatestPosts obtiene los últimos posts con información computada y datos del usuario creador.
@@ -213,4 +223,37 @@ func (ph *PostHandler) GetLatestPosts(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
 	}
 	return c.Status(fiber.StatusOK).JSON(posts)
+}
+
+// postinterfaces/post_handler.go
+func (ph *PostHandler) GetCommentsForPost(c *fiber.Ctx) error {
+	// Obtener el ID del post de los parámetros de la URL
+	postIDStr := c.Params("postId")
+	postID, err := primitive.ObjectIDFromHex(postIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid post ID"})
+	}
+
+	// Obtener los parámetros de paginación, con valores por defecto si no están presentes
+	page, err := strconv.Atoi(c.Query("page", "1")) // Por defecto página 1
+	if err != nil || page < 1 {
+		page = 1 // Valor por defecto si no se pasa o es inválido
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit", "10")) // Por defecto 10 comentarios
+	if err != nil || limit < 1 {
+		limit = 10 // Valor por defecto si no se pasa o es inválido
+	}
+
+	// Obtener los comentarios del servicio
+	comments, err := ph.PostService.GetCommentsForPost(postID, page, limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
+	}
+
+	// Retornar la respuesta con los comentarios y el mensaje de éxito
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":  "ok",
+		"comments": comments,
+	})
 }

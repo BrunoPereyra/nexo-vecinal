@@ -55,3 +55,10 @@ type User struct {
 	NameUser string             `json:"nameUser" bson:"NameUser"`
 	Avatar   string             `json:"avatar" bson:"Avatar"`
 }
+type CommentResponse struct {
+	ID         primitive.ObjectID `json:"id"`
+	UserID     primitive.ObjectID `json:"userId"`
+	Text       string             `json:"text"`
+	CreatedAt  time.Time          `json:"createdAt"`
+	UserDetail User               `json:"userDetail"`
+}

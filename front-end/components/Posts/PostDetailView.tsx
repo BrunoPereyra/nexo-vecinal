@@ -15,6 +15,8 @@ import colors from '@/style/colors';
 import { Post, addLike, addComment, getCommentsForPost } from '@/services/posts';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
+import CommentItem from "@/components/Posts/CommentItem"; // Importa el componente
+
 interface PostDetailViewProps {
     post: Post;
     onClose: () => void;
@@ -24,17 +26,18 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
     const { token } = useAuth();
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [commentText, setCommentText] = useState('');
-    const [likes, setLikes] = useState(post.likeCount); // Usamos likeCount
-    const [comments, setComments] = useState<any[]>([]); // Comentarios completos, obtenidos del back
+    const [likes, setLikes] = useState(post.likeCount);
+    const [comments, setComments] = useState<any[]>([]);
+    const [commentsVisible, setCommentsVisible] = useState(false);
 
-    // Al abrir el detalle, se cargan los comentarios desde el backend
     useEffect(() => {
         const fetchComments = async () => {
             if (!token) return;
             try {
                 const data = await getCommentsForPost(post.id, token);
+                console.log("Comentarios recibidos:", JSON.stringify(data, null, 2));
                 if (data) {
-                    setComments(data);
+                    setComments(data.comments); // Se asume que el backend devuelve { comments: [...] }
                 }
             } catch (error) {
                 console.error('Error fetching comments', error);
@@ -64,14 +67,8 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
         try {
             const res = await addComment(post.id, { text: commentText.trim() }, token);
             if (res && res.message === 'Comment added') {
-                // Si el back devuelve el comentario creado, lo agregamos; de lo contrario, creamos uno de ejemplo.
-                const newComment = res.comment || {
-                    id: Date.now().toString(),
-                    userID: '', // Aquí podrías usar el ID del usuario actual
-                    text: commentText.trim(),
-                    createdAt: new Date().toISOString(),
-                };
-                setComments([...comments, newComment]);
+                setComments([res.comment, ...comments]);
+                post.commentCount += 1
                 setCommentText('');
             } else {
                 Alert.alert('Error', 'No se pudo agregar el comentario');
@@ -84,13 +81,11 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            {/* Encabezado con botón para cerrar */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={onClose}>
                     <Ionicons name="close" size={28} color={colors.textDark} />
                 </TouchableOpacity>
             </View>
-            {/* Sección de usuario: al tocar, abre modal del perfil */}
             <TouchableOpacity
                 style={styles.userContainer}
                 onPress={() => setShowProfileModal(true)}
@@ -106,14 +101,12 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                 </View>
                 <Text style={styles.userName}>{post.userDetails.nameUser}</Text>
             </TouchableOpacity>
-            {/* Detalle del post */}
             <View style={styles.card}>
                 <Text style={styles.title}>{post.title}</Text>
                 <Text style={styles.description}>{post.description}</Text>
                 {post.Images?.length > 0 && (
                     <Image source={{ uri: post.Images[0] }} style={styles.postImage} />
                 )}
-                {/* Sección de acciones */}
                 <View style={styles.actionsContainer}>
                     <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
                         <Ionicons name="heart-outline" size={20} color={colors.gold} />
@@ -124,16 +117,23 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-            {/* Sección de comentarios */}
+            {/* Sección de comentarios con botón toggle */}
             <View style={styles.commentsContainer}>
-                <Text style={styles.commentsTitle}>
-                    Comentarios ({post.commentCount}) {/* Número total recibido del back */}
-                </Text>
-                {comments.map((c) => (
-                    <View key={c.id} style={styles.commentItem}>
-                        <Text style={styles.commentText}>{c.text}</Text>
-                    </View>
-                ))}
+                <View style={styles.commentsHeader}>
+                    <Text style={styles.commentsTitle}>
+                        Comentarios ({post.commentCount})
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => setCommentsVisible(!commentsVisible)}
+                        style={styles.iconButton}
+                    >
+                        <Ionicons
+                            name={commentsVisible ? "chevron-up-outline" : "chevron-down-outline"}
+                            size={24}
+                            color={colors.textDark}
+                        />
+                    </TouchableOpacity>
+                </View>
                 <View style={styles.commentInputContainer}>
                     <TextInput
                         placeholder="Agrega un comentario..."
@@ -146,8 +146,15 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                         <Ionicons name="send" size={20} color={colors.gold} />
                     </TouchableOpacity>
                 </View>
+                {commentsVisible && (
+                    <>
+                        {comments.map((c) => (
+                            <CommentItem key={c.id} comment={c} />
+                        ))}
+
+                    </>
+                )}
             </View>
-            {/* Modal para mostrar el perfil del usuario */}
             <Modal
                 visible={showProfileModal}
                 animationType="slide"
@@ -253,26 +260,24 @@ const styles = StyleSheet.create({
     commentsContainer: {
         marginTop: 20,
     },
-    commentsTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: colors.textDark,
+    commentsHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         marginBottom: 8,
     },
-    commentItem: {
-        backgroundColor: colors.cream,
-        padding: 8,
-        borderRadius: 8,
-        marginBottom: 6,
-    },
-    commentText: {
-        fontSize: 14,
+    commentsTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
         color: colors.textDark,
+    },
+    iconButton: {
+        padding: 6,
     },
     commentInputContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 12,
+        marginVertical: 12,
     },
     commentInput: {
         flex: 1,
