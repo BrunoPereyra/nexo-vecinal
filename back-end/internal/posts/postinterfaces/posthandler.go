@@ -212,13 +212,26 @@ func (ph *PostHandler) AddComment(c *fiber.Ctx) error {
 
 // GetLatestPosts obtiene los últimos posts con información computada y datos del usuario creador.
 func (ph *PostHandler) GetLatestPosts(c *fiber.Ctx) error {
-	limit := 20 // O bien, puedes obtenerlo de los query params
+	// Por ejemplo, page y limit se pueden enviar como query params
+	pageParam := c.Query("page", "1")
+	limitParam := c.Query("limit", "20")
+
+	page, err := strconv.Atoi(pageParam)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil || limit < 1 {
+		limit = 20
+	}
+
 	idValue := c.Context().UserValue("_id").(string)
 	currentUserID, err := primitive.ObjectIDFromHex(idValue)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
 	}
-	posts, err := ph.PostService.GetLatestPostsDetailed(currentUserID, limit)
+
+	posts, err := ph.PostService.GetLatestPostsDetailed(currentUserID, page, limit)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
 	}

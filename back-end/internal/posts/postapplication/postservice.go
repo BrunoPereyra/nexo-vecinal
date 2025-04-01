@@ -27,7 +27,7 @@ func (ps *PostService) CreatePost(req postdomain.CreatePostRequest, userID primi
 		Images:      req.Images,
 		Likes:       []primitive.ObjectID{},
 		Dislikes:    []primitive.ObjectID{},
-		Comments:    []postdomain.Comment{},
+		Comments:    []primitive.ObjectID{},
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
 	}
@@ -60,8 +60,8 @@ func (ps *PostService) GetLatestPosts(limit int) ([]postdomain.Post, error) {
 	return ps.PostRepository.GetLatestPosts(limit)
 }
 
-func (ps *PostService) GetLatestPostsDetailed(currentUserID primitive.ObjectID, limit int) ([]postdomain.PostResponse, error) {
-	return ps.PostRepository.GetLatestPostsDetailed(currentUserID, limit)
+func (ps *PostService) GetLatestPostsDetailed(currentUserID primitive.ObjectID, page, limit int) ([]postdomain.PostResponse, error) {
+	return ps.PostRepository.GetLatestPostsDetailed(currentUserID, page, limit)
 }
 
 // postapplication/post_service.go

@@ -16,7 +16,6 @@ import PostDetailView from "./PostDetailView";
 
 interface PostCardProps {
     post: Post;
-    onPress: () => void;
     onLike?: (postId: string) => void;
     onDislike?: (postId: string) => void;
     onComment?: (postId: string) => void;
@@ -25,9 +24,7 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({
     post,
-    onPress,
     onLike,
-    onDislike,
     onComment,
     onShare,
 }) => {
@@ -64,14 +61,6 @@ const PostCard: React.FC<PostCardProps> = ({
             onLike(post.id);
         } else {
             Alert.alert("Like", "Se presionó dar like");
-        }
-    };
-
-    const handleDislike = () => {
-        if (onDislike) {
-            onDislike(post.id);
-        } else {
-            Alert.alert("Dislike", "Se presionó dar dislike");
         }
     };
 
@@ -135,15 +124,15 @@ const PostCard: React.FC<PostCardProps> = ({
                         {/* Sección de acciones */}
                         <View style={styles.actionsContainer}>
                             <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
-                                <Ionicons name="heart-outline" size={16} color={colors.gold} />
+                                <Ionicons name="heart-outline" size={20} color={colors.gold} />
                                 <Text style={styles.actionText}>{post.likeCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.actionButton} onPress={handleComment}>
-                                <Ionicons name="chatbubble-outline" size={16} color={colors.gold} />
+                                <Ionicons name="chatbubble-outline" size={20} color={colors.gold} />
                                 <Text style={styles.actionText}>{post.commentCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-                                <Ionicons name="share-social-outline" size={16} color={colors.gold} />
+                                <Ionicons name="share-social-outline" size={20} color={colors.gold} />
                             </TouchableOpacity>
                         </View>
                     </View>

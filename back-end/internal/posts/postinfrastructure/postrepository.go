@@ -124,27 +124,40 @@ func (pr *PostRepository) AddDislike(postID, userID primitive.ObjectID) error {
 }
 
 func (pr *PostRepository) AddCommentToPost(postID primitive.ObjectID, comment postdomain.Comment) (primitive.ObjectID, error) {
-	collection := pr.getCollection()
+	// Usamos la colección "Comments" para almacenar el comentario
+	commentsColl := pr.mongoClient.Database("NEXO-VECINAL").Collection("Comments")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Asegurarse de que el comentario tenga un ID
+	// Aseguramos que el comentario tenga un ID y asignamos el PostID
 	if comment.ID.IsZero() {
 		comment.ID = primitive.NewObjectID()
 	}
+	comment.PostID = postID
+	comment.CreatedAt = time.Now()
 
-	update := bson.M{
-		"$push": bson.M{"comments": comment},
-		"$set":  bson.M{"updatedAt": time.Now()},
-	}
-	result, err := collection.UpdateByID(ctx, postID, update)
+	result, err := commentsColl.InsertOne(ctx, comment)
 	if err != nil {
 		return primitive.NilObjectID, err
 	}
-	if result.ModifiedCount == 0 {
-		return primitive.NilObjectID, errors.New("no se pudo actualizar el post")
+
+	insertedID, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return primitive.NilObjectID, errors.New("failed to convert insertedID to ObjectID")
 	}
-	return comment.ID, nil
+
+	// Ahora, actualizamos el documento del Post para agregar este ID
+	postColl := pr.getCollection()
+	update := bson.M{
+		"$push": bson.M{"comments": insertedID},
+		"$set":  bson.M{"updatedAt": time.Now()},
+	}
+	_, err = postColl.UpdateByID(ctx, postID, update)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+
+	return insertedID, nil
 }
 
 func (pr *PostRepository) GetLatestPosts(limit int) ([]postdomain.Post, error) {
@@ -163,14 +176,18 @@ func (pr *PostRepository) GetLatestPosts(limit int) ([]postdomain.Post, error) {
 	}
 	return posts, nil
 }
-func (pr *PostRepository) GetLatestPostsDetailed(currentUserID primitive.ObjectID, limit int) ([]postdomain.PostResponse, error) {
+func (pr *PostRepository) GetLatestPostsDetailed(currentUserID primitive.ObjectID, page, limit int) ([]postdomain.PostResponse, error) {
 	collection := pr.getCollection()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	skip := (page - 1) * limit
+
 	pipeline := mongo.Pipeline{
-		// Ordenar por CreatedAt descendente y limitar
+		// Ordenar por CreatedAt descendente
 		{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}}},
+		// Aplicar paginación: skip y limit
+		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
 		// Lookup para traer los detalles del usuario creador
 		{{Key: "$lookup", Value: bson.D{
@@ -179,9 +196,8 @@ func (pr *PostRepository) GetLatestPostsDetailed(currentUserID primitive.ObjectI
 			{Key: "foreignField", Value: "_id"},
 			{Key: "as", Value: "userDetailsArr"},
 		}}},
-		// Agregar campos computados
+		// Extraer el primer elemento de userDetailsArr para que userDetails sea un objeto
 		{{Key: "$addFields", Value: bson.D{
-			// Aseguramos que userDetails sea un objeto, no un array
 			{Key: "userDetails", Value: bson.D{{Key: "$first", Value: "$userDetailsArr"}}},
 			{Key: "likeCount", Value: bson.D{{Key: "$size", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$likes", bson.A{}}}}}}},
 			{Key: "dislikeCount", Value: bson.D{{Key: "$size", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$dislikes", bson.A{}}}}}}},
@@ -189,12 +205,12 @@ func (pr *PostRepository) GetLatestPostsDetailed(currentUserID primitive.ObjectI
 			{Key: "userLiked", Value: bson.D{{Key: "$in", Value: bson.A{currentUserID, "$likes"}}}},
 			{Key: "userDisliked", Value: bson.D{{Key: "$in", Value: bson.A{currentUserID, "$dislikes"}}}},
 		}}},
-		// Proyectar únicamente los campos necesarios
+		// Proyectar únicamente los campos necesarios (se eliminan los arrays completos)
 		{{Key: "$project", Value: bson.D{
 			{Key: "likes", Value: 0},
 			{Key: "dislikes", Value: 0},
 			{Key: "comments", Value: 0},
-			{Key: "userDetailsArr", Value: 0}, // Eliminamos el array original
+			{Key: "userDetailsArr", Value: 0},
 		}}},
 	}
 
@@ -212,50 +228,49 @@ func (pr *PostRepository) GetLatestPostsDetailed(currentUserID primitive.ObjectI
 }
 
 func (pr *PostRepository) GetCommentsForPost(postID primitive.ObjectID, page, limit int) ([]postdomain.CommentResponse, error) {
-	collection := pr.getCollection()
+	// Usamos la colección "Comments" en lugar de la colección "Posts"
+	commentsColl := pr.mongoClient.Database("NEXO-VECINAL").Collection("Comments")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	skip := (page - 1) * limit
 
 	pipeline := mongo.Pipeline{
-		// Filtro: seleccionar el post por ID
-		{{Key: "$match", Value: bson.M{"_id": postID}}},
-		// Desempaquetar el array de comentarios
-		{{Key: "$unwind", Value: "$comments"}},
-		// Ordenar los comentarios por fecha
-		{{Key: "$sort", Value: bson.M{"comments.createdAt": -1}}},
+		// Filtrar comentarios por postId
+		{{Key: "$match", Value: bson.M{"postId": postID}}},
+		// Ordenar por fecha de creación (más recientes primero)
+		{{Key: "$sort", Value: bson.M{"createdAt": -1}}},
 		// Aplicar paginación
 		{{Key: "$skip", Value: skip}},
 		{{Key: "$limit", Value: limit}},
-		// ✅ FIX: Convertir userID si es string
-		{{Key: "$addFields", Value: bson.M{
-			"comments.userID": bson.M{"$toObjectId": "$comments.userID"},
+
+		// Lookup para obtener el array de detalles del usuario
+		{{Key: "$lookup", Value: bson.D{
+			{Key: "from", Value: "Users"},
+			{Key: "localField", Value: "userId"}, // o "comments.userID" en el contexto de comentarios
+			{Key: "foreignField", Value: "_id"},
+			{Key: "as", Value: "userDetailsArr"},
 		}}},
-		// Hacer `$lookup` con la colección Users
-		{{Key: "$lookup", Value: bson.M{
-			"from":         "Users",
-			"localField":   "comments.userID",
-			"foreignField": "_id",
-			"as":           "userDetail",
+		// Extraer el primer elemento de userDetailsArr
+		{{Key: "$addFields", Value: bson.D{
+			{Key: "userDetail", Value: bson.D{
+				{Key: "$arrayElemAt", Value: bson.A{"$userDetailsArr", 0}},
+			}},
 		}}},
-		// Asegurar que userDetail no sea un array
-		{{Key: "$unwind", Value: bson.M{"path": "$userDetail", "preserveNullAndEmptyArrays": true}}},
-		// Seleccionar los campos deseados
+
+		// Proyectar los campos deseados
 		{{Key: "$project", Value: bson.M{
-			"id":        "$comments._id",
-			"text":      "$comments.text",
-			"userId":    "$comments.userID",
-			"createdAt": "$comments.createdAt",
-			"userDetail": bson.M{
-				"id":       "$userDetail._id",
-				"nameUser": "$userDetail.NameUser",
-				"avatar":   "$userDetail.Avatar",
-			},
+			"id":                  "$_id",
+			"text":                1,
+			"userId":              1,
+			"createdAt":           1,
+			"userDetail._id":      1,
+			"userDetail.NameUser": 1,
+			"userDetail.Avatar":   1,
 		}}},
 	}
 
-	cursor, err := collection.Aggregate(ctx, pipeline)
+	cursor, err := commentsColl.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -270,39 +285,35 @@ func (pr *PostRepository) GetCommentsForPost(postID primitive.ObjectID, page, li
 }
 
 func (pr *PostRepository) GetCommentByID(commentID primitive.ObjectID) (postdomain.CommentResponse, error) {
-	collection := pr.getCollection()
+	commentsColl := pr.mongoClient.Database("NEXO-VECINAL").Collection("Comments")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	pipeline := mongo.Pipeline{
-		// 1. Desempaquetar el array de comentarios
-		{{Key: "$unwind", Value: "$comments"}},
-		// 2. Filtrar el comentario que tenga _id igual a commentID
-		{{Key: "$match", Value: bson.M{"comments._id": commentID}}},
-		// 3. Lookup para traer el detalle del usuario que creó el comentario
+		// Filtrar el comentario por su _id
+		{{Key: "$match", Value: bson.M{"_id": commentID}}},
+		// Lookup para traer el detalle del usuario que creó el comentario
 		{{Key: "$lookup", Value: bson.M{
 			"from":         "Users",
-			"localField":   "comments.userID", // Corregido
+			"localField":   "userId",
 			"foreignField": "_id",
 			"as":           "userDetail",
 		}}},
-		// 4. Desempaquetar el array resultante de userDetail (se espera un solo usuario)
+		// Desempaquetar el array devuelto por el lookup
 		{{Key: "$unwind", Value: bson.M{"path": "$userDetail", "preserveNullAndEmptyArrays": true}}},
-		// 5. Proyectar los campos necesarios en la respuesta
+		// Proyectar los campos necesarios
 		{{Key: "$project", Value: bson.M{
-			"id":        "$comments._id",
-			"text":      "$comments.text",
-			"userId":    "$comments.userId",
-			"createdAt": "$comments.createdAt",
-			"userDetail": bson.M{
-				"id":       "$userDetail._id",
-				"username": "$userDetail.NameUser",
-				"avatar":   "$userDetail.Avatar",
-			},
+			"id":                  "$_id",
+			"text":                1,
+			"userId":              1,
+			"createdAt":           1,
+			"userDetail._id":      1,
+			"userDetail.NameUser": 1,
+			"userDetail.Avatar":   1,
 		}}},
 	}
 
-	cursor, err := collection.Aggregate(ctx, pipeline)
+	cursor, err := commentsColl.Aggregate(ctx, pipeline)
 	if err != nil {
 		return postdomain.CommentResponse{}, err
 	}

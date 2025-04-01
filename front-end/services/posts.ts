@@ -53,7 +53,7 @@ export const createPost = async (postData: any, token: string) => {
 
 /**
  * Agrega un like a un post.
- * @param postId - ID del post.
+* @param postId - ID del post.
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
  */
@@ -123,9 +123,12 @@ export const addComment = async (postId: string, commentData: { text: string }, 
  * Obtiene los últimos posts (con datos del creador).
  * @returns La respuesta de la API en formato JSON.
  */
-export const getLatestPosts = async (token: string) => {
+export const getLatestPosts = async (token: string, page = 1, limit = 20) => {
     try {
-        const res = await fetch(`${API}/post/latest`, {
+        const url = new URL(`${API}/post/latest`);
+        url.searchParams.append('page', page.toString());
+        url.searchParams.append('limit', limit.toString());
+        const res = await fetch(url.toString(), {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -140,6 +143,7 @@ export const getLatestPosts = async (token: string) => {
         console.error("Error in getLatestPosts:", error);
     }
 };
+
 /**
  * Obtiene un post por su ID.
  * @param postId - ID del post.

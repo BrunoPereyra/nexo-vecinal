@@ -37,7 +37,7 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                 const data = await getCommentsForPost(post.id, token);
                 console.log("Comentarios recibidos:", JSON.stringify(data, null, 2));
                 if (data) {
-                    setComments(data.comments); // Se asume que el backend devuelve { comments: [...] }
+                    setComments(data?.comments); // Se asume que el backend devuelve { comments: [...] }
                 }
             } catch (error) {
                 console.error('Error fetching comments', error);
@@ -50,20 +50,22 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
         if (!token) return;
         try {
             const res = await addLike(post.id, token);
-            if (res && res.message === 'Like added') {
-                setLikes(likes + 1);
+            if (!res && (res.message !== 'Like added' || res.message == "Already read")) {
+                return
             } else {
-                Alert.alert('Error', 'No se pudo dar like');
+                setLikes(likes + 1);
             }
         } catch (error) {
             console.error('Error adding like', error);
-            Alert.alert('Error', 'Error al dar like');
+            return
+
         }
     };
 
     const handleSendComment = async () => {
         if (!token) return;
         if (!commentText.trim()) return;
+
         try {
             const res = await addComment(post.id, { text: commentText.trim() }, token);
             if (res && res.message === 'Comment added') {
