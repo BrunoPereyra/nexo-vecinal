@@ -44,8 +44,8 @@ func (ps *PostService) AddLike(postID, userID primitive.ObjectID) error {
 }
 
 // AddDislike agrega un dislike del usuario al post.
-func (ps *PostService) AddDislike(postID, userID primitive.ObjectID) error {
-	return ps.PostRepository.AddDislike(postID, userID)
+func (ps *PostService) Dislike(postID, userID primitive.ObjectID) error {
+	return ps.PostRepository.Dislike(postID, userID)
 }
 
 // AddComment agrega un comentario al post.

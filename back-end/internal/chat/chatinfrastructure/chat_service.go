@@ -45,9 +45,10 @@ func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMes
 	msg.ID = primitive.NewObjectID()
 	msg.CreatedAt = time.Now()
 	msg.IsRead = false
+	db := r.mongoClient.Database("NEXO-VECINAL")
+	collectionChat := db.Collection("chat_messages")
 
-	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("chat_messages")
-	_, err = collection.InsertOne(ctx, msg)
+	_, err = collectionChat.InsertOne(ctx, msg)
 	if err != nil {
 		return chatdomain.ChatMessage{}, fmt.Errorf("error insertando mensaje: %v", err)
 	}
@@ -67,6 +68,19 @@ func (r *ChatRepository) SendMessage(ctx context.Context, msg chatdomain.ChatMes
 		return chatdomain.ChatMessage{}, errors.New("error enviando notificación push")
 	}
 	return msg, nil
+}
+
+// getUserNameByID busca en la colección "Users" el nombre del usuario por su ID
+func (r *ChatRepository) getUserNameByID(ctx context.Context, userID primitive.ObjectID) (string, error) {
+	collectionUsers := r.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	var user struct {
+		NameUser string `bson:"NameUser"`
+	}
+	err := collectionUsers.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		return "", err
+	}
+	return user.NameUser, nil
 }
 
 // GetMessagesBetween obtiene los mensajes intercambiados entre dos usuarios.

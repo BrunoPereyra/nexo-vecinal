@@ -109,7 +109,7 @@ func (pr *PostRepository) AddLike(postID, userID primitive.ObjectID) error {
 	return err
 }
 
-func (pr *PostRepository) AddDislike(postID, userID primitive.ObjectID) error {
+func (pr *PostRepository) Dislike(postID, userID primitive.ObjectID) error {
 	collection := pr.getCollection()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -196,16 +196,24 @@ func (pr *PostRepository) GetLatestPostsDetailed(currentUserID primitive.ObjectI
 			{Key: "foreignField", Value: "_id"},
 			{Key: "as", Value: "userDetailsArr"},
 		}}},
-		// Extraer el primer elemento de userDetailsArr para que userDetails sea un objeto
+		// Agregar campos computados
 		{{Key: "$addFields", Value: bson.D{
+			// Extraer el primer elemento del array de usuarios
 			{Key: "userDetails", Value: bson.D{{Key: "$first", Value: "$userDetailsArr"}}},
 			{Key: "likeCount", Value: bson.D{{Key: "$size", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$likes", bson.A{}}}}}}},
 			{Key: "dislikeCount", Value: bson.D{{Key: "$size", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$dislikes", bson.A{}}}}}}},
 			{Key: "commentCount", Value: bson.D{{Key: "$size", Value: bson.D{{Key: "$ifNull", Value: bson.A{"$comments", bson.A{}}}}}}},
-			{Key: "userLiked", Value: bson.D{{Key: "$in", Value: bson.A{currentUserID, "$likes"}}}},
-			{Key: "userDisliked", Value: bson.D{{Key: "$in", Value: bson.A{currentUserID, "$dislikes"}}}},
+			// Aseguramos que si likes/dislikes son null, se usen como arrays vacíos
+			{Key: "userLiked", Value: bson.D{{Key: "$in", Value: bson.A{
+				currentUserID,
+				bson.D{{Key: "$ifNull", Value: bson.A{"$likes", bson.A{}}}},
+			}}}},
+			{Key: "userDisliked", Value: bson.D{{Key: "$in", Value: bson.A{
+				currentUserID,
+				bson.D{{Key: "$ifNull", Value: bson.A{"$dislikes", bson.A{}}}},
+			}}}},
 		}}},
-		// Proyectar únicamente los campos necesarios (se eliminan los arrays completos)
+		// Proyectar únicamente los campos necesarios (eliminando arrays completos)
 		{{Key: "$project", Value: bson.D{
 			{Key: "likes", Value: 0},
 			{Key: "dislikes", Value: 0},

@@ -155,7 +155,7 @@ func (ph *PostHandler) AddLike(c *fiber.Ctx) error {
 }
 
 // AddDislike agrega un dislike a un post.
-func (ph *PostHandler) AddDislike(c *fiber.Ctx) error {
+func (ph *PostHandler) Dislike(c *fiber.Ctx) error {
 	postIDStr := c.Params("postId")
 	postID, err := primitive.ObjectIDFromHex(postIDStr)
 	if err != nil {
@@ -166,7 +166,7 @@ func (ph *PostHandler) AddDislike(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
 	}
-	if err := ph.PostService.AddDislike(postID, userID); err != nil {
+	if err := ph.PostService.Dislike(postID, userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": err.Error()})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Dislike added"})

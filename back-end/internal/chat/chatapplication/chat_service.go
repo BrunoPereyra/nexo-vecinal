@@ -25,14 +25,7 @@ func NewChatService(chatRepo *chatinfrastructure.ChatRepository) *ChatService {
 
 // SendMessage envía un mensaje entre dos usuarios.
 // Se espera que en msg se tenga senderId, receiverId y text.
-func (s *ChatService) SendMessage(ctx context.Context, msg chatdomain.ChatMessage) (chatdomain.ChatMessage, error) {
-	// Ejemplo de validación: Si el chat está bloqueado por el emisor, se rechaza el envío.
-	// (La verificación se puede hacer obteniendo el ChatRoom y comprobando si msg.SenderID se encuentra en BlockedBy).
-	// Aquí se asume que dicha validación se implementa en el repositorio o previamente.
-
-	// Para notificaciones, se define el nombre del remitente (este ejemplo es simple; ajusta según convenga).
-	senderName := "Remitente" // O bien, obtenerlo de la base de datos
-
+func (s *ChatService) SendMessage(ctx context.Context, msg chatdomain.ChatMessage, senderName string) (chatdomain.ChatMessage, error) {
 	return s.ChatRepo.SendMessage(ctx, msg, senderName)
 }
 

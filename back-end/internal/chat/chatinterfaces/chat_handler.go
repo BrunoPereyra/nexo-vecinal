@@ -45,6 +45,7 @@ func (h *ChatHandler) GetChatRoom(c *fiber.Ctx) error {
 // SendMessage endpoint para enviar un mensaje (POST /chat/messages).
 // Se espera en el body JSON: senderId, receiverId y text.
 func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
+	nameuser := c.Context().UserValue("nameUser").(string)
 	var msg chatdomain.ChatMessage
 	if err := c.BodyParser(&msg); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
@@ -70,7 +71,7 @@ func (h *ChatHandler) SendMessage(c *fiber.Ctx) error {
 		msg.ReceiverID = receiverID
 	}
 
-	savedMsg, err := h.ChatService.SendMessage(context.Background(), msg)
+	savedMsg, err := h.ChatService.SendMessage(context.Background(), msg, nameuser)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "Error interno",

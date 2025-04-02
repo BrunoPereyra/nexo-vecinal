@@ -186,6 +186,7 @@ func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
 	}
 
 	// Enviar notificación push al trabajador asignado
+	fmt.Println(job.Title)
 	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
 		return fmt.Errorf("error sending push notification: %v", err)
 	}
@@ -237,6 +238,9 @@ func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error
 	}
 
 	// Enviar notificación push al trabajador reasignado
+	fmt.Println(job.Title)
+	fmt.Println("reading")
+
 	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
 		return fmt.Errorf("error sending push notification: %v", err)
 	}
@@ -1325,6 +1329,7 @@ func (j *JobRepository) notifyWorker(workerID primitive.ObjectID, jobTitle strin
 	// Supongamos que tienes una función que obtiene el push token del usuario
 	pushToken, err := j.getPushTokenUser(workerID)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 	// Construir payload para notificación push de Expo
@@ -1334,6 +1339,7 @@ func (j *JobRepository) notifyWorker(workerID primitive.ObjectID, jobTitle strin
 		"body":  fmt.Sprintf("Has sido asignado al trabajo '%s'", jobTitle),
 		"data":  map[string]string{"jobTitle": jobTitle},
 	}
+	fmt.Println(payload)
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err

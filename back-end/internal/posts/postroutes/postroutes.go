@@ -18,7 +18,7 @@ func PostRoutes(App *fiber.App, redisClient *redis.Client, mongoClient *mongo.Cl
 
 	App.Post("/post/create", middleware.UseExtractor(), PostHandler.CreatePost)
 	App.Put("/post/:postId/like", middleware.UseExtractor(), PostHandler.AddLike)
-	App.Put("/post/:postId/dislike", middleware.UseExtractor(), PostHandler.AddDislike)
+	App.Put("/post/:postId/dislike", middleware.UseExtractor(), PostHandler.Dislike)
 	App.Post("/post/:postId/comment", middleware.UseExtractor(), PostHandler.AddComment)
 	App.Get("/post/latest", middleware.UseExtractor(), PostHandler.GetLatestPosts)
 	App.Get("/post/:postId/getPostId", middleware.UseExtractor(), PostHandler.GetPostByID)
