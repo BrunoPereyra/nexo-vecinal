@@ -25,6 +25,7 @@ interface PostCardProps {
 const PostCard: React.FC<PostCardProps> = ({
     post,
     onLike,
+    onDislike,
     onComment,
     onShare,
 }) => {
@@ -55,15 +56,17 @@ const PostCard: React.FC<PostCardProps> = ({
         }).start();
     };
 
-    // Funciones internas de ejemplo para las acciones
+    // Funciones internas para las acciones
     const handleLike = () => {
         if (onLike) {
             onLike(post.id);
-        } else {
-            Alert.alert("Like", "Se presionó dar like");
         }
     };
-
+    const handledisLike = () => {
+        if (onLike) {
+            onDislike(post.id);
+        }
+    }
     const handleComment = () => {
         if (onComment) {
             onComment(post.id);
@@ -80,10 +83,11 @@ const PostCard: React.FC<PostCardProps> = ({
         }
     };
 
-    // Luego en handleOpenDetail:
+    // Al abrir el detalle del post
     const handleOpenDetail = () => {
         setSelectedPost(post);
     };
+
     return (
         <>
             <TouchableOpacity
@@ -123,10 +127,15 @@ const PostCard: React.FC<PostCardProps> = ({
                         )}
                         {/* Sección de acciones */}
                         <View style={styles.actionsContainer}>
-                            <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
-                                <Ionicons name="heart-outline" size={20} color={colors.gold} />
+                            <TouchableOpacity style={styles.actionButton} onPress={post.userLiked ? handledisLike : handleLike}>
+                                <Ionicons
+                                    name={post.userLiked ? "heart" : "heart-outline"}
+                                    size={20}
+                                    color={colors.gold}
+                                />
                                 <Text style={styles.actionText}>{post.likeCount}</Text>
                             </TouchableOpacity>
+
                             <TouchableOpacity style={styles.actionButton} onPress={handleComment}>
                                 <Ionicons name="chatbubble-outline" size={20} color={colors.gold} />
                                 <Text style={styles.actionText}>{post.commentCount}</Text>
@@ -143,7 +152,6 @@ const PostCard: React.FC<PostCardProps> = ({
                     <PostDetailView post={selectedPost} onClose={() => setSelectedPost(null)} />
                 </Modal>
             )}
-
             {post.Images?.length > 0 && (
                 <Modal
                     visible={enlargedVisible}
@@ -156,11 +164,7 @@ const PostCard: React.FC<PostCardProps> = ({
                         onPress={() => setEnlargedVisible(false)}
                         activeOpacity={1}
                     >
-                        <Image
-                            source={{ uri: post.Images[0] }}
-                            style={styles.enlargedImage}
-                            resizeMode="contain"
-                        />
+                        <Image source={{ uri: post.Images[0] }} style={styles.enlargedImage} resizeMode="contain" />
                     </TouchableOpacity>
                 </Modal>
             )}
@@ -238,6 +242,12 @@ const styles = StyleSheet.create({
     enlargedImage: {
         width: "90%",
         height: "90%",
+    },
+    likeIconContainer: {
+        backgroundColor: "transparent",
+    },
+    liked: {
+        backgroundColor: colors.gold, // Fondo amarillo
     },
 });
 

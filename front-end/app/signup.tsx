@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'expo-router';
 import { SaveUserCodeConfirm, SignupService } from '@/services/authService';
 import colors from '@/style/colors';
+import { savePushToken } from '@/services/userService';
 
 export default function SignupScreen() {
   const [nameUser, setNameUser] = useState('');
@@ -28,7 +29,7 @@ export default function SignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const { login } = useAuth();
+  const { login, pushToken } = useAuth();
   const router = useRouter();
 
   // Función para validar el nameUser según las reglas:
@@ -125,7 +126,16 @@ export default function SignupScreen() {
         resConfirm.avatar,
         resConfirm.nameUser
       );
-      router.push('/(protected)/home');
+      if (!pushToken) {
+        setErrorMessage('No se pudo obtener el token de notificaciones.');
+        return;
+      }
+      const res = await savePushToken(resConfirm.token, pushToken);
+      if (res) {
+        console.log(res);
+
+      }
+      // router.push('/(protected)/home');
     } catch (error) {
       console.error(error);
       setErrorMessage('Error al confirmar el código');
@@ -176,7 +186,7 @@ export default function SignupScreen() {
           <Ionicons
             name={showPassword ? "eye-off-outline" : "eye-outline"}
             size={24}
-            color="#03DAC5"
+            colo={colors.gold}
           />
         </TouchableOpacity>
       </View>
@@ -197,7 +207,8 @@ export default function SignupScreen() {
           <Ionicons
             name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
             size={24}
-            color="#03DAC5"
+            colo={colors.gold}
+
           />
         </TouchableOpacity>
       </View>
@@ -230,7 +241,7 @@ export default function SignupScreen() {
             <Ionicons
               name={sex === 'Masculino' ? "radio-button-on" : "radio-button-off"}
               size={24}
-              color={sex === 'Masculino' ? "#03DAC5" : "#888"}
+              color={sex === 'Masculino' ? colors.gold : "#888"}
             />
             <Text style={styles.genderOptionText}>Masculino</Text>
           </TouchableOpacity>
@@ -241,7 +252,7 @@ export default function SignupScreen() {
             <Ionicons
               name={sex === 'Femenino' ? "radio-button-on" : "radio-button-off"}
               size={24}
-              color={sex === 'Femenino' ? "#03DAC5" : "#888"}
+              color={sex === 'Femenino' ? colors.gold : "#888"}
             />
             <Text style={styles.genderOptionText}>Femenino</Text>
           </TouchableOpacity>
@@ -257,10 +268,11 @@ export default function SignupScreen() {
   );
 }
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background, // Fondo claro
+    backgroundColor: colors.background,
     justifyContent: "center",
     padding: 20,
   },
@@ -337,12 +349,12 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   signupButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.gold,
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: "center",
     marginVertical: 10,
-    shadowColor: "#000",
+    shadowColor: colors.textDark,
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
   },
@@ -354,15 +366,16 @@ const styles = StyleSheet.create({
   loginButton: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.borderDark,
+    borderColor: colors.gold,
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: "center",
     marginVertical: 10,
   },
   loginButtonText: {
-    color: colors.primary,
+    color: colors.textDark,
     fontSize: 18,
     fontWeight: "bold",
   },
 });
+

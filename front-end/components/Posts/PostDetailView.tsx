@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/style/colors';
-import { Post, addLike, addComment, getCommentsForPost } from '@/services/posts';
+import { Post, addLike, addComment, getCommentsForPost, Dislike } from '@/services/posts';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
 import CommentItem from "@/components/Posts/CommentItem"; // Importa el componente
@@ -48,20 +48,25 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
 
     const handleLike = async () => {
         if (!token) return;
+        await addLike(post.id, token);
+        setLikes(likes + 1);
+        post.likeCount += 1
+        post.userLiked = true
+
+    };
+    const handledislike = async () => {
+        if (!token) return;
         try {
-            const res = await addLike(post.id, token);
-            if (!res && (res.message !== 'Like added' || res.message == "Already read")) {
-                return
-            } else {
-                setLikes(likes + 1);
-            }
+            await Dislike(post.id, token);
+            setLikes(likes - 1);
+            post.likeCount -= 1
+            post.userLiked = false
         } catch (error) {
             console.error('Error adding like', error);
             return
 
         }
     };
-
     const handleSendComment = async () => {
         if (!token) return;
         if (!commentText.trim()) return;
@@ -110,9 +115,13 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                     <Image source={{ uri: post.Images[0] }} style={styles.postImage} />
                 )}
                 <View style={styles.actionsContainer}>
-                    <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
-                        <Ionicons name="heart-outline" size={20} color={colors.gold} />
-                        <Text style={styles.actionText}>{likes}</Text>
+                    <TouchableOpacity style={styles.actionButton} onPress={post.userLiked ? handledislike : handleLike}>
+                        <Ionicons
+                            name={post.userLiked ? "heart" : "heart-outline"}
+                            size={20}
+                            color={colors.gold}
+                        />
+                        <Text style={styles.actionText}>{post.likeCount}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionButton}>
                         <Ionicons name="share-social-outline" size={20} color={colors.gold} />
@@ -150,12 +159,14 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                 </View>
                 {commentsVisible && (
                     <>
-                        {comments.map((c) => (
-                            <CommentItem key={c.id} comment={c} />
-                        ))}
-
+                        {comments && comments.length > 0 ? (
+                            comments.map((c) => <CommentItem key={c.id} comment={c} />)
+                        ) : (
+                            <Text style={styles.noCommentsText}>No hay comentarios aún.</Text>
+                        )}
                     </>
                 )}
+
             </View>
             <Modal
                 visible={showProfileModal}
@@ -301,6 +312,12 @@ const styles = StyleSheet.create({
         backgroundColor: "rgba(0,0,0,0.6)",
         justifyContent: "center",
         alignItems: "center",
+    },
+    noCommentsText: {
+        textAlign: "center",
+        color: "#888",
+        marginVertical: 10,
+        fontSize: 14,
     },
 });
 

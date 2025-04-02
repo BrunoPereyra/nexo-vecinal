@@ -11,7 +11,7 @@ import {
     Text,
     TouchableWithoutFeedback
 } from "react-native";
-import { getLatestPosts, Post, addLike, addComment } from "@/services/posts";
+import { getLatestPosts, Post, addLike, addComment, Dislike } from "@/services/posts";
 import { useAuth } from "@/context/AuthContext";
 import PostCard from "@/components/Posts/PostCard";
 import CreatePost from "@/components/Posts/CreatePost";
@@ -46,6 +46,7 @@ const PostsFeed: React.FC = () => {
         setLoading(true);
         try {
             const data = await getLatestPosts(token, pageNumber, limit);
+
             if (data && data.length < limit) {
                 setHasMore(false);
             }
@@ -75,19 +76,24 @@ const PostsFeed: React.FC = () => {
 
     const handleLike = async (postId: string) => {
         if (!token) return;
-        try {
-            const res = await addLike(postId, token);
-            if (res && res.message === "Like added") {
-                setPosts((prevPosts) =>
-                    prevPosts.map((post) =>
-                        post.id === postId ? { ...post, likeCount: post.likeCount + 1 } : post
-                    )
-                );
-            }
-        } catch (error) {
-            console.error("Error adding like", error);
-        }
+        await addLike(postId, token);
+
+        setPosts((prevPosts) =>
+            prevPosts.map((post) =>
+                post.id === postId ? { ...post, userLiked: true, likeCount: post.likeCount + 1 } : post
+            )
+        );
+
     };
+    const handledislike = async (postId: string) => {
+        if (!token) return;
+        await Dislike(postId, token);
+        setPosts((prevPosts) =>
+            prevPosts.map((post) =>
+                post.id === postId ? { ...post, userLiked: false, likeCount: post.likeCount - 1 } : post
+            )
+        );
+    }
 
     const handleComment = (post: Post) => {
         setSelectedPost(post);
@@ -117,6 +123,7 @@ const PostsFeed: React.FC = () => {
                     <PostCard
                         post={item}
                         onLike={() => handleLike(item.id)}
+                        onDislike={() => handledislike(item.id)}
                         onComment={() => handleComment(item)}
                     />
                 )}

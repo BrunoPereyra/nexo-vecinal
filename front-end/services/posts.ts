@@ -12,6 +12,7 @@ export interface Post {
     commentCount: number;
     userDetails: PostUserDetails;
     createdAt: string;
+    userLiked: boolean
     // Agrega otras propiedades según necesites
 }
 
@@ -58,20 +59,15 @@ export const createPost = async (postData: any, token: string) => {
  * @returns La respuesta de la API en formato JSON.
  */
 export const addLike = async (postId: string, token: string) => {
-    try {
-        const res = await fetch(`${API}/post/${postId}/like`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-        var data = await res.json()
-        console.log(data);
-        return await res.json();
-    } catch (error) {
-        console.error("Error in addLike:", error);
-    }
+    const res = await fetch(`${API}/post/${postId}/like`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    });
+    return await res.json();
+
 };
 
 /**
@@ -80,19 +76,15 @@ export const addLike = async (postId: string, token: string) => {
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
  */
-export const addDislike = async (postId: string, token: string) => {
-    try {
-        const res = await fetch(`${API}/post/${postId}/dislike`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            }
-        });
-        return await res.json();
-    } catch (error) {
-        console.error("Error in addDislike:", error);
-    }
+export const Dislike = async (postId: string, token: string) => {
+    const res = await fetch(`${API}/post/${postId}/dislike`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        }
+    });
+    return await res.json();
 };
 
 /**
@@ -138,6 +130,7 @@ export const getLatestPosts = async (token: string, page = 1, limit = 20) => {
         if (!res.ok) {
             throw new Error(`HTTP error: ${res.status}`);
         }
+
         return await res.json();
     } catch (error) {
         console.error("Error in getLatestPosts:", error);
