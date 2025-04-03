@@ -538,7 +538,7 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 		bson.D{{Key: "$skip", Value: skip}},
-		bson.D{{Key: "$sort", Value: bson.M{"createdAt": 1}}},
+		bson.D{{Key: "$sort", Value: bson.M{"createdAt": -1}}},
 		// Lookup para obtener detalles del usuario creador
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "Users",
@@ -584,7 +584,7 @@ func (j *JobRepository) FindOldestJobs(limit int) ([]jobdomain.JobDetailsUsers, 
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 		// Ordenar por fecha de creación (ascendente: más antiguos primero)
-		bson.D{{Key: "$sort", Value: bson.M{"createdAt": 1}}},
+		bson.D{{Key: "$sort", Value: bson.M{"createdAt": -1}}},
 		// Limitar la cantidad de resultados
 		bson.D{{Key: "$limit", Value: limit}},
 		// Lookup para obtener detalles del usuario creador

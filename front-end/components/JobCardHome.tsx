@@ -24,8 +24,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
     const scaleValue = useRef(new Animated.Value(1)).current;
     // Estado para mostrar la imagen en grande en un modal
     const [enlargedVisible, setEnlargedVisible] = useState(false);
-    console.log(job.userDetails?.avatar);
-    console.log(job.Images);
 
     const handleLongPressIn = () => {
         Animated.spring(scaleValue, {

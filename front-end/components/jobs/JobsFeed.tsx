@@ -33,6 +33,9 @@ const JobsFeed: React.FC = () => {
         location: { latitude: -31.4201, longitude: -64.1888 },
         radius: 10,
     });
+    const [page, setPage] = useState(1);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
     const [showRecommended, setShowRecommended] = useState<boolean>(false);
 
     const flatListRef = useRef<FlatList<any>>(null);
@@ -81,23 +84,50 @@ const JobsFeed: React.FC = () => {
         lastOffset.current = currentOffset;
     };
 
-    const handleSearch = async (filters: FilterParams) => {
-        if (!token || !filters.location) return;
+    // Función para solicitar los trabajos
+    const fetchJobs = async (pageNumber: number, append: boolean = false) => {
+        if (!token || !filterParams.location) return;
         const apiFilters = {
-            tags: filters.selectedTags,
-            longitude: filters.location.longitude,
-            latitude: filters.location.latitude,
-            radius: filters.radius,
-            title: filters.searchTitle.trim(),
+            tags: filterParams.selectedTags,
+            longitude: filterParams.location.longitude,
+            latitude: filterParams.location.latitude,
+            radius: filterParams.radius,
+            title: filterParams.searchTitle.trim(),
         };
         try {
-            const data = await getJobsByFilters(apiFilters, token);
-            setJobs(data || []);
+            const data = await getJobsByFilters(apiFilters, token, pageNumber);
+            // Si la cantidad de resultados es menor al esperado, asumimos que ya no hay más.
+            if (data.length < 10) {
+                setHasMore(false);
+            }
+            if (append) {
+                setJobs((prevJobs) => {
+                    // Filtramos para no duplicar trabajos que ya existan.
+                    const newJobs = data.filter(
+                        (job: Job) => !prevJobs.some((existingJob) => existingJob.id === job.id)
+                    );
+                    return [...prevJobs, ...newJobs];
+                });
+            } else {
+                setJobs(data);
+            }
         } catch (error) {
             console.error("Error fetching jobs:", error);
         }
     };
 
+    // Función para el botón de búsqueda o filtros
+    const handleSearch = async (filters: FilterParams) => {
+        setFilterParams(filters);
+        setPage(1);
+        setHasMore(true);
+        await fetchJobs(1, false);
+        if (flatListRef.current) {
+            flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+        }
+    };
+
+    // Cargar filtros guardados y búsqueda inicial
     useEffect(() => {
         const loadSavedFilters = async () => {
             try {
@@ -125,11 +155,19 @@ const JobsFeed: React.FC = () => {
         loadSavedFilters();
     }, [token]);
 
-    useEffect(() => {
-        if (flatListRef.current) {
-            flatListRef.current.scrollToOffset({ offset: 0, animated: false });
-        }
-    }, []);
+    // Función que se dispara cuando se llega al final del FlatList
+    const handleLoadMore = async () => {
+        console.log(page);
+
+        if (!hasMore || loadingMore) return;
+        setLoadingMore(true);
+        // Retardo de 1 segundo antes de solicitar más trabajos
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const nextPage = page + 1;
+        await fetchJobs(nextPage, true);
+        setPage(nextPage);
+        setLoadingMore(false);
+    };
 
     return (
         <View style={{ flex: 1 }}>
@@ -167,6 +205,11 @@ const JobsFeed: React.FC = () => {
                 contentContainerStyle={[styles.listContainer, { paddingTop: HEADER_HEIGHT + 16 }]}
                 scrollEventThrottle={16}
                 onScroll={handleScroll}
+                onEndReached={handleLoadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                    loadingMore ? <Text style={{ textAlign: "center" }}>Cargando...</Text> : null
+                }
             />
             <Modal visible={!!selectedJob} animationType="slide">
                 {selectedJob && (
