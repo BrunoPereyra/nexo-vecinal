@@ -213,7 +213,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                         contentContainerStyle={styles.listContainer}
                     />
                     {/* Botón flotante para abrir el chat */}
-                    {/* {
+                    {
                         userProfile &&
                         <TouchableOpacity
                             style={styles.fab}
@@ -221,19 +221,20 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                                 router.push(
                                     `/(protected)/(chat)/ChatScreen?employerProfile=${encodeURIComponent(
                                         JSON.stringify({ id: userProfile.id, avatar: userProfile.Avatar, nameUser: userProfile.NameUser })
-                                    )}&origin=profileVisited`
+                                    )}&origin=home`
                                 )
                             }
                         >
                             <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
                         </TouchableOpacity>
-                    } */}
+                    }
                 </View>
             </Modal>
         </>
     );
 };
 import colors from "@/style/colors";
+import { router } from 'expo-router';
 
 const styles = StyleSheet.create({
     fullScreenContainer: {
@@ -332,6 +333,7 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontWeight: "bold",
     },
+
 });
 
 

@@ -275,16 +275,19 @@ export const provideWorkerFeedback = async (jobId: string, feedback: any, token:
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON con la lista de jobs filtrados.
  */
-export const getJobsByFilters = async (filters: {
-    tags: string[];
-    longitude: number;
-    latitude: number;
-    radius: number;
-    title: string;
-}, token: string) => {
+export const getJobsByFilters = async (
+    filters: {
+        tags: string[];
+        longitude: number;
+        latitude: number;
+        radius: number;
+        title: string;
+    },
+    token: string,
+    page: number = 1
+) => {
     try {
-
-        const res = await fetch(`${API}/job/get-jobsBy-filters`, {
+        const res = await fetch(`${API}/job/get-jobsBy-filters?page=${page}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -295,8 +298,10 @@ export const getJobsByFilters = async (filters: {
         return await res.json();
     } catch (error) {
         console.error("Error en getJobsByFilters:", error);
+        throw error;
     }
 };
+
 
 /**
  * Realiza una petición POST para actualizar el estado del job a "completed".

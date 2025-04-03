@@ -500,14 +500,14 @@ func (j *JobRepository) UpdateJobPaymentStatus(jobID primitive.ObjectID, status 
 	return err
 }
 
-func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation) ([]jobdomain.JobDetailsUsers, error) {
+func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsByTagsAndLocation, page int) ([]jobdomain.JobDetailsUsers, error) {
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	// Convertir el radio de metros a radianes (radio terrestre ≈ 6,378,100 metros)
 	radiusInRadians := jobFilter.RadiusInMeters / 6378100.0
 
 	// Se inicia el filtro vacío
 	filter := bson.M{}
-
+	skip := int64((page - 1) * 10)
 	// Si se proporcionan etiquetas, se filtra que al menos una esté presente
 	if len(jobFilter.Tags) > 0 {
 		filter["tags"] = bson.M{
@@ -537,6 +537,8 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	// Definir el pipeline de agregación
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$sort", Value: bson.M{"createdAt": 1}}},
 		// Lookup para obtener detalles del usuario creador
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "Users",

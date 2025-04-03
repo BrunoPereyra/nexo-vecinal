@@ -10,7 +10,8 @@ import {
   Image,
   ScrollView,
   KeyboardAvoidingView,
-  Platform
+  Platform,
+  ActivityIndicator
 } from "react-native";
 import MapView, {
   Marker,
@@ -75,6 +76,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       setImage(result.assets[0].uri);
     }
   };
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     if (
@@ -90,7 +92,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       );
       return;
     }
-
+    setLoading(true)
     const budgetNumber = parseFloat(budget);
     if (isNaN(budgetNumber) || budgetNumber <= 0) {
       Alert.alert("Error", "El presupuesto debe ser un número mayor que 0.");
@@ -133,10 +135,8 @@ export const CreateJob: React.FC<CreateJobProps> = ({
     }
 
     try {
-      console.log(jobData);
 
       const response = await createJob(jobData, token as string);
-      console.log(response);
 
       if (response && response.message === "Job created successfully") {
         Alert.alert("Éxito", "Trabajo creado exitosamente.");
@@ -144,19 +144,21 @@ export const CreateJob: React.FC<CreateJobProps> = ({
           onJobCreated(response.job);
         }
         // Opcional: reiniciar estados y cerrar modal
-        // setTitle("");
-        // setDescription("");
-        // setLocation(null);
-        // setSelectedTags([]);
-        // setBudget("");
-        // setImage(null);
-        // onClose();
+        setTitle("");
+        setDescription("");
+        setLocation(null);
+        setSelectedTags([]);
+        setBudget("");
+        setImage(null);
+        onClose();
       } else {
         Alert.alert("Error", response?.message || "No se pudo crear el trabajo.");
       }
     } catch (error) {
       console.error("Error al crear el trabajo:", error);
       Alert.alert("Error", "Ocurrió un error al crear el trabajo.");
+    } finally {
+      setLoading(false)
     }
   };
 
@@ -248,8 +250,13 @@ export const CreateJob: React.FC<CreateJobProps> = ({
                 <Image source={{ uri: image }} style={styles.previewImage} />
               )}
               <View style={styles.buttonContainer}>
+
                 <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-                  <Text style={styles.buttonText}>Crear</Text>
+                  {loading ? (
+                    <ActivityIndicator size="small" color={colors.textDark} />
+                  ) : (
+                    <Text style={styles.buttonText}>Crear</Text>
+                  )}
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.button, styles.cancelButton]}

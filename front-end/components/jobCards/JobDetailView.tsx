@@ -9,13 +9,13 @@ import {
     Alert,
     ScrollView,
     Modal,
+    Dimensions,
 } from 'react-native';
 import { applyToJob, Job } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
 import colors from '@/style/colors';
-import FullScreenImageModal from '../FullScreenImageModal';
-
+import FullScreenImageModal from '../FullScreenImage/FullScreenImageModal';
 export interface JobUserDetails {
     avatar: string;
     id: string;
@@ -26,6 +26,7 @@ interface JobDetailViewProps {
     job: Job;
     onClose: () => void;
 }
+const screenWidth = Dimensions.get('window').width;
 
 const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
     const { token } = useAuth();
@@ -86,24 +87,28 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                 <Text style={styles.description}>{job.description}</Text>
                 {/* Mostrar imágenes en un ScrollView horizontal */}
                 {job.Images && job.Images.length > 0 && (
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
-                        {job.Images.map((imageUrl, index) => (
-                            <TouchableOpacity
-                                key={index}
-                                onPress={() => {
-                                    setSelectedImage(imageUrl);
-                                    setShowImageModal(true);
-                                }}
-                                activeOpacity={0.8}
-                            >
-                                <Image
-                                    source={{ uri: imageUrl }}
-                                    style={{ width: 150, height: 100, marginRight: 10, borderRadius: 8 }}
-                                    resizeMode="cover"
-                                />
-                            </TouchableOpacity>
-                        ))}
-                    </ScrollView>
+                    <View style={styles.imageContainer}>
+
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
+                            {job.Images.map((imageUrl, index) => (
+                                <TouchableOpacity
+                                    key={index}
+                                    onPress={() => {
+                                        setSelectedImage(imageUrl);
+                                        setShowImageModal(true);
+                                    }}
+                                    activeOpacity={0.8}
+                                >
+                                    <Image
+                                        source={{ uri: imageUrl }}
+                                        style={styles.postImage}
+                                        resizeMode="cover"
+                                    />
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
+
                 )}
                 <View style={styles.infoRow}>
                     <Text style={styles.label}>Presupuesto:</Text>
@@ -227,7 +232,9 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },
+        width: "100%", // O asegurate de que el contenedor padre permita el 100% del ancho
     },
+
     title: {
         fontSize: 24,
         fontWeight: "bold",
@@ -310,6 +317,18 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+    imageContainer: {
+        position: "relative",
+        alignItems: "center",
+    },
+    postImage: {
+        width: screenWidth * 0.9,
+        height: 200,
+        borderRadius: 8,
+        marginBottom: 10,
+        resizeMode: "cover",
+    },
+
 });
 
 export default JobDetailView;

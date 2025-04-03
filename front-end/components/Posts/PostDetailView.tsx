@@ -16,6 +16,7 @@ import { Post, addLike, addComment, getCommentsForPost, Dislike } from '@/servic
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
 import CommentItem from "@/components/Posts/CommentItem"; // Importa el componente
+import FullScreenImageModal from '../FullScreenImage/FullScreenImageModal';
 
 interface PostDetailViewProps {
     post: Post;
@@ -29,15 +30,20 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
     const [likes, setLikes] = useState(post.likeCount);
     const [comments, setComments] = useState<any[]>([]);
     const [commentsVisible, setCommentsVisible] = useState(false);
+    // Estado para la imagen actual (índice)
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [selectedImage, setSelectedImage] = useState<string>('');
+    const [showImageModal, setShowImageModal] = useState(false);
 
     useEffect(() => {
+        console.log(post);
+
         const fetchComments = async () => {
             if (!token) return;
             try {
                 const data = await getCommentsForPost(post.id, token);
-                console.log("Comentarios recibidos:", JSON.stringify(data, null, 2));
                 if (data) {
-                    setComments(data?.comments); // Se asume que el backend devuelve { comments: [...] }
+                    setComments(data?.comments);
                 }
             } catch (error) {
                 console.error('Error fetching comments', error);
@@ -50,32 +56,29 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
         if (!token) return;
         await addLike(post.id, token);
         setLikes(likes + 1);
-        post.likeCount += 1
-        post.userLiked = true
-
+        post.likeCount += 1;
+        post.userLiked = true;
     };
+
     const handledislike = async () => {
         if (!token) return;
         try {
             await Dislike(post.id, token);
             setLikes(likes - 1);
-            post.likeCount -= 1
-            post.userLiked = false
+            post.likeCount -= 1;
+            post.userLiked = false;
         } catch (error) {
             console.error('Error adding like', error);
-            return
-
         }
     };
-    const handleSendComment = async () => {
-        if (!token) return;
-        if (!commentText.trim()) return;
 
+    const handleSendComment = async () => {
+        if (!token || !commentText.trim()) return;
         try {
             const res = await addComment(post.id, { text: commentText.trim() }, token);
             if (res && res.message === 'Comment added') {
                 setComments([res.comment, ...comments]);
-                post.commentCount += 1
+                post.commentCount += 1;
                 setCommentText('');
             } else {
                 Alert.alert('Error', 'No se pudo agregar el comentario');
@@ -83,6 +86,19 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
         } catch (error) {
             console.error('Error adding comment', error);
             Alert.alert('Error', 'Error al agregar el comentario');
+        }
+    };
+
+    // Funciones para navegar entre imágenes
+    const goPrevImage = () => {
+        if (currentImageIndex > 0) {
+            setCurrentImageIndex(currentImageIndex - 1);
+        }
+    };
+
+    const goNextImage = () => {
+        if (post.Images && currentImageIndex < post.Images.length - 1) {
+            setCurrentImageIndex(currentImageIndex + 1);
         }
     };
 
@@ -111,8 +127,40 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
             <View style={styles.card}>
                 <Text style={styles.title}>{post.title}</Text>
                 <Text style={styles.description}>{post.description}</Text>
-                {post.Images?.length > 0 && (
-                    <Image source={{ uri: post.Images[0] }} style={styles.postImage} />
+                {post.Images && post.Images.length > 0 && (
+                    <View style={styles.imageContainer}>
+                        {post.Images.length > 1 && (
+                            <TouchableOpacity style={styles.navButtonLeft} onPress={goPrevImage}>
+                                <Ionicons name="chevron-back" size={24} color="#fff" />
+                            </TouchableOpacity>
+                        )}
+                        <TouchableOpacity
+                            key={currentImageIndex}
+                            onPress={() => {
+                                setSelectedImage(post.Images[currentImageIndex]);
+                                setShowImageModal(true);
+                            }}
+                            activeOpacity={0.8}
+                        >
+
+                            <Image source={{ uri: post.Images[currentImageIndex] }}
+                                style={styles.postImage}
+                                resizeMode="cover" />
+                        </TouchableOpacity>
+                        {post.Images.length > 1 && (
+                            <TouchableOpacity style={styles.navButtonRight} onPress={goNextImage}>
+                                <Ionicons name="chevron-forward" size={24} color="#fff" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
+                {/* Modal para mostrar la imagen completa */}
+                {selectedImage && (
+                    <FullScreenImageModal
+                        visible={showImageModal}
+                        uri={selectedImage}
+                        onClose={() => setShowImageModal(false)}
+                    />
                 )}
                 <View style={styles.actionsContainer}>
                     <TouchableOpacity style={styles.actionButton} onPress={post.userLiked ? handledislike : handleLike}>
@@ -128,7 +176,6 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-            {/* Sección de comentarios con botón toggle */}
             <View style={styles.commentsContainer}>
                 <View style={styles.commentsHeader}>
                     <Text style={styles.commentsTitle}>
@@ -152,6 +199,8 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                         style={styles.commentInput}
                         value={commentText}
                         onChangeText={setCommentText}
+                        onSubmitEditing={handleSendComment}
+
                     />
                     <TouchableOpacity style={styles.sendButton} onPress={handleSendComment}>
                         <Ionicons name="send" size={20} color={colors.gold} />
@@ -166,7 +215,6 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                         )}
                     </>
                 )}
-
             </View>
             <Modal
                 visible={showProfileModal}
@@ -193,12 +241,12 @@ const styles = StyleSheet.create({
         flexGrow: 1,
     },
     header: {
-        alignItems: 'flex-end',
+        alignItems: "flex-end",
         marginBottom: 10,
     },
     userContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginBottom: 16,
         padding: 12,
         backgroundColor: colors.cream,
@@ -209,8 +257,8 @@ const styles = StyleSheet.create({
         height: 60,
         borderRadius: 30,
         backgroundColor: colors.gold,
-        justifyContent: 'center',
-        alignItems: 'center',
+        justifyContent: "center",
+        alignItems: "center",
         marginRight: 12,
     },
     avatar: {
@@ -221,12 +269,12 @@ const styles = StyleSheet.create({
     avatarText: {
         color: colors.textDark,
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
     userName: {
         fontSize: 18,
         color: colors.textDark,
-        fontWeight: 'bold',
+        fontWeight: "bold",
     },
     card: {
         backgroundColor: colors.warmWhite,
@@ -240,7 +288,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 24,
-        fontWeight: 'bold',
+        fontWeight: "bold",
         color: colors.textDark,
         marginBottom: 10,
     },
@@ -250,19 +298,44 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         lineHeight: 22,
     },
+    imageContainer: {
+        position: "relative",
+        alignItems: "center",
+    },
     postImage: {
-        width: '100%',
+        width: 300,
         height: 200,
+        borderRadius: 8,
         marginBottom: 10,
     },
+    navButtonLeft: {
+        position: "absolute",
+        left: 10,
+        top: "50%",
+        transform: [{ translateY: -12 }],
+        backgroundColor: "rgba(0,0,0,0.5)",
+        padding: 6,
+        borderRadius: 20,
+        zIndex: 1,
+    },
+    navButtonRight: {
+        position: "absolute",
+        right: 10,
+        top: "50%",
+        transform: [{ translateY: -12 }],
+        backgroundColor: "rgba(0,0,0,0.5)",
+        padding: 6,
+        borderRadius: 20,
+        zIndex: 1,
+    },
     actionsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
+        flexDirection: "row",
+        justifyContent: "center",
         marginTop: 8,
     },
     actionButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginHorizontal: 8,
     },
     actionText: {
@@ -288,8 +361,8 @@ const styles = StyleSheet.create({
         padding: 6,
     },
     commentInputContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
+        flexDirection: "row",
+        alignItems: "center",
         marginVertical: 12,
     },
     commentInput: {

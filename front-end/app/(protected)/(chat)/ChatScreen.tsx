@@ -74,6 +74,8 @@ export default function ChatJobs() {
           router.push("/(protected)/profile/EmployerJobDetail");
         } else if (origin === 'jobDetailWorker') {
           router.push("/(protected)/profile/JobDetailWorker");
+        } else if (origin === 'home') {
+          router.push("/(protected)/home");
         } else {
           router.back();
         }

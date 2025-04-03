@@ -168,6 +168,7 @@ const PostCard: React.FC<PostCardProps> = ({
                     </TouchableOpacity>
                 </Modal>
             )}
+
         </>
     );
 };
@@ -194,6 +195,7 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         marginRight: 10,
+        borderRadius: 100
     },
     content: {
         width: "90%",

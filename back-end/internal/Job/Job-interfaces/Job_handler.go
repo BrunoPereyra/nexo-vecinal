@@ -290,7 +290,12 @@ func (j *JobHandler) GetJobsByFilters(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
-	jobs, err := j.JobService.FindJobsByTagsAndLocation(reqFilyer)
+	pageStr := c.Query("page", "1")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	jobs, err := j.JobService.FindJobsByTagsAndLocation(reqFilyer, page)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error al obtener trabajos", "error": err.Error()})
 	}
