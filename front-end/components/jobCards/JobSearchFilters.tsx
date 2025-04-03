@@ -82,6 +82,8 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     }, []);
 
     const applyFilters = async () => {
+        console.log(searchTitle);
+
         try {
             await AsyncStorage.setItem('searchTitle', searchTitle);
             await AsyncStorage.setItem('selectedTags', JSON.stringify(selectedTags));
@@ -93,6 +95,16 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
         setModalVisible(false);
         onSearch({ searchTitle, selectedTags, location, radius });
     };
+
+
+    useEffect(() => {
+        const debounceTimeout = setTimeout(() => {
+            onSearch({ searchTitle, selectedTags, location, radius });
+        }, 300);
+        return () => clearTimeout(debounceTimeout);
+    }, [searchTitle, selectedTags, location, radius]);
+
+
 
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {
@@ -125,7 +137,7 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                     value={searchTitle}
                     onChangeText={setSearchTitle}
                     returnKeyType="search"
-                    onSubmitEditing={handleSubmit}
+                // onSubmitEditing={applyFilters}
                 />
                 <TouchableOpacity
                     style={styles.filterIconButton}

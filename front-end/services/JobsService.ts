@@ -287,6 +287,8 @@ export const getJobsByFilters = async (
     page: number = 1
 ) => {
     try {
+        console.log("service", filters.title);
+
         const res = await fetch(`${API}/job/get-jobsBy-filters?page=${page}`, {
             method: 'POST',
             headers: {

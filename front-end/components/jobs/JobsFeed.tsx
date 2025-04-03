@@ -10,13 +10,14 @@ import {
     NativeSyntheticEvent,
     NativeScrollEvent,
     Easing,
+    ActivityIndicator, // Importar el ActivityIndicator
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getJobsByFilters } from "@/services/JobsService";
+import { getJobsByFilters, Job } from "@/services/JobsService";
 import { useAuth } from "@/context/AuthContext";
 import JobCard from "@/components/JobCardHome";
 import JobSearchFilters, { FilterParams } from "@/components/jobCards/JobSearchFilters";
-import JobDetailView, { Job } from "@/components/jobCards/JobDetailView";
+import JobDetailView from "@/components/jobCards/JobDetailView";
 import RecommendedWorkersRow from "@/components/RecommendedWorkersRow";
 import colors from "@/style/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -36,6 +37,7 @@ const JobsFeed: React.FC = () => {
     const [page, setPage] = useState(1);
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [isFirstLoadComplete, setIsFirstLoadComplete] = useState(false);
     const [showRecommended, setShowRecommended] = useState<boolean>(false);
 
     const flatListRef = useRef<FlatList<any>>(null);
@@ -86,6 +88,7 @@ const JobsFeed: React.FC = () => {
 
     // Función para solicitar los trabajos
     const fetchJobs = async (pageNumber: number, append: boolean = false) => {
+        console.log("AQUI", filterParams.searchTitle);
         if (!token || !filterParams.location) return;
         const apiFilters = {
             tags: filterParams.selectedTags,
@@ -97,12 +100,11 @@ const JobsFeed: React.FC = () => {
         try {
             const data = await getJobsByFilters(apiFilters, token, pageNumber);
             // Si la cantidad de resultados es menor al esperado, asumimos que ya no hay más.
-            if (data.length < 10) {
+            if (data.length < 1) {
                 setHasMore(false);
             }
             if (append) {
                 setJobs((prevJobs) => {
-                    // Filtramos para no duplicar trabajos que ya existan.
                     const newJobs = data.filter(
                         (job: Job) => !prevJobs.some((existingJob) => existingJob.id === job.id)
                     );
@@ -122,6 +124,7 @@ const JobsFeed: React.FC = () => {
         setPage(1);
         setHasMore(true);
         await fetchJobs(1, false);
+        setIsFirstLoadComplete(true);
         if (flatListRef.current) {
             flatListRef.current.scrollToOffset({ offset: 0, animated: false });
         }
@@ -157,8 +160,7 @@ const JobsFeed: React.FC = () => {
 
     // Función que se dispara cuando se llega al final del FlatList
     const handleLoadMore = async () => {
-        console.log(page);
-
+        if (!isFirstLoadComplete) return;
         if (!hasMore || loadingMore) return;
         setLoadingMore(true);
         // Retardo de 1 segundo antes de solicitar más trabajos
@@ -208,7 +210,12 @@ const JobsFeed: React.FC = () => {
                 onEndReached={handleLoadMore}
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={
-                    loadingMore ? <Text style={{ textAlign: "center" }}>Cargando...</Text> : null
+                    loadingMore ? (
+                        <View style={styles.footer}>
+                            <ActivityIndicator size="small" color={colors.primary} />
+                            <Text style={{ color: colors.textDark, marginTop: 4, fontSize: 12 }}>Cargando más trabajos...</Text>
+                        </View>
+                    ) : null
                 }
             />
             <Modal visible={!!selectedJob} animationType="slide">
@@ -258,6 +265,10 @@ const styles = StyleSheet.create({
         top: "10%",
         padding: 16,
         paddingBottom: 16,
+    },
+    footer: {
+        paddingVertical: 70,
+        alignItems: "center",
     },
 });
 

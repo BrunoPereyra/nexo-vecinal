@@ -508,6 +508,7 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	// Se inicia el filtro vacío
 	filter := bson.M{}
 	skip := int64((page - 1) * 10)
+	fmt.Println("page", skip)
 	// Si se proporcionan etiquetas, se filtra que al menos una esté presente
 	if len(jobFilter.Tags) > 0 {
 		filter["tags"] = bson.M{
@@ -538,6 +539,7 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
 		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: 10}},
 		bson.D{{Key: "$sort", Value: bson.M{"createdAt": -1}}},
 		// Lookup para obtener detalles del usuario creador
 		bson.D{{Key: "$lookup", Value: bson.M{

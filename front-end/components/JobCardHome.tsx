@@ -46,64 +46,62 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
     return (
         <>
-            {job.Images?.length > 0 && (
-                <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-                    <TouchableOpacity
-                        style={styles.cardContainer}
-                        onPress={onPress}
-                        activeOpacity={0.7}
-                    >
-                        <Image
-                            source={{
-                                uri: job.userDetails?.avatar ||
-                                    "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
-                            }}
-                            style={styles.avatar}
-                        />
-                        {/* Nuevo contenedor para el contenido que expanda el ancho restante */}
-                        <View style={styles.contentContainer}>
-                            {/* Sección de usuario en la parte superior */}
-                            <View style={styles.userDetailsContainer}>
-                                <Text style={styles.userName}>
-                                    {job.userDetails?.nameUser || "Usuario Desconocido"}
-                                </Text>
-                            </View>
-
-                            <Text style={styles.title}>{job.title}</Text>
-                            <Text style={styles.description}>
-                                {truncateDescription(job.description, 100)}
+            <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+                <TouchableOpacity
+                    style={styles.cardContainer}
+                    onPress={onPress}
+                    activeOpacity={0.7}
+                >
+                    <Image
+                        source={{
+                            uri: job.userDetails?.avatar ||
+                                "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
+                        }}
+                        style={styles.avatar}
+                    />
+                    {/* Nuevo contenedor para el contenido que expanda el ancho restante */}
+                    <View style={styles.contentContainer}>
+                        {/* Sección de usuario en la parte superior */}
+                        <View style={styles.userDetailsContainer}>
+                            <Text style={styles.userName}>
+                                {job.userDetails?.nameUser || "Usuario Desconocido"}
                             </Text>
-
-                            {/* Imagen del trabajo (si existe) */}
-                            {job.Images?.length > 0 && (
-                                <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
-                                    <TouchableOpacity
-                                        activeOpacity={1}
-                                        onLongPress={handleLongPressIn}
-                                        onPressOut={handleLongPressOut}
-                                    >
-                                        <Image
-                                            source={{ uri: job.Images[0] }}
-                                            style={styles.jobImage}
-                                        />
-                                    </TouchableOpacity>
-                                </Animated.View>
-                            )}
-
-                            <View style={styles.budgetContainer}>
-                                <Text style={styles.budgetText}>
-                                    Presupuesto: ${job.budget?.toFixed(2) || "N/A"}
-                                </Text>
-                            </View>
                         </View>
-                    </TouchableOpacity>
 
-                </Animated.View>
-            )}
+                        <Text style={styles.title}>{job.title}</Text>
+                        <Text style={styles.description}>
+                            {truncateDescription(job.description, 100)}
+                        </Text>
+
+                        {/* Imagen del trabajo (si existe) */}
+                        {job.Images?.[0] && (
+                            <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
+                                <TouchableOpacity
+                                    activeOpacity={1}
+                                    onLongPress={handleLongPressIn}
+                                    onPressOut={handleLongPressOut}
+                                >
+                                    <Image
+                                        source={{ uri: job.Images[0] }}
+                                        style={styles.jobImage}
+                                    />
+                                </TouchableOpacity>
+                            </Animated.View>
+                        )}
+
+                        <View style={styles.budgetContainer}>
+                            <Text style={styles.budgetText}>
+                                Presupuesto: ${job.budget?.toFixed(2) || "N/A"}
+                            </Text>
+                        </View>
+                    </View>
+                </TouchableOpacity>
+
+            </Animated.View>
 
 
             {/* Modal para mostrar la imagen en grande */}
-            {job.Images?.length > 0 && (
+            {job.Images?.[0] && (
                 <Modal
                     visible={enlargedVisible}
                     transparent={true}

@@ -86,7 +86,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                 <Text style={styles.title}>{job.title}</Text>
                 <Text style={styles.description}>{job.description}</Text>
                 {/* Mostrar imágenes en un ScrollView horizontal */}
-                {job.Images && job.Images.length > 0 && (
+                {job.Images[0] && (
                     <View style={styles.imageContainer}>
 
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
