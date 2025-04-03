@@ -25,19 +25,38 @@ export interface JobUserDetails {
  */
 export const createJob = async (jobData: any, token: string) => {
     try {
+        const formData = new FormData();
+
+        formData.append("title", jobData.title);
+        formData.append("description", jobData.description);
+        formData.append("budget", jobData.budget.toString());
+        formData.append("tags", JSON.stringify(jobData.tags));
+        formData.append("locationStr", JSON.stringify(jobData.location));
+
+        if (jobData.image && jobData.image.uri) {
+            const imageFile = {
+                uri: jobData.image.uri,
+                name: `image.${jobData.image.uri.split('.').pop() || "jpg"}`,
+                type: "image/jpeg",
+            };
+            formData.append("image", imageFile as any);
+        }
+
         const res = await fetch(`${API}/job/create`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify(jobData)
+            body: formData
         });
+
         return await res.json();
     } catch (error) {
         console.error("Error en createJob:", error);
     }
 };
+
+
 
 export const GetJobTokenAdmin = async (JobId: any, token: string) => {
     try {

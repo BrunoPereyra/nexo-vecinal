@@ -11,7 +11,7 @@ import {
     ScrollView,
     KeyboardAvoidingView,
     Platform,
-    Keyboard,
+    ActivityIndicator,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { createPost } from "@/services/posts";
@@ -29,6 +29,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ visible, onClose, onPostCreated
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [images, setImages] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
 
     const pickImage = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -49,15 +50,23 @@ const CreatePost: React.FC<CreatePostProps> = ({ visible, onClose, onPostCreated
         }
     };
 
+
     const handleCreatePost = async () => {
         if (!title.trim() || !description.trim()) {
             Alert.alert("Error", "El título y la descripción son obligatorios");
             return;
         }
-        const postData = { title, description, Images: images };
+        setLoading(true);
+        const postData: any = {
+            title,
+            description,
+            tags: [], // Si tienes etiquetas, envialas aquí
+            images,  // Enviamos el array de URIs para las imágenes
+        };
+
         try {
             const res = await createPost(postData, token as string);
-
+            console.log(res);
             if (res?.message === "Post created successfully") {
                 Alert.alert("Éxito", "Post creado correctamente");
                 onClose();
@@ -65,12 +74,10 @@ const CreatePost: React.FC<CreatePostProps> = ({ visible, onClose, onPostCreated
                 setDescription("");
                 setImages([]);
                 onPostCreated?.(res.post);
-            } else {
-                Alert.alert("Error", res.message || "Error al crear post");
             }
         } catch (error) {
-            console.error("Error creating post", error);
-            Alert.alert("Error", "Ocurrió un error al crear el post");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -117,7 +124,11 @@ const CreatePost: React.FC<CreatePostProps> = ({ visible, onClose, onPostCreated
                             <Text style={styles.modalButtonText}>Cancelar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.modalButton} onPress={handleCreatePost}>
-                            <Text style={styles.modalButtonText}>Crear</Text>
+                            {loading ? (
+                                <ActivityIndicator size="small" color={colors.textDark} />
+                            ) : (
+                                <Text style={styles.modalButtonText}>Crear</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                 </KeyboardAvoidingView>

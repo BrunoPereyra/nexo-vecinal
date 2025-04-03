@@ -4,6 +4,8 @@ import (
 	Jobapplication "back-end/internal/Job/Job-application"
 	jobdomain "back-end/internal/Job/Job-domain"
 	"back-end/pkg/helpers"
+	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -28,6 +30,8 @@ func NewJobHandler(jobService *Jobapplication.JobService) *JobHandler {
 func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 	var createReq jobdomain.CreateJobRequest
 	if err := c.BodyParser(&createReq); err != nil {
+		fmt.Println(err.Error())
+		fmt.Println("err 0")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",
 		})
@@ -38,6 +42,31 @@ func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 			"error":   err.Error(),
 		})
 	}
+	// Extraer el campo location como string
+	locationStr := c.FormValue("locationStr")
+
+	if locationStr == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Location is required",
+		})
+	}
+
+	var location jobdomain.GeoPoint
+
+	if err := json.Unmarshal([]byte(locationStr), &location); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid location format",
+			"error":   err.Error(),
+		})
+	}
+
+	createReq.Location = location
+	if err := c.BodyParser(&createReq); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Bad Request",
+		})
+	}
+
 	// Se obtiene el ID del usuario desde el token
 	idValue := c.Context().UserValue("_id").(string)
 	userID, err := primitive.ObjectIDFromHex(idValue)
@@ -64,7 +93,6 @@ func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 			})
 		}
 	}
-
 	jobID, err := j.JobService.CreateJob(createReq, userID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

@@ -10,25 +10,16 @@ import {
     ScrollView,
     Modal,
 } from 'react-native';
-import { applyToJob } from '@/services/JobsService';
+import { applyToJob, Job } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
 import colors from '@/style/colors';
+import FullScreenImageModal from '../FullScreenImageModal';
 
 export interface JobUserDetails {
     avatar: string;
     id: string;
     nameUser: string;
-}
-
-export interface Job {
-    id: string;
-    title: string;
-    description: string;
-    tags: string[];
-    budget: number;
-    status: string;
-    userDetails: JobUserDetails;
 }
 
 interface JobDetailViewProps {
@@ -42,6 +33,8 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
     const [price, setPrice] = useState('');
     const [showInputs, setShowInputs] = useState(false);
     const [showProfileModal, setShowProfileModal] = useState(false);
+    const [showImageModal, setShowImageModal] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string>('');
 
     const handleApply = async () => {
         if (!showInputs) {
@@ -91,6 +84,27 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
             <View style={styles.card}>
                 <Text style={styles.title}>{job.title}</Text>
                 <Text style={styles.description}>{job.description}</Text>
+                {/* Mostrar imágenes en un ScrollView horizontal */}
+                {job.Images && job.Images.length > 0 && (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
+                        {job.Images.map((imageUrl, index) => (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => {
+                                    setSelectedImage(imageUrl);
+                                    setShowImageModal(true);
+                                }}
+                                activeOpacity={0.8}
+                            >
+                                <Image
+                                    source={{ uri: imageUrl }}
+                                    style={{ width: 150, height: 100, marginRight: 10, borderRadius: 8 }}
+                                    resizeMode="cover"
+                                />
+                            </TouchableOpacity>
+                        ))}
+                    </ScrollView>
+                )}
                 <View style={styles.infoRow}>
                     <Text style={styles.label}>Presupuesto:</Text>
                     <Text style={styles.value}>${job.budget}</Text>
@@ -153,6 +167,15 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                     />
                 </View>
             </Modal>
+
+            {/* Modal para mostrar la imagen completa */}
+            {selectedImage && (
+                <FullScreenImageModal
+                    visible={showImageModal}
+                    uri={selectedImage}
+                    onClose={() => setShowImageModal(false)}
+                />
+            )}
         </ScrollView>
     );
 };
@@ -160,7 +183,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 12,
-        backgroundColor: colors.background, // "#FFFFFF"
+        backgroundColor: colors.background,
         flexGrow: 1,
     },
     employerContainer: {
@@ -168,14 +191,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginBottom: 16,
         padding: 12,
-        backgroundColor: colors.cream, // "#FFF8DC"
+        backgroundColor: colors.cream,
         borderRadius: 8,
     },
     avatarPlaceholder: {
         width: 60,
         height: 60,
         borderRadius: 30,
-        backgroundColor: colors.gold, // "#FFD700"
+        backgroundColor: colors.gold,
         justifyContent: "center",
         alignItems: "center",
         marginRight: 12,
@@ -186,17 +209,17 @@ const styles = StyleSheet.create({
         borderRadius: 30,
     },
     avatarText: {
-        color: colors.textDark, // "#333"
+        color: colors.textDark,
         fontSize: 24,
         fontWeight: "bold",
     },
     employerName: {
         fontSize: 18,
-        color: colors.textDark, // "#333"
+        color: colors.textDark,
         fontWeight: "bold",
     },
     card: {
-        backgroundColor: colors.warmWhite, // "#FAF9F6"
+        backgroundColor: colors.warmWhite,
         borderRadius: 10,
         padding: 16,
         marginBottom: 20,
@@ -208,12 +231,12 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: "bold",
-        color: colors.textDark, // "#333"
+        color: colors.textDark,
         marginBottom: 10,
     },
     description: {
         fontSize: 16,
-        color: colors.textMuted, // "#888"
+        color: colors.textMuted,
         marginBottom: 20,
         lineHeight: 22,
     },
@@ -224,12 +247,12 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 16,
         fontWeight: "600",
-        color: colors.textDark, // "#333"
+        color: colors.textDark,
         marginRight: 8,
     },
     value: {
         fontSize: 16,
-        color: colors.textMuted, // "#888"
+        color: colors.textMuted,
     },
     tagsContainer: {
         flexDirection: "row",
@@ -237,7 +260,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     tag: {
-        backgroundColor: colors.cream, // "#FFF8DC"
+        backgroundColor: colors.cream,
         borderRadius: 4,
         paddingHorizontal: 8,
         paddingVertical: 4,
@@ -246,30 +269,30 @@ const styles = StyleSheet.create({
     },
     tagText: {
         fontSize: 12,
-        color: colors.textDark, // "#333"
+        color: colors.textDark,
     },
     applyForm: {
         marginBottom: 20,
     },
     input: {
         height: 45,
-        borderColor: colors.gold, // "#FFD700"
+        borderColor: colors.gold,
         borderWidth: 1,
         borderRadius: 8,
         marginBottom: 12,
         paddingHorizontal: 12,
-        backgroundColor: colors.background, // "#FFFFFF"
-        color: colors.textDark, // "#333"
+        backgroundColor: colors.background,
+        color: colors.textDark,
     },
     applyButton: {
-        backgroundColor: colors.gold, // "#FFD700"
+        backgroundColor: colors.gold,
         paddingVertical: 14,
         borderRadius: 8,
         alignItems: "center",
         marginBottom: 20,
     },
     applyButtonText: {
-        color: colors.textDark, // "#333"
+        color: colors.textDark,
         fontSize: 16,
         fontWeight: "bold",
     },
@@ -278,7 +301,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     closeButtonText: {
-        color: colors.gold, // "#FFD700"
+        color: colors.gold,
         fontSize: 16,
     },
     profileModalContainer: {
@@ -288,6 +311,5 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
 });
-
 
 export default JobDetailView;

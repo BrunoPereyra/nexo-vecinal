@@ -120,26 +120,39 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       budget: budgetNumber,
     };
 
+    // Si se seleccionó una imagen, la convertimos a un objeto con las propiedades necesarias
     if (image) {
-      jobData.image = image;
+      const extension = image.split('.').pop() || "jpg";
+      jobData.image = {
+        uri: image,
+        name: `image.${extension}`,
+        type: "image/jpeg",
+      };
+    } else {
+      jobData.image = null;
     }
 
     try {
+      console.log(jobData);
+
       const response = await createJob(jobData, token as string);
+      console.log(response);
+
       if (response && response.message === "Job created successfully") {
         Alert.alert("Éxito", "Trabajo creado exitosamente.");
         if (onJobCreated) {
           onJobCreated(response.job);
         }
-        setTitle("");
-        setDescription("");
-        setLocation(null);
-        setSelectedTags([]);
-        setBudget("");
-        setImage(null);
-        onClose();
+        // Opcional: reiniciar estados y cerrar modal
+        // setTitle("");
+        // setDescription("");
+        // setLocation(null);
+        // setSelectedTags([]);
+        // setBudget("");
+        // setImage(null);
+        // onClose();
       } else {
-        Alert.alert("Error", response.message || "No se pudo crear el trabajo.");
+        Alert.alert("Error", response?.message || "No se pudo crear el trabajo.");
       }
     } catch (error) {
       console.error("Error al crear el trabajo:", error);

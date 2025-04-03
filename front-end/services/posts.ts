@@ -37,13 +37,31 @@ export interface Comment {
  */
 export const createPost = async (postData: any, token: string) => {
     try {
+        const formData = new FormData();
+
+        formData.append("title", postData.title);
+        formData.append("description", postData.description);
+        formData.append("tags", JSON.stringify(postData.tags));
+        if (postData.images && postData.images.length > 0) {
+            postData.images.forEach((uri: string, index: number) => {
+                const extension = uri.split('.').pop() || "jpg";
+                // Crear un objeto con las propiedades requeridas para la imagen
+                const imageFile = {
+                    uri,
+                    name: `image_${index}.${extension}`,
+                    type: "image/jpeg",
+                };
+                formData.append("images", imageFile as any);
+            });
+        }
+
+        // No seteamos "Content-Type" manualmente; fetch lo hará automáticamente.
         const res = await fetch(`${API}/post/create`, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
+                "Authorization": `Bearer ${token}`,
             },
-            body: JSON.stringify(postData)
+            body: formData,
         });
 
         return await res.json();
