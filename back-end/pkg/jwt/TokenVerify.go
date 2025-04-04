@@ -39,11 +39,8 @@ func ExtractDataFromToken(tokenString string) (string, string, bool, error) {
 	if !ok {
 		return "", "", false, fmt.Errorf("Invalid _id")
 	}
-	pinkkerPrime, ok := claims["partner"].(bool)
-	if !ok {
-		return "", "", false, fmt.Errorf("Invalid Partner")
-	}
-	return nameUser, _id, pinkkerPrime, nil
+
+	return nameUser, _id, false, nil
 }
 func ExtractDataFromTokenConfirmEmail(tokenString string) (string, error) {
 	token, err := parseToken(tokenString)

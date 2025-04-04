@@ -51,7 +51,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
             Alert.alert("Error", "El precio debe estar entre 100 y 10,000,000");
             return;
         }
-        const res = await applyToJob(job.id, proposal, numericPrice, token as string);
+        const res = await applyToJob(job?.id, proposal, numericPrice, token as string);
         if (res && res.message === 'Applied to job successfully') {
             Alert.alert("Postulación enviada", "Has postulado exitosamente a este trabajo.");
             onClose();
@@ -60,9 +60,13 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
         }
     };
 
+    console.log("Job ID:", job.id);
+    console.log("Job ID:", job.title);
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {/* Empleador: al tocar, abre modal del perfil */}
+
             {job.userDetails && (
                 <TouchableOpacity
                     style={styles.employerContainer}
@@ -86,9 +90,8 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                 <Text style={styles.title}>{job.title}</Text>
                 <Text style={styles.description}>{job.description}</Text>
                 {/* Mostrar imágenes en un ScrollView horizontal */}
-                {job.Images[0] && (
+                {Array.isArray(job.Images) && job.Images.length > 0 && (
                     <View style={styles.imageContainer}>
-
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
                             {job.Images.map((imageUrl, index) => (
                                 <TouchableOpacity
@@ -108,8 +111,8 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                             ))}
                         </ScrollView>
                     </View>
-
                 )}
+
                 <View style={styles.infoRow}>
                     <Text style={styles.label}>Presupuesto:</Text>
                     <Text style={styles.value}>${job.budget}</Text>

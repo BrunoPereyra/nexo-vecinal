@@ -51,6 +51,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                     style={styles.cardContainer}
                     onPress={onPress}
                     activeOpacity={0.7}
+
                 >
                     <Image
                         source={{

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -6,12 +6,16 @@ import {
     TouchableOpacity,
     Image,
     StyleSheet,
-    ActivityIndicator
-} from "react-native";
+    ActivityIndicator,
+    Alert,
+} from 'react-native';
 import { useRouter } from "expo-router";
-import { getRecommendedWorkers } from "@/services/JobsService";
-import { useAuth } from "@/context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@/context/AuthContext";
+
+// Importa las funciones de tus servicios
+import { getFilteredUsers, ReqLocationTags } from "@/services/userService";
+import { getRecommendedWorkers } from "@/services/JobsService";
 
 export interface RecommendedWorker {
     id: string;
@@ -22,46 +26,55 @@ export interface RecommendedWorker {
     };
 }
 
-
-const RecommendedWorkersRow = () => {
-    const { token } = useAuth();
+const RecommendedWorkersRow: React.FC = () => {
+    const { token, tags: availableTags } = useAuth();
     const router = useRouter();
     const [workers, setWorkers] = useState<RecommendedWorker[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [page] = useState<number>(1); // Usamos la primera página
 
     useEffect(() => {
-        const fetchRecommendedWorkers = async () => {
+        const fetchWorkers = async () => {
             if (!token) return;
             setLoading(true);
             try {
-                const cachedTags = await AsyncStorage.getItem("selectedTags");
+                // Obtener filtros guardados (tags, ubicación y radio)
+                const cachedTags = await AsyncStorage.getItem('selectedTags');
+                const cachedLocation = await AsyncStorage.getItem('location');
+                const cachedRadius = await AsyncStorage.getItem('radius');
                 const parsedTags = cachedTags ? JSON.parse(cachedTags) : [];
-                const data = await getRecommendedWorkers(page, token, parsedTags);
+                const parsedLocation = cachedLocation ? JSON.parse(cachedLocation) : null;
+                // Para este ejemplo usamos el valor del radio guardado como "ratio"
+                const ratio = cachedRadius ? Number(cachedRadius) : 5000;
 
-                if (data && data.workers) {
-                    setWorkers(data.workers);
+                const filterReq: ReqLocationTags = {
+                    location: parsedLocation,
+                    ratio: ratio,
+                    tags: parsedTags,
+                };
+
+                // Primero intentamos obtener usuarios filtrados
+                const filteredData = await getFilteredUsers(filterReq, token);
+                if (filteredData && filteredData.users && filteredData.users.length > 0) {
+                    setWorkers(filteredData.users);
                 } else {
-                    const defaultWorkers = Array.from({ length: 10 }, (_, i) => ({
-                        id: `default-${i + 1}`,
-                        userData: {
-                            id: `default-${i + 1}`,
-                            nameUser: `User ${i + 1}`,
-                            avatar: "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
-                        },
-                    }));
-                    const dt = { workers: defaultWorkers };
-                    setWorkers(dt.workers);
-
+                    // Si no hay usuarios filtrados, se solicita la recomendación
+                    const recommendedData = await getRecommendedWorkers(page, token, parsedTags);
+                    if (recommendedData && recommendedData.workers) {
+                        setWorkers(recommendedData.workers);
+                    } else {
+                        setWorkers([]);
+                    }
                 }
             } catch (error) {
                 console.error("Error fetching recommended workers:", error);
+                Alert.alert("Error", "No se pudieron obtener los trabajadores recomendados");
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchRecommendedWorkers();
+        fetchWorkers();
     }, [token, page]);
 
     if (loading) {
@@ -72,7 +85,6 @@ const RecommendedWorkersRow = () => {
         );
     }
 
-    // Si no se encontraron trabajadores, mostramos un mensaje
     if (!workers || workers.length === 0) {
         return (
             <View style={styles.emptyContainer}>
@@ -83,7 +95,11 @@ const RecommendedWorkersRow = () => {
 
     return (
         <View style={styles.container}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+            >
                 {workers.map((worker) => (
                     <TouchableOpacity
                         key={worker.id}
@@ -105,7 +121,6 @@ const RecommendedWorkersRow = () => {
                                 </Text>
                             </View>
                         )}
-                        {/* <Text style={styles.workerName}>{worker.userData.nameUser}</Text> */}
                     </TouchableOpacity>
                 ))}
             </ScrollView>
@@ -119,12 +134,6 @@ const styles = StyleSheet.create({
     container: {
         marginVertical: 12,
         paddingHorizontal: 16,
-    },
-    title: {
-        color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: "bold",
-        marginBottom: 6,
     },
     scrollContent: {
         paddingRight: 16,
@@ -147,13 +156,6 @@ const styles = StyleSheet.create({
         color: "#0f2027",
         fontSize: 16,
         fontWeight: "bold",
-    },
-    workerName: {
-        marginTop: 4,
-        color: "#FFFFFF",
-        fontSize: 10,
-        maxWidth: 70,
-        textAlign: "center",
     },
     loaderContainer: {
         paddingHorizontal: 16,

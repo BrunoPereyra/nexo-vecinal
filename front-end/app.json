@@ -37,7 +37,8 @@
         "INTERNET",
         "POST_NOTIFICATIONS",
         "com.google.android.gms.permission.AD_ID",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "com.android.vending.BILLING"
       ],
       "queries": [
         "instagram",

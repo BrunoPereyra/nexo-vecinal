@@ -81,7 +81,7 @@ func (j *JobRepository) ApplyToJob(jobID, applicantID primitive.ObjectID, propos
 		return err
 	}
 	if !canApply {
-		return errors.New("el usuario necesita Prime para aplicar a más de dos trabajos")
+		return errors.New("el usuario necesita Premium para aplicar a más de dos trabajos")
 	}
 
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")

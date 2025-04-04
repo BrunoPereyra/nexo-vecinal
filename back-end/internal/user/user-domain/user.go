@@ -55,7 +55,7 @@ type User struct {
 	Banned                bool                              `json:"Banned" bson:"Banned"`
 	TOTPSecret            string                            `json:"TOTPSecret" bson:"TOTPSecret"`
 	LastConnection        time.Time                         `json:"LastConnection" bson:"LastConnection"`
-	Prime                 Prime                             `json:"Prime" bson:"Prime"`
+	Premium               Premium                           `json:"Premium" bson:"Premium"`
 	PanelAdminNexoVecinal struct {
 		Level int       `json:"Level,omitempty" bson:"Level" default:"0"`
 		Asset bool      `json:"Asset,omitempty" bson:"Asset,omitempty" default:"false"`
@@ -71,7 +71,7 @@ type User struct {
 	Ratio           float64            `json:"Ratio" bson:"ratio"`
 }
 
-type Prime struct {
+type Premium struct {
 	MonthsSubscribed  int       `bson:"MonthsSubscribed"`
 	SubscriptionStart time.Time `bson:"SubscriptionStart"`
 	SubscriptionEnd   time.Time `bson:"SubscriptionEnd"`

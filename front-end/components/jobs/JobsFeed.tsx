@@ -200,7 +200,7 @@ const JobsFeed: React.FC = () => {
             <Animated.FlatList
                 ref={flatListRef}
                 data={jobs}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => item?.id.toString()}
                 renderItem={({ item }) => (
                     <JobCard job={item} onPress={() => setSelectedJob(item)} />
                 )}

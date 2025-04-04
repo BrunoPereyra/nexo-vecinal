@@ -1420,7 +1420,7 @@ func (ur *UserRepository) GetFilteredUsers(ReqLocationTags userdomain.ReqLocatio
 
 	// Filtro para Prime activo: se asume que la suscripción es activa si la fecha de finalización es mayor a ahora.
 	primeFilter := bson.M{
-		"Prime.SubscriptionEnd": bson.M{
+		"Premium.SubscriptionEnd": bson.M{
 			"$gt": time.Now(),
 		},
 	}

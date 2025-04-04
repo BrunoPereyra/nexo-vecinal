@@ -14,43 +14,27 @@ import MapView, { Marker, MapPressEvent, Circle } from "react-native-maps";
 import { MaterialIcons } from "@expo/vector-icons";
 import colors from "@/style/colors";
 import { useAuth } from "@/context/AuthContext";
+import { ReqLocationTags, saveLocationTags, subscribeUser } from "@/services/userService";
+// import { useInAppPurchase } from "@/hooks/useInAppPurchase";
 
-export interface FilterParams {
-    searchTitle: string;
-    selectedTags: string[];
-    location: { latitude: number; longitude: number } | null;
-    radius: number;
-}
 
 interface SubscriptionSectionProps {
     jobsCompleted: number;
     averageRating: number;
     isSubscribed: boolean;
-    onSave: (filters: FilterParams) => void;
-    onSubscribe: (filters: FilterParams) => void;
 }
 
 const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
-    jobsCompleted,
-    averageRating,
     isSubscribed,
-    onSave,
-    onSubscribe,
 }) => {
-    const { tags: availableTags } = useAuth();
+    const { token, tags: availableTags } = useAuth();
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
     const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
     const [radius, setRadius] = useState<number>(5000);
     const [modalVisible, setModalVisible] = useState(false);
     const [subscribing, setSubscribing] = useState(false);
-
-    // Opcional: Si recibís valores iniciales para modificar, los podés asignar en useEffect
-    useEffect(() => {
-        // Por ejemplo, si el usuario ya está suscrito, podrías inicializar los filtros con sus valores actuales.
-        // setSelectedTags(...);
-        // setLocation(...);
-        // setRadius(...);
-    }, []);
+    const [subscriptionConfirmVisible, setSubscriptionConfirmVisible] = useState(false);
+    // const { buySubscription } = useInAppPurchase(token);
 
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {
@@ -77,20 +61,23 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
             Alert.alert("Error", "Debes seleccionar tu zona de disponibilidad en el mapa.");
             return;
         }
-        const filters: FilterParams = {
-            searchTitle: "", // Se puede agregar si es necesario\n  
-            selectedTags, location, radius,
+        const filters: ReqLocationTags = {
+            location: {
+                type: "Point",
+                coordinates: [location.longitude, location.latitude],
+            },
+            ratio: radius,
+            tags: selectedTags,
         };
         setSubscribing(true);
         try {
-            // Simulamos retardo de API
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            if (isSubscribed) {
-                onSave(filters);
+            const res = await saveLocationTags(filters, token as string);
+            if (res.message === "save location") {
                 Alert.alert("Éxito", "Preferencias actualizadas correctamente.");
+                // Luego de guardar, mostrar modal para confirmar la suscripción.
+                setSubscriptionConfirmVisible(true);
             } else {
-                onSubscribe(filters);
-                Alert.alert("Suscripción exitosa", "Ya estás suscrito y serás recomendado según tus especializaciones.");
+                Alert.alert("Error", res.message || "No se pudo actualizar las preferencias.");
             }
             setModalVisible(false);
         } catch (error: any) {
@@ -99,6 +86,11 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
             setSubscribing(false);
         }
     };
+    const handleConfirmSubscription = async () => {
+        console.log("a");
+        // buySubscription();
+    };
+
 
     return (
         <View style={styles.subscriptionContainer}>
@@ -181,6 +173,36 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
                                     <ActivityIndicator color={colors.textLight} />
                                 ) : (
                                     <Text style={styles.modalButtonText}>{isSubscribed ? "Guardar" : "Suscribirse"}</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            <Modal visible={subscriptionConfirmVisible} animationType="slide" transparent>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Beneficios de la Suscripción</Text>
+                        <Text style={styles.modalInfo}>
+                            ¿Deseas recibir los beneficios de la suscripción (recomendaciones y ventajas exclusivas) a través de Google Play?
+                        </Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => setSubscriptionConfirmVisible(false)}
+                                disabled={subscribing}
+                            >
+                                <Text style={styles.modalButtonText}>No, gracias</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.submitButton]}
+                                onPress={handleConfirmSubscription}
+                                disabled={subscribing}
+                            >
+                                {subscribing ? (
+                                    <ActivityIndicator color={colors.textLight} />
+                                ) : (
+                                    <Text style={styles.modalButtonText}>Sí, suscribirme</Text>
                                 )}
                             </TouchableOpacity>
                         </View>
