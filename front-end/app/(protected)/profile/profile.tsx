@@ -26,6 +26,7 @@ import { JobCardProfiles } from "@/components/jobCards/JobCardProfiles";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from 'expo-clipboard';
 import colors from "@/style/colors";
+import SubscriptionSection from "@/components/Subscription/SubscriptionSection";
 
 
 export default function ProfileScreen() {
@@ -51,7 +52,12 @@ export default function ProfileScreen() {
 
     // ---------------------- Chat de Soporte ----------------------
     const [supportChatVisible, setSupportChatVisible] = useState<boolean>(false);
-    // -------------------------------------------------------------
+    // Estado para mostrar el modal del SubscriptionSection
+    const [subscriptionVisible, setSubscriptionVisible] = useState(false);
+    const handleSubscribe = () => {
+        setSubscriptionVisible(!subscriptionVisible);
+        setShowDropdown(false); // Oculta el menú si está abierto
+    };
 
     useEffect(() => {
 
@@ -133,10 +139,6 @@ export default function ProfileScreen() {
         setEditBioVisible(false);
     };
 
-    const handleSubscribe = () => {
-        Alert.alert("Subscribirse", "Función no implementada.");
-        setShowDropdown(false);
-    };
 
     const handleLogoutOption = () => {
         setShowDropdown(false);
@@ -294,7 +296,7 @@ export default function ProfileScreen() {
                 style={styles.optionsButton}
                 onPress={() => setShowDropdown(!showDropdown)}
             >
-                <MaterialIcons name="more-vert" size={24} color="#E0E0E0" />
+                <MaterialIcons name="more-vert" size={24} color="#33333" />
             </TouchableOpacity>
             {showDropdown && (
                 <View style={styles.dropdown}>
@@ -409,6 +411,25 @@ export default function ProfileScreen() {
                     userProfile={userProfile}
                 />
             )}
+            {/* Sección de suscripción */}
+            <Modal
+                visible={subscriptionVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setSubscriptionVisible(false)} // Cierra el modal al presionar atrás
+            >
+                <Button
+                    title="Cerrar"
+                    onPress={() => setSubscriptionVisible(false)}
+                    color={colors.gold}
+                />
+                <View style={styles.modalOverlaySubscription}>
+                    <View style={styles.modalContentSubscription}>
+                        <SubscriptionSection averageRating={4} jobsCompleted={24} />
+
+                    </View>
+                </View>
+            </Modal>
 
             {/* FAB para crear trabajo */}
             <TouchableOpacity
@@ -612,6 +633,19 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+    modalOverlaySubscription: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.6)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContentSubscription: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        margin: 20
+    },
+
     modalContentmail: {
         width: "80%",
         backgroundColor: colors.cream,
