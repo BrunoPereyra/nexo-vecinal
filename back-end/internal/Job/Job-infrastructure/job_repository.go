@@ -186,7 +186,6 @@ func (j *JobRepository) AssignJob(jobID, applicantID primitive.ObjectID) error {
 	}
 
 	// Enviar notificación push al trabajador asignado
-	fmt.Println(job.Title)
 	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
 		return fmt.Errorf("error sending push notification: %v", err)
 	}

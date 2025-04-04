@@ -160,3 +160,9 @@ func (u *UserService) EditAvatar(avatarUrl string, IdUserTokenP primitive.Object
 	err := u.roomRepository.EditAvatar(avatarUrl, IdUserTokenP)
 	return err
 }
+func (u *UserService) SaveLocationTags(id primitive.ObjectID, location userdomain.ReqLocationTags) error {
+	return u.roomRepository.SaveLocationTags(id, location)
+}
+func (u *UserService) GetFilteredUsers(location userdomain.ReqLocationTags) ([]userdomain.User, error) {
+	return u.roomRepository.GetFilteredUsers(location)
+}

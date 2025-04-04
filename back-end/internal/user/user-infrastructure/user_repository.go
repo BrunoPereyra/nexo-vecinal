@@ -1363,3 +1363,91 @@ func (u *UserRepository) GetSupportAgent(ctx context.Context, userID primitive.O
 
 	return &selected, nil
 }
+func (u *UserRepository) SaveLocationTags(userID primitive.ObjectID, location userdomain.ReqLocationTags) error {
+	ctx := context.Background()
+	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	filter := bson.M{"_id": userID}
+	update := bson.M{
+		"$set": bson.M{
+			"location": location.Location,
+			"ratio":    location.Ratio,
+			"tags":     location.Tags,
+		},
+	}
+
+	_, err := usersCollection.UpdateOne(ctx, filter, update)
+	return err
+}
+
+// GetFilteredUsers retorna los usuarios que cumplan con los filtros:
+// - Ubicación cerca del punto dado (dentro de maxDistance en metros)
+// - Ratio mayor o igual a minRatio
+// - Que tengan al menos uno de los tags en requiredTags
+// - Que tengan la suscripción Prime activa (SubscriptionEnd > ahora)
+// Se proyectan únicamente: _id, NameUser y Avatar.
+func (ur *UserRepository) GetFilteredUsers(ReqLocationTags userdomain.ReqLocationTags) ([]userdomain.User, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	usersCollection := ur.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Construir el filtro para la ubicación usando el operador $near
+	locationFilter := bson.M{
+		"location": bson.M{
+			"$near": bson.M{
+				"$geometry": bson.M{
+					"type":        ReqLocationTags.Location.Type,
+					"coordinates": ReqLocationTags.Location.Coordinates,
+				},
+				"$maxDistance": ReqLocationTags.Ratio,
+			},
+		},
+	}
+
+	// Filtro para el ratio
+	ratioFilter := bson.M{
+		"Ratio": bson.M{
+			"$gte": ReqLocationTags.Ratio,
+		},
+	}
+
+	// Filtro para tags: que al menos uno de los tags requeridos esté en el array
+	tagsFilter := bson.M{
+		"tags": bson.M{
+			"$in": ReqLocationTags.Tags,
+		},
+	}
+
+	// Filtro para Prime activo: se asume que la suscripción es activa si la fecha de finalización es mayor a ahora.
+	primeFilter := bson.M{
+		"Prime.SubscriptionEnd": bson.M{
+			"$gt": time.Now(),
+		},
+	}
+
+	// Combinar los filtros
+	filter := bson.M{
+		"$and": []bson.M{locationFilter, ratioFilter, tagsFilter, primeFilter},
+	}
+
+	// Proyección: solo _id, NameUser y Avatar
+	projection := bson.M{
+		"_id":      1,
+		"NameUser": 1,
+		"Avatar":   1,
+	}
+	opts := options.Find().SetProjection(projection)
+
+	cursor, err := usersCollection.Find(ctx, filter, opts)
+
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []userdomain.User
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}

@@ -63,10 +63,12 @@ type User struct {
 		Date  time.Time `json:"date,omitempty" bson:"Date,omitempty"`
 	} `json:"PanelAdminNexoVecinal,omitempty" bson:"PanelAdminNexoVecinal"`
 	CompletedJobs   int                `json:"completedJobs" bson:"completedJobs"`
-	Location        GeoPoint           `json:"location" bson:"location"`
 	Soporte         string             `json:"Soporte" bson:"Soporte"`
 	SoporteAssigned primitive.ObjectID `bson:"soporteassigned"`
 	PushToken       string             `json:"pushToken" bson:"pushToken"`
+	Tags            []string           `json:"tags" bson:"tags"`
+	Location        GeoPoint           `json:"location" bson:"location"`
+	Ratio           float64            `json:"Ratio" bson:"ratio"`
 }
 
 type Prime struct {
@@ -358,5 +360,16 @@ type EditBiography struct {
 func (u *UserModelValidator) Validate() error {
 	validate := validator.New()
 
+	return validate.Struct(u)
+}
+
+type ReqLocationTags struct {
+	Location GeoPoint `json:"location" bson:"location" validate:"required"`
+	Ratio    int64    `json:"ratio" bson:"ratio" validate:"required"`
+	Tags     []string `json:"tags" bson:"tags"`
+}
+
+func (u *ReqLocationTags) Validate() error {
+	validate := validator.New()
 	return validate.Struct(u)
 }

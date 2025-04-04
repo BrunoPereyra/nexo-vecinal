@@ -612,3 +612,53 @@ func (h *UserHandler) EditAvatar(c *fiber.Ctx) error {
 	}
 
 }
+func (h *UserHandler) SaveLocationTags(c *fiber.Ctx) error {
+	var req userdomain.ReqLocationTags
+	if err := c.BodyParser(&req); err != nil {
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Solicitud inválida"})
+	}
+	if err := req.Validate(); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Bad Request",
+			"error":   err.Error(),
+		})
+	}
+	id := c.Context().UserValue("_id").(string)
+	IdUserTokenP, errinObjectID := primitive.ObjectIDFromHex(id)
+	if errinObjectID != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+		})
+	}
+	err := h.userService.SaveLocationTags(IdUserTokenP, req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error al obtener trabajos", "error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "save location",
+	})
+}
+func (h *UserHandler) GetFilteredUsers(c *fiber.Ctx) error {
+	var req userdomain.ReqLocationTags
+	if err := c.BodyParser(&req); err != nil {
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Solicitud inválida"})
+	}
+	if err := req.Validate(); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Bad Request",
+			"error":   err.Error(),
+		})
+	}
+	users, err := h.userService.GetFilteredUsers(req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error al obtener trabajos", "error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "save location",
+		"users":   users,
+	})
+}
