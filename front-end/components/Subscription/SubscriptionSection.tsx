@@ -15,7 +15,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import colors from "@/style/colors";
 import { useAuth } from "@/context/AuthContext";
 import { ReqLocationTags, saveLocationTags, subscribeUser } from "@/services/userService";
-// import { useInAppPurchase } from "@/hooks/useInAppPurchase";
+import { useRevenueCat } from "@/hooks/useInAppPurchase";
 
 
 interface SubscriptionSectionProps {

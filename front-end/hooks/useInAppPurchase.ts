@@ -1,84 +1,77 @@
-import React, { useEffect } from 'react';
-import {
-    initConnection,
-    endConnection,
-    getProducts,
-    requestPurchase,
-    purchaseUpdatedListener,
-    purchaseErrorListener,
-    finishTransaction,
-    ProductPurchase,
-    PurchaseError,
-    ErrorCode,
-} from 'react-native-iap';
+import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
-import { sendPurchaseToBackend } from '@/services/userService';
+import Purchases, {
+    CustomerInfo,
+    PurchasesOffering,
+    PurchasesPackage,
+} from 'react-native-purchases';
 
-const ITEM_SKUS = ['tu_sku_de_suscripcion']; // Reemplaza con el ID exacto de tu suscripción en Play Console
+const REVENUECAT_PUBLIC_API_KEY = 'TU_PUBLIC_API_KEY'; // Sacalo de RevenueCat dashboard
 
-export const useInAppPurchase = (token: string | null) => {
+export const useRevenueCat = (userId: string | null) => {
+    const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
+    const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+    const [isPro, setIsPro] = useState(false);
+
     useEffect(() => {
-        if (!token) return;
+        if (!userId) return;
 
-        const initializeIAP = async () => {
+        const setupRevenueCat = async () => {
             try {
-                const result = await initConnection();
-                console.log('Conexión inicializada:', result);
+                Purchases.configure({ apiKey: REVENUECAT_PUBLIC_API_KEY, appUserID: userId });
 
-                const products = await getProducts({ skus: ITEM_SKUS });
-                console.log('Productos cargados:', products);
-            } catch (err) {
-                console.error('Error al inicializar IAP:', err);
-                if (err instanceof Error && err.message === ErrorCode.E_IAP_NOT_AVAILABLE) {
-                    Alert.alert('Error', 'Las compras dentro de la aplicación no están disponibles en este dispositivo.');
+                const offeringsResponse = await Purchases.getOfferings();
+                if (offeringsResponse.current) {
+                    setOfferings(offeringsResponse.current);
                 }
+
+                const info = await Purchases.getCustomerInfo();
+                setCustomerInfo(info);
+                setIsPro(!!info.entitlements.active.pro);
+            } catch (error) {
+                console.error('Error al configurar RevenueCat:', error);
+                Alert.alert('Error', 'No se pudo cargar la información de suscripción.');
             }
         };
 
-        initializeIAP();
+        setupRevenueCat();
+    }, [userId]);
 
-        const purchaseUpdateSubscription = purchaseUpdatedListener(
-            async (purchase: ProductPurchase) => {
-                console.log('Compra actualizada:', purchase);
-                const receipt = purchase.transactionReceipt;
-                if (receipt) {
-                    const res = await sendPurchaseToBackend(purchase, token);
-                    if (res.success) {
-                        Alert.alert('¡Gracias!', 'Suscripción confirmada.');
-                    } else {
-                        Alert.alert('Error', 'No se pudo validar la compra.');
-                    }
-                    await finishTransaction({ purchase });
-                }
-            }
-        );
+    const buySubscription = async (selectedPackage?: PurchasesPackage) => {
+        if (!selectedPackage && offerings?.availablePackages.length) {
+            selectedPackage = offerings.availablePackages[0]; // El primer paquete disponible
+        }
 
-        const purchaseErrorSubscription = purchaseErrorListener(
-            (error: PurchaseError) => {
-                console.warn('Error en la compra:', error);
-                if (error.code === ErrorCode.E_IAP_NOT_AVAILABLE) {
-                    Alert.alert('Error', 'Las compras dentro de la aplicación no están disponibles en este dispositivo.');
-                } else {
-                    Alert.alert('Error', 'Hubo un problema con la compra.');
-                }
-            }
-        );
+        if (!selectedPackage) {
+            Alert.alert('Error', 'No hay paquetes disponibles para comprar.');
+            return;
+        }
 
-        return () => {
-            purchaseUpdateSubscription.remove();
-            purchaseErrorSubscription.remove();
-            endConnection();
-        };
-    }, [token]);
-
-    const buySubscription = async () => {
         try {
-            await requestPurchase({ sku: ITEM_SKUS[0] });
-        } catch (err) {
-            console.error('Error al iniciar la compra:', err);
-            Alert.alert('Error', 'No se pudo iniciar la compra.');
+            const { customerInfo } = await Purchases.purchasePackage(selectedPackage);
+
+            const isActive = !!customerInfo.entitlements.active.pro;
+            setIsPro(isActive);
+            setCustomerInfo(customerInfo);
+
+            if (isActive) {
+                Alert.alert('¡Gracias!', 'Tu suscripción ha sido activada.');
+                // Puedes enviar al backend: sendPurchaseToBackend(customerInfo, userId);
+            } else {
+                Alert.alert('Error', 'La suscripción no está activa.');
+            }
+        } catch (error: any) {
+            if (!error.userCancelled) {
+                console.error('Error en la compra:', error);
+                Alert.alert('Error', 'No se pudo completar la compra.');
+            }
         }
     };
 
-    return { buySubscription };
+    return {
+        offerings,
+        customerInfo,
+        isPro,
+        buySubscription,
+    };
 };
