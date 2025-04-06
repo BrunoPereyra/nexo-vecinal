@@ -20,7 +20,7 @@
     "android": {
       "package": "com.nexovecinal.app",
       "googleServicesFile": "./google-services.json",
-      "versionCode": 8,
+      "versionCode": 40,
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDyIhcU5eOsGZh1XQTQZXMhQJNYGWfeh6U"
