@@ -72,6 +72,8 @@ export default function ProfileScreen() {
                 if (data?.data) {
                     setUserProfile(data.data);
                     setBiografia(data.data.Biography || "");
+                } else {
+                    router.push('/login');
                 }
             } catch (err: any) {
                 setError("Error al obtener la información del usuario");
@@ -425,7 +427,7 @@ export default function ProfileScreen() {
                 />
                 <View style={styles.modalOverlaySubscription}>
                     <View style={styles.modalContentSubscription}>
-                        <SubscriptionSection averageRating={4} jobsCompleted={24} />
+                        <SubscriptionSection isSubscribed={false} averageRating={4} jobsCompleted={24} />
 
                     </View>
                 </View>

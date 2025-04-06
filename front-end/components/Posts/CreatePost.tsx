@@ -120,7 +120,14 @@ const CreatePost: React.FC<CreatePostProps> = ({ visible, onClose, onPostCreated
                         </ScrollView>
                     </ScrollView>
                     <View style={styles.modalButtons}>
-                        <TouchableOpacity style={styles.modalButton} onPress={onClose}>
+                        <TouchableOpacity style={styles.modalButton}
+                            onPress={() => {
+                                onClose()
+                                setTitle("");
+                                setDescription("");
+                                setImages([])
+                            }}
+                        >
                             <Text style={styles.modalButtonText}>Cancelar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.modalButton} onPress={handleCreatePost}>

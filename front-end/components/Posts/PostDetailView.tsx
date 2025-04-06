@@ -36,14 +36,15 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
     const [showImageModal, setShowImageModal] = useState(false);
 
     useEffect(() => {
-        console.log(post);
-
         const fetchComments = async () => {
             if (!token) return;
             try {
                 const data = await getCommentsForPost(post.id, token);
-                if (data) {
+                if (data?.comments) {
                     setComments(data?.comments);
+                } else {
+                    setComments([]);
+
                 }
             } catch (error) {
                 console.error('Error fetching comments', error);
@@ -76,6 +77,8 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
         if (!token || !commentText.trim()) return;
         try {
             const res = await addComment(post.id, { text: commentText.trim() }, token);
+            console.log(res);
+
             if (res && res.message === 'Comment added') {
                 setComments([res.comment, ...comments]);
                 post.commentCount += 1;
@@ -179,7 +182,7 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
             <View style={styles.commentsContainer}>
                 <View style={styles.commentsHeader}>
                     <Text style={styles.commentsTitle}>
-                        Comentarios ({post.commentCount})
+                        Comentarios {post.commentCount}
                     </Text>
                     <TouchableOpacity
                         onPress={() => setCommentsVisible(!commentsVisible)}

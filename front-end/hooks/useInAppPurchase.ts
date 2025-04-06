@@ -6,7 +6,7 @@ import Purchases, {
     PurchasesPackage,
 } from 'react-native-purchases';
 
-const REVENUECAT_PUBLIC_API_KEY = 'TU_PUBLIC_API_KEY'; // Sacalo de RevenueCat dashboard
+const REVENUECAT_PUBLIC_API_KEY = 'goog_oIZTsprdqkzekMuxDuIgcXGHqczgoog_oIZTsprdqkzekMuxDuIgcXGHqcz';
 
 export const useRevenueCat = (userId: string | null) => {
     const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
@@ -27,7 +27,7 @@ export const useRevenueCat = (userId: string | null) => {
 
                 const info = await Purchases.getCustomerInfo();
                 setCustomerInfo(info);
-                setIsPro(!!info.entitlements.active.pro);
+                setIsPro(!!info.entitlements.active.suscripcion_premium);
             } catch (error) {
                 console.error('Error al configurar RevenueCat:', error);
                 Alert.alert('Error', 'No se pudo cargar la información de suscripción.');
@@ -50,7 +50,8 @@ export const useRevenueCat = (userId: string | null) => {
         try {
             const { customerInfo } = await Purchases.purchasePackage(selectedPackage);
 
-            const isActive = !!customerInfo.entitlements.active.pro;
+            const isActive = !!customerInfo.entitlements.active.suscripcion_premium;
+
             setIsPro(isActive);
             setCustomerInfo(customerInfo);
 

@@ -34,7 +34,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
     const [modalVisible, setModalVisible] = useState(false);
     const [subscribing, setSubscribing] = useState(false);
     const [subscriptionConfirmVisible, setSubscriptionConfirmVisible] = useState(false);
-    // const { buySubscription } = useInAppPurchase(token);
+    const { buySubscription } = useRevenueCat(token);
 
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {
@@ -88,7 +88,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
     };
     const handleConfirmSubscription = async () => {
         console.log("a");
-        // buySubscription();
+        buySubscription();
     };
 
 
