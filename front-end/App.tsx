@@ -87,7 +87,7 @@ async function registerForNotificationsAsync() {
 
         // (Opcional) Obtener token para notificaciones push
         // Esto te servirá luego si quieres usar el servicio de push de Expo
-        const tokenData = await Notifications.getExpoPushTokenAsync();
+        // const tokenData = await Notifications.getDevicePushTokenAsync();
 
         // Configuración específica para Android
         if (Platform.OS === 'android') {

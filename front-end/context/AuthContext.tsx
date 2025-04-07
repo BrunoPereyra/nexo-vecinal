@@ -55,9 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
 
-        const tokenData = await Notifications.getExpoPushTokenAsync({
-            projectId: Constants.expoConfig?.extra?.eas?.projectId
-        });
+        const tokenData = await Notifications.getDevicePushTokenAsync();
 
         setPushToken(tokenData.data);
         if (Platform.OS === 'android') {

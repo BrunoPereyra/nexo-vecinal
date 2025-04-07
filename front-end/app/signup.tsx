@@ -126,11 +126,8 @@ export default function SignupScreen() {
         resConfirm.avatar,
         resConfirm.nameUser
       );
-      if (!pushToken) {
-        setErrorMessage('No se pudo obtener el token de notificaciones.');
-        return;
-      }
-      await savePushToken(resConfirm.token, pushToken);
+
+      await savePushToken(resConfirm.token, pushToken ? pushToken : "");
       router.push('/(protected)/home');
     } catch (error) {
       console.error(error);

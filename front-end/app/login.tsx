@@ -18,13 +18,8 @@ export default function LoginScreen() {
       setErrorMessage(''); // Limpiar el mensaje de error antes de intentar iniciar sesión
 
       const data = await loginNameUser(nameUser, password);
-      if (!pushToken) {
-        setErrorMessage('No se pudo obtener el token de notificaciones.');
-        return;
-      }
-
       await login(data.token, data._id, data.avatar, data.nameUser);
-      await savePushToken(data.token, pushToken);
+      await savePushToken(data.token, pushToken ? pushToken : "");
       router.replace("/profile/Profile");
     } catch (error) {
       setErrorMessage('Error al iniciar sesión. Verifica tus credenciales.');

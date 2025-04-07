@@ -13,6 +13,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getCourseById } from '@/services/cursos';
 import colors from '@/style/colors';
+import * as WebBrowser from 'expo-web-browser';
 
 interface Course {
     id: string;
@@ -29,13 +30,19 @@ interface Course {
 
 const SocialLinks = ({ socials }: { socials: Course['socials'] }) => {
     const handlePress = async (url: string) => {
-        const supported = await Linking.canOpenURL(url);
-        if (supported) {
-            await Linking.openURL(url);
-        } else {
+        try {
+            const supported = await Linking.canOpenURL(url);
+            if (supported) {
+                await Linking.openURL(url);
+            } else {
+                await WebBrowser.openBrowserAsync(url);
+            }
+        } catch (e) {
             Alert.alert("Error", "No se pudo abrir el enlace.");
         }
     };
+
+    console.log("Socials:", socials);
 
     return (
         <View style={styles.socialContainer}>

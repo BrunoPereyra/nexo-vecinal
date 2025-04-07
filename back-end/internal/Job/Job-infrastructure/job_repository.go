@@ -1342,7 +1342,6 @@ func (j *JobRepository) notifyWorker(workerID primitive.ObjectID, jobTitle strin
 		"body":  fmt.Sprintf("Has sido asignado al trabajo '%s'", jobTitle),
 		"data":  map[string]string{"jobTitle": jobTitle},
 	}
-	fmt.Println(payload)
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err

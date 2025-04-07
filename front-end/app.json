@@ -6,14 +6,29 @@
     "orientation": "portrait",
     "icon": "./assets/images/adaptive-icon.png",
     "scheme": "myapp",
+    "intentFilters": [
+      {
+        "action": "VIEW",
+        "data": [
+          {
+            "scheme": "https",
+            "host": "*.instagram.com"
+          }
+        ],
+        "category": [
+          "BROWSABLE",
+          "DEFAULT"
+        ]
+      }
+    ],
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "notification": {
-      "icon": "./assets/images/adaptive-icon.png",
-      "color": "#000000",
+      "icon": "./assets/adaptive-icon.png",
+      "color": "#FFF8DC",
       "iosDisplayInForeground": true
     },
     "privacyPolicy": "https://nexo-vecinal.blogspot.com/2025/03/terminos-y-condiciones-y-politica-de.html",
@@ -22,9 +37,17 @@
       "googleServicesFile": "./google-services.json",
       "versionCode": 40,
       "config": {
+        "googleSignIn": {
+          "apiKey": "AIzaSyA3Crq8j2d4M_n-VNwSOW2kV0bwWiQZpRg"
+        },
         "googleMaps": {
           "apiKey": "AIzaSyDyIhcU5eOsGZh1XQTQZXMhQJNYGWfeh6U"
         }
+      },
+      "notification": {
+        "icon": "./assets/adaptive-icon.png",
+        "color": "#FFF8DC",
+        "iosDisplayInForeground": true
       },
       "permissions": [
         "CAMERA",
