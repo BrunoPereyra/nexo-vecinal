@@ -27,7 +27,7 @@
       "supportsTablet": true
     },
     "notification": {
-      "icon": "./assets/adaptive-icon.png",
+      "icon": "./assets/images/adaptive-icon.png",
       "color": "#FFF8DC",
       "iosDisplayInForeground": true
     },
@@ -45,7 +45,7 @@
         }
       },
       "notification": {
-        "icon": "./assets/adaptive-icon.png",
+        "icon": "./assets/images/adaptive-icon.png",
         "color": "#FFF8DC",
         "iosDisplayInForeground": true
       },
