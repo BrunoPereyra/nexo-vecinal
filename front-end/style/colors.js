@@ -1,7 +1,8 @@
 const colors = {
-    background: "#FFFFFF",
-    warmWhite: "#FAF9F6",
+    background: "#d2d4bc",
+    warmWhite: "#d2d4bc",
     borderLight: "#EAE6DA",
+    Black: "#000000",
     gold: "#FFD700",
     cream: "#FFF8DC",
     textDark: "#333",

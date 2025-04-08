@@ -66,7 +66,7 @@ const Home: React.FC = () => {
             )
           )}
         </View>
-        <Image source={require('@/assets/images/adaptive-icon.png')} style={styles.logo} />
+        <Image source={require('@/assets/images/logo-nexovecinal-transparente.png')} style={styles.logo} />
         <View style={{ width: 40, height: 40 }}>
 
         </View>
@@ -110,8 +110,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: colors.background,
-    borderBottomWidth: 1,
-    borderColor: colors.borderLight,
   },
   avatarContainer: {
     width: 40,
@@ -127,7 +125,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
     borderRadius: 20,
-    backgroundColor: colors.borderLight,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -136,16 +133,17 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   logo: {
-    width: 120,
-    height: 40,
-    resizeMode: "contain",
+    width: 50,
+    height: 50,
+    resizeMode: "cover",
+    borderRadius: 30,
+    overflow: "hidden",
   },
   tabsContainer: {
     flexDirection: "row",
     position: "relative",
-    backgroundColor: colors.cream,
     borderBottomWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: colors.textGrey,
   },
   tabButton: {
     flex: 1,

@@ -171,7 +171,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-              <Text style={styles.modalTitle}>Crear nuevo trabajo</Text>
+              {/* <Text style={styles.modalTitle}>Crear nuevo trabajo</Text> */}
               <TextInput
                 placeholder="Título"
                 value={title}

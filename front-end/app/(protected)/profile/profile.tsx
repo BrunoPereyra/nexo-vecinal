@@ -503,11 +503,11 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
     activeToggle: {
-        backgroundColor: colors.gold,
-        borderColor: colors.gold,
+        backgroundColor: "",
+        borderColor: colors.Black,
     },
     activeToggleText: {
-        color: colors.background, // Blanco para contraste sobre primary
+        color: colors.textDark, // Blanco para contraste sobre primary
         fontWeight: "bold",
     },
     emptyContainer: {

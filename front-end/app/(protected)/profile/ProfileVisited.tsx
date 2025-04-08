@@ -406,18 +406,19 @@ const styles = StyleSheet.create({
         flexShrink: 1,
     },
     activeToggle: {
-        backgroundColor: colors.gold,
-        borderColor: colors.gold,
+        backgroundColor: "",
+        borderColor: colors.Black,
+    },
+    activeToggleText: {
+        color: colors.textDark, // Blanco para contraste sobre primary
+        fontWeight: "bold",
     },
     toggleButtonText: {
         fontSize: 16,
         color: colors.textDark, // "#333"
         textAlign: "center",
     },
-    activeToggleText: {
-        color: colors.background, // "#FFFFFF"
-        fontWeight: "bold",
-    },
+
     reportButton: {
         position: "absolute",
         top: 16,

@@ -170,12 +170,12 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                         <Ionicons
                             name={post.userLiked ? "heart" : "heart-outline"}
                             size={20}
-                            color={colors.gold}
+                            color={colors.textDark}
                         />
                         <Text style={styles.actionText}>{post.likeCount}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.actionButton}>
-                        <Ionicons name="share-social-outline" size={20} color={colors.gold} />
+                        <Ionicons name="share-social-outline" size={20} color={colors.textDark} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     actionText: {
         marginLeft: 4,
         fontSize: 14,
-        color: colors.gold,
+        color: colors.darkBackground,
     },
     commentsContainer: {
         marginTop: 20,

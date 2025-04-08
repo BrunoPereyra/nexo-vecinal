@@ -4,7 +4,7 @@
         "slug": "front-end",
         "version": "1.3.0",
         "orientation": "portrait",
-        "icon": "./assets/images/adaptive-icon.png",
+        "icon": "./assets/images/logo-nexovecinal.png",
         "scheme": "myapp",
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
@@ -20,24 +20,24 @@
                 "ACCESS_COARSE_LOCATION"
             ],
             "adaptiveIcon": {
-                "foregroundImage": "./assets/images/adaptive-icon.png",
-                "backgroundColor": "#d6d9d3"
+                "foregroundImage": "./assets/images/logo-nexovecinal-transparente.png",
+                "backgroundColor": "#EAE6DA"
             }
         },
         "web": {
             "bundler": "metro",
             "output": "static",
-            "favicon": "./assets/images/favicon.png"
+            "favicon": "./assets/images/logo-nexovecinal.png"
         },
         "plugins": [
             "expo-router",
             [
                 "expo-splash-screen",
                 {
-                    "image": "./assets/images/splash-icon.png",
+                    "image": "./assets/images/logo-nexovecinal-transparente.png",
                     "imageWidth": 200,
                     "resizeMode": "contain",
-                    "backgroundColor": "#d6d9d3"
+                    "backgroundColor": "#EAE6DA"
                 }
             ],
             [

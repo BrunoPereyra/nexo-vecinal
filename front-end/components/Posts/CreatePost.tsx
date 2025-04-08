@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
         padding: 12,
         alignItems: "center",
     },
-    modalButtonText: { fontSize: 16, fontWeight: "bold", color: colors.gold },
+    modalButtonText: { fontSize: 16, fontWeight: "bold", color: colors.textGrey },
 });
 
 export default CreatePost;

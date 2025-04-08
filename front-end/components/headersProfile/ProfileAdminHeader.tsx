@@ -198,7 +198,6 @@ const styles = StyleSheet.create({
     },
     username: {
         fontSize: 16,
-        color: colors.gold, // "#FFD700"
         fontStyle: "italic",
         marginBottom: 8,
         textAlign: "center",

@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     },
     budgetText: {
         fontSize: 14,
-        color: colors.gold,
+        color: colors.textGrey,
         fontWeight: "bold",
     },
 

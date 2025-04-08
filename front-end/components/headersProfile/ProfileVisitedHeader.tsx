@@ -106,7 +106,6 @@ const styles = StyleSheet.create({
     },
     username: {
         fontSize: 16,
-        color: colors.gold, // "#FFD700"
         marginBottom: 8,
     },
     biography: {

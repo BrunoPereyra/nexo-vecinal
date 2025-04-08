@@ -182,7 +182,7 @@ const JobsFeed: React.FC = () => {
                 <View style={styles.filterContainer}>
                     <JobSearchFilters onSearch={handleSearch} />
                 </View>
-                <View style={styles.recommendedHeader}>
+                {/* <View style={styles.recommendedHeader}>
                     <Text style={styles.recommendedHeaderText}>Trabajadores recomendados</Text>
                     <TouchableOpacity
                         onPress={() => setShowRecommended(!showRecommended)}
@@ -195,7 +195,7 @@ const JobsFeed: React.FC = () => {
                         />
                     </TouchableOpacity>
                 </View>
-                {showRecommended && <RecommendedWorkersRow />}
+                {showRecommended && <RecommendedWorkersRow />} */}
             </Animated.View>
             <Animated.FlatList
                 ref={flatListRef}
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
         padding: 6,
     },
     listContainer: {
-        top: "10%",
+        top: "2%",
         padding: 16,
         paddingBottom: 16,
     },

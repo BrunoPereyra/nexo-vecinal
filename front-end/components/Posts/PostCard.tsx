@@ -131,17 +131,17 @@ const PostCard: React.FC<PostCardProps> = ({
                                 <Ionicons
                                     name={post.userLiked ? "heart" : "heart-outline"}
                                     size={20}
-                                    color={colors.gold}
+                                    color={colors.textDark}
                                 />
                                 <Text style={styles.actionText}>{post.likeCount}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.actionButton} onPress={handleComment}>
-                                <Ionicons name="chatbubble-outline" size={20} color={colors.gold} />
+                                <Ionicons name="chatbubble-outline" size={20} color={colors.textDark} />
                                 <Text style={styles.actionText}>{post.commentCount}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-                                <Ionicons name="share-social-outline" size={20} color={colors.gold} />
+                                <Ionicons name="share-social-outline" size={20} color={colors.textDark} />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     actionText: {
         marginLeft: 4,
         fontSize: 12,
-        color: colors.gold,
+        color: colors.textDark,
     },
     modalOverlay: {
         flex: 1,

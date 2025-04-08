@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 45,
-        borderColor: colors.gold,
+        borderColor: colors.borderLight,
         borderWidth: 1,
         borderRadius: 8,
         marginBottom: 12,
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     closeButtonText: {
-        color: colors.gold,
+        color: colors.textDark,
         fontSize: 16,
     },
     profileModalContainer: {

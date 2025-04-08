@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     filterIconButton: {
         marginLeft: 8,
         padding: 8,
-        backgroundColor: colors.background, // "#FFFFFF"
+        backgroundColor: colors.Black, // "#FFFFFF"
         borderRadius: 8,
         borderWidth: 1,
         borderColor: colors.borderLight, // "#EAE6DA"
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     modalButtonText: {
         fontSize: 16,
         fontWeight: "bold",
-        color: colors.gold, // "#FFD700"
+        color: colors.cream, // "#FFD700"
     },
 });
 export default JobSearchFilters;
