@@ -53,7 +53,7 @@ export default function JobDetailVisited() {
     if (loading) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#ffffff" />
+                <ActivityIndicator size="large" color={colors.background} />
             </View>
         );
     }

@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 import { EditAvatar } from "@/services/userService";
 import { MaterialIcons } from "@expo/vector-icons";
 import colors from "@/style/colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type ProfileAdminHeaderProps = {
     user: {
@@ -96,6 +97,7 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
             );
             const response = await EditAvatar(cropped.uri, token as string);
             if (response && response.avatar) {
+                await AsyncStorage.setItem('avatar', response.avatar);
                 setAvatar(response.avatar);
             } else {
                 Alert.alert("Error", "No se pudo actualizar el avatar");

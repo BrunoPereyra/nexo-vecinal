@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 // Importa las funciones de tus servicios
 import { getFilteredUsers, ReqLocationTags } from "@/services/userService";
 import { getRecommendedWorkers } from "@/services/JobsService";
+import colors from '@/style/colors';
 
 export interface RecommendedWorker {
     id: string;
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     emptyText: {
-        color: "#FFFFFF",
+        color: colors.background,
         fontSize: 14,
         fontStyle: "italic",
     },
