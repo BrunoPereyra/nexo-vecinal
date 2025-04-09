@@ -60,8 +60,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
         }
     };
 
-    console.log("Job ID:", job.id);
-    console.log("Job ID:", job.title);
+
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -128,37 +127,38 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                         </View>
                     ))}
                 </View>
+                {showInputs && (
+                    <View style={styles.applyForm}>
+                        <TextInput
+                            placeholder="Ingresa tu propuesta (10-100 caracteres)"
+                            placeholderTextColor="#888"
+                            style={styles.input}
+                            value={proposal}
+                            onChangeText={setProposal}
+                        />
+                        <TextInput
+                            placeholder="Ingresa el precio (100 - 10,000,000)"
+                            placeholderTextColor="#888"
+                            style={styles.input}
+                            value={price}
+                            onChangeText={setPrice}
+                            keyboardType="numeric"
+                        />
+                    </View>
+                )}
+
+                <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
+                    <Text style={styles.applyButtonText}>
+                        {showInputs ? "Enviar Propuesta" : "Postularme al Trabajo"}
+                    </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                    <Text style={styles.closeButtonText}>Cerrar</Text>
+                </TouchableOpacity>
+
             </View>
 
-            {showInputs && (
-                <View style={styles.applyForm}>
-                    <TextInput
-                        placeholder="Ingresa tu propuesta (10-100 caracteres)"
-                        placeholderTextColor="#888"
-                        style={styles.input}
-                        value={proposal}
-                        onChangeText={setProposal}
-                    />
-                    <TextInput
-                        placeholder="Ingresa el precio (100 - 10,000,000)"
-                        placeholderTextColor="#888"
-                        style={styles.input}
-                        value={price}
-                        onChangeText={setPrice}
-                        keyboardType="numeric"
-                    />
-                </View>
-            )}
-
-            <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-                <Text style={styles.applyButtonText}>
-                    {showInputs ? "Enviar Propuesta" : "Postularme al Trabajo"}
-                </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>Cerrar</Text>
-            </TouchableOpacity>
 
             {/* Modal para mostrar el perfil del empleador */}
             <Modal
@@ -191,7 +191,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
 const styles = StyleSheet.create({
     container: {
         padding: 12,
-        backgroundColor: colors.background,
+        backgroundColor: colors.warmWhite,
         flexGrow: 1,
     },
     employerContainer: {
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     card: {
-        backgroundColor: colors.warmWhite,
+        backgroundColor: colors.cream,
         borderRadius: 10,
         padding: 16,
         marginBottom: 20,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 12,
         paddingHorizontal: 12,
-        backgroundColor: colors.background,
+        backgroundColor: colors.cream,
         color: colors.textDark,
     },
     applyButton: {

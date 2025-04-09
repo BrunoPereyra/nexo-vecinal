@@ -3,7 +3,7 @@ const colors = {
     warmWhite: "#d2d4bc",
     borderLight: "#EAE6DA",
     Black: "#000000",
-    gold: "#FFD700",
+    gold: "#f7e579",
     cream: "#FFF8DC",
     textDark: "#333",
     textMuted: "#888",

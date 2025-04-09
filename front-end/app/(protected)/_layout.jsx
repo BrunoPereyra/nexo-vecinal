@@ -20,7 +20,7 @@ export default function ProtectedLayout() {
               headerShown: false,
               tabBarShowLabel: false,
               tabBarStyle: styles.tabBarStyle,
-              tabBarActiveTintColor: '#FFCC00',
+              tabBarActiveTintColor: colors.cream,
               tabBarInactiveTintColor: '#757575',
             }}
           >
@@ -29,7 +29,7 @@ export default function ProtectedLayout() {
               options={{
                 title: 'Home',
                 tabBarIcon: ({ color, size, focused }) => (
-                  <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                  <View style={[styles.iconWrapper, focused && styles.iconWrapper]}>
                     <Ionicons name="home-outline" size={focused ? size + 6 : size} color={color} />
                   </View>
                 ),
@@ -48,7 +48,7 @@ export default function ProtectedLayout() {
               options={{
                 title: 'Agenda',
                 tabBarIcon: ({ color, size, focused }) => (
-                  <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                  <View style={[styles.iconWrapper, focused && styles.iconWrapper]}>
                     <Ionicons name="people-outline" size={focused ? size + 6 : size} color={color} />
                   </View>
                 ),
@@ -67,7 +67,7 @@ export default function ProtectedLayout() {
               options={{
                 title: 'Jobs Status',
                 tabBarIcon: ({ color, size, focused }) => (
-                  <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                  <View style={[styles.iconWrapper, focused && styles.iconWrapper]}>
                     <Ionicons name="briefcase-outline" size={focused ? size + 6 : size} color={color} />
                   </View>
                 ),
@@ -86,7 +86,7 @@ export default function ProtectedLayout() {
               options={{
                 title: 'Cursos',
                 tabBarIcon: ({ color, size, focused }) => (
-                  <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                  <View style={[styles.iconWrapper, focused && styles.iconWrapper]}>
                     <Ionicons name="book-outline" size={focused ? size + 6 : size} color={color} />
                   </View>
                 ),
@@ -105,7 +105,7 @@ export default function ProtectedLayout() {
               options={{
                 title: 'Perfil',
                 tabBarIcon: ({ color, size, focused }) => (
-                  <View style={[styles.iconWrapper, focused && styles.iconWrapperActive]}>
+                  <View style={[styles.iconWrapper, focused && styles.iconWrapper]}>
                     <Ionicons name="person-outline" size={focused ? size + 6 : size} color={color} />
                   </View>
                 ),
@@ -148,16 +148,16 @@ export default function ProtectedLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: colors.background,
   },
   absoluteWrapper: {
     flex: 1,
     zIndex: 9999,
   },
   tabBarStyle: {
-    backgroundColor: colors.cream,
     borderTopWidth: 0,
     shadowColor: '#000',
+    backgroundColor: colors.background,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
     shadowRadius: 6,

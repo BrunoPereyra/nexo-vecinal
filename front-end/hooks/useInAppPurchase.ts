@@ -18,13 +18,19 @@ export const useRevenueCat = (userId: string | null) => {
 
         const setupRevenueCat = async () => {
             try {
+                // Configuramos RevenueCat con la API key y el appUserID
                 Purchases.configure({ apiKey: REVENUECAT_PUBLIC_API_KEY, appUserID: userId });
 
+                // Obtenemos los offerings y accedemos al offering con ID "Of_nexovecinal_premium"
                 const offeringsResponse = await Purchases.getOfferings();
-                if (offeringsResponse.current) {
-                    setOfferings(offeringsResponse.current);
+                const myOffering = offeringsResponse.all['Of_nexovecinal_premium'];
+                if (myOffering) {
+                    setOfferings(myOffering);
+                } else {
+                    console.warn('No se encontró el offering con ID "Of_nexovecinal_premium"');
                 }
 
+                // Obtenemos la información del cliente
                 const info = await Purchases.getCustomerInfo();
                 setCustomerInfo(info);
                 setIsPro(!!info.entitlements.active.suscripcion_premium);
@@ -38,8 +44,9 @@ export const useRevenueCat = (userId: string | null) => {
     }, [userId]);
 
     const buySubscription = async (selectedPackage?: PurchasesPackage) => {
+        // Si no se pasó un paquete, usamos el primer paquete disponible del offering obtenido
         if (!selectedPackage && offerings?.availablePackages.length) {
-            selectedPackage = offerings.availablePackages[0]; // El primer paquete disponible
+            selectedPackage = offerings.availablePackages[0];
         }
 
         if (!selectedPackage) {
@@ -57,7 +64,9 @@ export const useRevenueCat = (userId: string | null) => {
 
             if (isActive) {
                 Alert.alert('¡Gracias!', 'Tu suscripción ha sido activada.');
-                // Puedes enviar al backend: sendPurchaseToBackend(customerInfo, userId);
+                Alert.alert('Detalles de la compra', `ID de usuario: ${userId}`);
+                Alert.alert('Detalles de la compra', `ID de suscripción: ${customerInfo.entitlements.active.suscripcion_premium}`);
+                // Puedes enviar la información al backend: sendPurchaseToBackend(customerInfo, userId);
             } else {
                 Alert.alert('Error', 'La suscripción no está activa.');
             }

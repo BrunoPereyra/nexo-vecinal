@@ -247,33 +247,23 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 6,
-        backgroundColor: colors.warmWhite, // "#FAF9F6"
         borderRadius: 10,
         marginHorizontal: 5,
-        elevation: 3,
-        shadowColor: "#000",
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 2 },
-        borderWidth: 1,
-        borderColor: colors.borderLight, // "#EAE6DA"
     },
     searchRow: {
         flexDirection: "row",
         alignItems: "center",
     },
     input: {
-        borderWidth: 1,
-        borderColor: colors.borderLight, // "#EAE6DA"
         borderRadius: 8,
         padding: 10,
-        backgroundColor: colors.background, // "#FFFFFF"
+        backgroundColor: colors.cream, // "#FFFFFF"
         color: colors.textDark, // "#333"
     },
     filterIconButton: {
         marginLeft: 8,
         padding: 8,
-        backgroundColor: colors.Black, // "#FFFFFF"
+        backgroundColor: colors.cream, // "#FFFFFF"
         borderRadius: 8,
         borderWidth: 1,
         borderColor: colors.borderLight, // "#EAE6DA"
@@ -380,7 +370,7 @@ const styles = StyleSheet.create({
     modalButtonText: {
         fontSize: 16,
         fontWeight: "bold",
-        color: colors.cream, // "#FFD700"
+        color: colors.textDark, // "#FFD700"
     },
 });
 export default JobSearchFilters;

@@ -7,7 +7,9 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert
+  Alert,
+  Dimensions,
+  Image
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -32,7 +34,6 @@ export default function EmployerJobDetail() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const [actionLoading, setActionLoading] = useState<boolean>(false);
-  const [isMapReady, setIsMapReady] = useState(false);
 
   // Estados para feedback y rating (empleador)
   const [feedback, setFeedback] = useState<string>('');
@@ -131,7 +132,6 @@ export default function EmployerJobDetail() {
     );
   }
 
-  const applicants = jobDetail.applicants || [];
   const assignedCandidate = jobDetail.assignedCandidate || null;
 
   return (
@@ -141,6 +141,24 @@ export default function EmployerJobDetail() {
         <View style={styles.jobCard}>
           <Text style={styles.jobTitle}>{jobDetail.title}</Text>
           <Text style={styles.jobDescription}>{jobDetail.description}</Text>
+          {Array.isArray(jobDetail.Images) && jobDetail.Images.length > 0 && (
+            <View style={styles.imageContainer}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
+                {jobDetail.Images.map((imageUrl: string, index: number) => (
+                  <TouchableOpacity
+                    key={index}
+                    activeOpacity={0.8}
+                  >
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.postImage}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
           <View style={styles.detailRow}>
             <Text style={styles.detailLabel}>Precio:</Text>
             <Text style={styles.detailValue}>
@@ -235,7 +253,7 @@ export default function EmployerJobDetail() {
   );
 }
 
-
+const screenWidth = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -348,5 +366,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
+  },
+  imageContainer: {
+    position: "relative",
+    alignItems: "center",
+  },
+  postImage: {
+    width: screenWidth * 0.9,
+    height: 200,
+    borderRadius: 8,
+    marginBottom: 10,
+    resizeMode: "cover",
   },
 });

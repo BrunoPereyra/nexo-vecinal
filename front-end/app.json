@@ -85,9 +85,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/logo-nexovecinal-transparente.png",
-          "backgroundColor": "#EAE6DA",
+          "backgroundColor": "#d2d4bc",
           "imageWidth": 200,
-          "resizeMode": "contain"
+          "resizeMode": "cover"
         }
       ],
       [

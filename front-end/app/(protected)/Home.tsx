@@ -88,7 +88,6 @@ const Home: React.FC = () => {
             Publicaciones
           </Text>
         </TouchableOpacity>
-        {/* Indicador animado */}
         <Animated.View style={[styles.indicator, { left: indicatorLeft }]} />
       </View>
       <View style={styles.feedContainer}>
@@ -142,8 +141,6 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
     position: "relative",
-    borderBottomWidth: 1,
-    borderColor: colors.textGrey,
   },
   tabButton: {
     flex: 1,
@@ -162,7 +159,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: "40%", // Cada pestaña ocupa 50% del ancho
     height: 2,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.cream,
   },
   feedContainer: {
     flex: 1,

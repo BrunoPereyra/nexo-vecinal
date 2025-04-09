@@ -188,7 +188,7 @@ export default function Agenda() {
                 keyExtractor={(item) => item.id}
                 renderItem={renderItem}
                 onEndReached={handleLoadMore}
-                onEndReachedThreshold={0.5} // Ajusta el umbral de scroll
+                onEndReachedThreshold={0.5}
                 ListFooterComponent={renderFooter}
                 ListEmptyComponent={
                     <Text style={styles.subText}>No tienes chats activos.</Text>
@@ -228,12 +228,8 @@ const styles = StyleSheet.create({
     chatContainer: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: colors.cream, // "#FFF8DC" (Sección secundaria)
         marginBottom: 12,
         padding: 10,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: colors.borderLight, // "#EAE6DA"
     },
     avatar: {
         width: 50,

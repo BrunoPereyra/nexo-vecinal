@@ -487,7 +487,6 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 14,
         borderRadius: 30,
-        backgroundColor: colors.cream, // "#FFF8DC"
         borderWidth: 1,
         borderColor: colors.borderLight, // "#EAE6DA"
         marginHorizontal: 4,

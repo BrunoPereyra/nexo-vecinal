@@ -201,7 +201,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
             <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
                 <View style={styles.fullScreenContainer}>
                     <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                        <Ionicons name="close-circle-outline" size={32} color="#03DAC5" />
+                        <Ionicons name="close-circle-outline" size={32} color={colors.Black} />
                     </TouchableOpacity>
                     <FlatList
                         data={data}
@@ -247,6 +247,7 @@ const styles = StyleSheet.create({
         right: 20,
         zIndex: 10,
         padding: 10,
+        backgroundColor: colors.warmWhite, // "#FAF9F6" 
     },
     closeButtonText: {
         fontSize: 24,

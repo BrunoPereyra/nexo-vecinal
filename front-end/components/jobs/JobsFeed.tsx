@@ -5,12 +5,12 @@ import {
     FlatList,
     StyleSheet,
     Modal,
-    TouchableOpacity,
     Text,
     NativeSyntheticEvent,
     NativeScrollEvent,
     Easing,
-    ActivityIndicator, // Importar el ActivityIndicator
+    ActivityIndicator,
+    TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getJobsByFilters, Job } from "@/services/JobsService";
@@ -238,9 +238,7 @@ const styles = StyleSheet.create({
     },
     filterContainer: {
         paddingVertical: 12,
-        paddingHorizontal: 16,
-        borderBottomWidth: 1,
-        borderColor: colors.borderLight,
+        paddingHorizontal: 6,
     },
     recommendedHeader: {
         flexDirection: "row",
@@ -262,8 +260,8 @@ const styles = StyleSheet.create({
         padding: 6,
     },
     listContainer: {
-        top: "2%",
-        padding: 16,
+        top: "1%",
+        padding: 13,
         paddingBottom: 16,
     },
     footer: {
