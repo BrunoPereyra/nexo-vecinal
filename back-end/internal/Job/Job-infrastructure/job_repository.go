@@ -339,88 +339,9 @@ func (j *JobRepository) ProvideEmployerFeedback(jobID, employerID primitive.Obje
 	}
 
 	// Actualizar los usuarios recomendados usando la información obtenida
-	err = j.UpdateRecommendedUsers(job.AssignedApplication.ApplicantID, job.Categories)
+	err = j.UpdateRecommendedWorkers(job.AssignedApplication.ApplicantID, job.Categories)
 
 	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// UpdateRecommendedUsers adds a worker to the recommended users collection
-func (j *JobRepository) UpdateRecommendedUsers(workerId primitive.ObjectID, categories []string) error {
-	oneMonthAgo := time.Now().AddDate(0, -1, 0)
-
-	// Obtener jobs completados en el último mes para el trabajador
-	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-	filter := bson.M{
-		"assignedApplication.applicantId": workerId,
-		"status":                          jobdomain.JobStatusCompleted,
-		"updatedAt":                       bson.M{"$gte": oneMonthAgo},
-	}
-
-	cursor, err := jobColl.Find(context.Background(), filter, options.Find().
-		SetSort(bson.D{{Key: "createdAt", Value: -1}}).
-		SetLimit(6))
-	if err != nil {
-		return err
-	}
-	defer cursor.Close(context.Background())
-
-	var totalRatings int
-	var totalJobs int
-	var oldestFeedbackTime time.Time // Para almacenar el feedback más antiguo
-	// Mapa para asegurarnos de contar feedback de cada empleador solo una vez
-	// employersCounted := make(map[primitive.ObjectID]bool)
-
-	for cursor.Next(context.Background()) {
-		// Incluimos el campo userId para identificar al empleador
-		var job struct {
-			EmployerFeedback jobdomain.Feedback `bson:"employerFeedback"`
-			UserID           primitive.ObjectID `bson:"userId"`
-		}
-		if err := cursor.Decode(&job); err != nil {
-			continue
-		}
-		// Si ya se contó feedback de este empleador, lo ignoramos
-		// if employersCounted[job.UserID] {
-		// 	continue
-		// }
-		// // Se cuenta el feedback de este empleador
-		// employersCounted[job.UserID] = true
-
-		totalRatings += job.EmployerFeedback.Rating
-		totalJobs++
-		if oldestFeedbackTime.IsZero() || job.EmployerFeedback.CreatedAt.Before(oldestFeedbackTime) {
-			oldestFeedbackTime = job.EmployerFeedback.CreatedAt
-		}
-	}
-
-	// Se requiere mínimo 4 empleadores distintos
-	if totalJobs < 4 {
-		return nil
-	}
-	averageRating := float64(totalRatings) / float64(totalJobs)
-	if averageRating < 3.7 {
-		return nil
-	}
-	// Actualizar la colección RecommendedUsers
-	recommendedUsersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedUsers")
-	update := bson.M{
-		"$set": bson.M{
-			"averageRating":  averageRating,
-			"totalJobs":      totalJobs,
-			"updatedAt":      time.Now(),
-			"oldestFeedback": oldestFeedbackTime,
-		},
-		"$addToSet": bson.M{
-			"tags": bson.M{"$each": categories},
-		},
-	}
-	opts := options.Update().SetUpsert(true)
-	_, err = recommendedUsersColl.UpdateOne(context.Background(), bson.M{"workerId": workerId}, update, opts)
-	if err != nil {
-
 		return err
 	}
 	return nil
@@ -1482,62 +1403,91 @@ func (j *JobRepository) GetJobDetailChat(jobID primitive.ObjectID) (*jobdomain.J
 	return result, nil
 }
 
-func (r *JobRepository) GetRecommendedUsers(categories []string, page, limit int) ([]jobdomain.User, error) {
-	recommendedColl := r.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedUsers")
+// UpdateRecommendedUsers adds a worker to the recommended users collection
+func (j *JobRepository) UpdateRecommendedWorkers(workerId primitive.ObjectID, categories []string) error {
+	now := time.Now()
+	oneMonthAgo := now.AddDate(0, -1, 0)
 
-	var pipeline mongo.Pipeline
-	oneMonthAgo := time.Now().AddDate(0, -1, 0)
-
-	// Construir condiciones de $match: siempre filtrar por oldestFeedback y, opcionalmente, por categorías.
-	matchConditions := bson.M{
-		"oldestFeedback": bson.M{"$gte": oneMonthAgo},
+	// Verificar si el usuario es premium
+	usersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	var user struct {
+		Premium *userdomain.Premium `bson:"premium"`
 	}
-	if len(categories) > 0 {
-		matchConditions["tags"] = bson.M{"$in": categories}
-	}
-
-	pipeline = append(pipeline, bson.D{
-		{Key: "$match", Value: matchConditions},
-	})
-
-	// Agregar paginación.
-	skip := (page - 1) * limit
-	pipeline = append(pipeline,
-		bson.D{{Key: "$skip", Value: skip}},
-		bson.D{{Key: "$limit", Value: limit}},
-	)
-
-	// Realizar un $lookup para unir con la colección "Users"
-	pipeline = append(pipeline, bson.D{
-		{Key: "$lookup", Value: bson.M{
-			"from":         "Users",
-			"localField":   "workerId",
-			"foreignField": "_id",
-			"as":           "userInfo",
-		}},
-	})
-
-	// Deshacer el arreglo resultante
-	pipeline = append(pipeline, bson.D{{Key: "$unwind", Value: "$userInfo"}})
-
-	// Proyectar solo los campos requeridos.
-	pipeline = append(pipeline, bson.D{
-		{Key: "$project", Value: bson.M{
-			"_id":      "$userInfo._id",
-			"NameUser": "$userInfo.NameUser",
-			"Avatar":   "$userInfo.Avatar",
-		}},
-	})
-
-	ctx := context.Background()
-	cursor, err := recommendedColl.Aggregate(ctx, pipeline)
+	err := usersColl.FindOne(context.Background(), bson.M{"_id": workerId}).Decode(&user)
 	if err != nil {
-		return nil, fmt.Errorf("error executing aggregation: %v", err)
+		return err
 	}
 
-	var users []jobdomain.User
-	if err = cursor.All(ctx, &users); err != nil {
-		return nil, fmt.Errorf("error decoding recommended users: %v", err)
+	isPremium := user.Premium != nil && user.Premium.SubscriptionEnd.After(now)
+
+	var averageRating float64
+	var totalJobs int
+	var oldestFeedbackTime time.Time
+
+	if !isPremium {
+		// Obtener jobs completados en el último mes
+		jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+		filter := bson.M{
+			"assignedApplication.applicantId": workerId,
+			"status":                          jobdomain.JobStatusCompleted,
+			"updatedAt":                       bson.M{"$gte": oneMonthAgo},
+		}
+
+		cursor, err := jobColl.Find(context.Background(), filter, options.Find().
+			SetSort(bson.D{{Key: "createdAt", Value: -1}}).
+			SetLimit(6))
+		if err != nil {
+			return err
+		}
+		defer cursor.Close(context.Background())
+
+		for cursor.Next(context.Background()) {
+			var job struct {
+				EmployerFeedback jobdomain.Feedback `bson:"employerFeedback"`
+			}
+			if err := cursor.Decode(&job); err != nil {
+				continue
+			}
+			totalJobs++
+			averageRating += float64(job.EmployerFeedback.Rating)
+			if oldestFeedbackTime.IsZero() || job.EmployerFeedback.CreatedAt.Before(oldestFeedbackTime) {
+				oldestFeedbackTime = job.EmployerFeedback.CreatedAt
+			}
+		}
+
+		if totalJobs < 4 {
+			return nil
+		}
+		averageRating = averageRating / float64(totalJobs)
+
+		if averageRating < 3.7 {
+			return nil
+		}
 	}
-	return users, nil
+
+	// Guardar en colección RecommendedWorkers
+	recommendedWorkersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedWorkers")
+	update := bson.M{
+		"$set": bson.M{
+			"averageRating":  averageRating,
+			"totalJobs":      totalJobs,
+			"updatedAt":      now,
+			"oldestFeedback": oldestFeedbackTime,
+		},
+		"$addToSet": bson.M{
+			"tags": bson.M{"$each": categories},
+		},
+	}
+
+	if isPremium {
+		update["$set"].(bson.M)["premium"] = user.Premium
+	}
+
+	opts := options.Update().SetUpsert(true)
+	_, err = recommendedWorkersColl.UpdateOne(context.Background(), bson.M{"workerId": workerId}, update, opts)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -104,6 +104,73 @@ func (u *UserRepository) SavePushToken(userID primitive.ObjectID, pushToken stri
 	_, err := usersCollection.UpdateOne(ctx, filter, update)
 	return err
 }
+func (u *UserRepository) UserPremiumExtend(userID primitive.ObjectID) error {
+	ctx := context.Background()
+	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	filter := bson.M{"_id": userID}
+	update := mongo.Pipeline{
+		{{
+			Key: "$set",
+			Value: bson.M{
+				"Premium.SubscriptionEnd": bson.M{
+					"$dateAdd": bson.M{
+						"startDate": "$Premium.SubscriptionEnd",
+						"unit":      "month",
+						"amount":    1,
+					},
+				},
+				"Premium.MonthsSubscribed": bson.M{
+					"$add": []interface{}{"$Premium.MonthsSubscribed", 1},
+				},
+				"Premium.SubscriptionStart": bson.M{
+					"$cond": bson.M{
+						"if":   bson.M{"$eq": []interface{}{"$Premium.SubscriptionStart", nil}},
+						"then": time.Now(),
+						"else": "$Premium.SubscriptionStart",
+					},
+				},
+			},
+		}},
+	}
+
+	_, err := usersCollection.UpdateOne(ctx, filter, update)
+
+	return err
+}
+func (r *UserRepository) UpdateRecommendedWorkerPremium(workerID primitive.ObjectID) error {
+	ctx := context.Background()
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedWorkers")
+	filter := bson.M{"workerId": workerID}
+	update := mongo.Pipeline{
+		{{
+			Key: "$set",
+			Value: bson.M{
+				"Premium.SubscriptionEnd": bson.M{
+					"$dateAdd": bson.M{
+						"startDate": "$Premium.SubscriptionEnd",
+						"unit":      "month",
+						"amount":    1,
+					},
+				},
+				"Premium.MonthsSubscribed": bson.M{
+					"$add": []interface{}{"$Premium.MonthsSubscribed", 1},
+				},
+				"Premium.SubscriptionStart": bson.M{
+					"$cond": bson.M{
+						"if":   bson.M{"$eq": []interface{}{"$Premium.SubscriptionStart", nil}},
+						"then": time.Now(),
+						"else": "$Premium.SubscriptionStart",
+					},
+				},
+			},
+		}},
+	}
+
+	_, err := collection.UpdateOne(ctx, filter, update)
+	return err
+}
+
 func (u *UserRepository) GetTOTPSecret(ctx context.Context, userID primitive.ObjectID) (string, error) {
 	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	filter := bson.M{"_id": userID}
@@ -362,10 +429,10 @@ func (u *UserRepository) CreateAdmin(CreateAdmin domain.CreateAdmin, id primitiv
 
 	update := bson.M{
 		"$set": bson.M{
-			"PanelAdminPinkker.Level": CreateAdmin.Level,
-			"PanelAdminPinkker.Asset": true,
-			"PanelAdminPinkker.Code":  CreateAdmin.NewCode,
-			"PanelAdminPinkker.Date":  time.Now(),
+			"PanelAdminNexoVecinal.Level": CreateAdmin.Level,
+			"PanelAdminNexoVecinal.Asset": true,
+			"PanelAdminNexoVecinal.Code":  CreateAdmin.NewCode,
+			"PanelAdminNexoVecinal.Date":  time.Now(),
 		},
 	}
 

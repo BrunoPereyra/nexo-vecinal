@@ -35,6 +35,13 @@ func (u *UserService) GenerateTOTPKey(ctx context.Context, userID primitive.Obje
 func (u *UserService) SavePushToken(id primitive.ObjectID, PushToken string) error {
 	return u.roomRepository.SavePushToken(id, PushToken)
 }
+func (u *UserService) UserPremiumAmonth(id primitive.ObjectID) error {
+	return u.roomRepository.UserPremiumExtend(id)
+}
+func (u *UserService) UpdateRecommendedWorkerPremium(id primitive.ObjectID) error {
+	return u.roomRepository.UpdateRecommendedWorkerPremium(id)
+}
+
 func (u *UserService) ValidateTOTPCode(ctx context.Context, userID primitive.ObjectID, code string) (bool, error) {
 	return u.roomRepository.ValidateTOTPCode(ctx, userID, code)
 }

@@ -12,7 +12,7 @@ import (
 
 func GenerateKey(accountName, nameUser string) (string, string, error) {
 	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      "Pinkker",
+		Issuer:      "Nexovecinal",
 		AccountName: nameUser,
 	})
 	if err != nil {
@@ -20,10 +20,10 @@ func GenerateKey(accountName, nameUser string) (string, string, error) {
 	}
 
 	otpURL := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s&algorithm=SHA1&digits=6&period=30",
-		url.QueryEscape("Pinkker"),
+		url.QueryEscape("Nexovecinal"),
 		url.QueryEscape(nameUser),
 		url.QueryEscape(key.Secret()),
-		url.QueryEscape("Pinkker"))
+		url.QueryEscape("Nexovecinal"))
 
 	return key.Secret(), otpURL, nil
 }

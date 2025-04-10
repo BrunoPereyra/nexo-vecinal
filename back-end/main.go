@@ -3,6 +3,7 @@ package main
 import (
 	"back-end/config"
 	jobroutes "back-end/internal/Job/Job-routes"
+	"back-end/internal/Recommended-workers/recommendedworkersroutes"
 	"back-end/internal/admin/adminroutes"
 	"back-end/internal/chat/chatroutes"
 	"back-end/internal/cursos/cursosroutes"
@@ -57,7 +58,7 @@ func main() {
 	cursosroutes.CursoRoutes(app, redisClient, newMongoDB)
 	supportroutes.SupportRoutes(app, redisClient, newMongoDB)
 	postroutes.PostRoutes(app, redisClient, newMongoDB)
-
+	recommendedworkersroutes.RecommendedWorkersRoutes(app, redisClient, newMongoDB)
 	PORT := config.PORT()
 	if PORT == "" {
 		PORT = "8081"

@@ -124,12 +124,6 @@ func SubsPayPerPrint() string {
 	}
 	return os.Getenv("SubsPayPerPrint")
 }
-func PinkkerPrimeCost() string {
-	if err := godotenv.Load(); err != nil {
-		log.Fatal("godotenv.Load error")
-	}
-	return os.Getenv("PinkkerPrimeCost")
-}
 func CostToCreateCommunity() string {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("godotenv.Load error")
