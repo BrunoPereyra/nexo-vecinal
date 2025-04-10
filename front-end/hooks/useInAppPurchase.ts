@@ -1,3 +1,4 @@
+import { sendPurchaseToBackend } from '@/services/userService';
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import Purchases, {
@@ -8,7 +9,7 @@ import Purchases, {
 
 const REVENUECAT_PUBLIC_API_KEY = 'goog_oIZTsprdqkzekMuxDuIgcXGHqczgoog_oIZTsprdqkzekMuxDuIgcXGHqcz';
 
-export const useRevenueCat = (userId: string | null) => {
+export const useRevenueCat = (userId: string | null, token: string) => {
     const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
     const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
     const [isPro, setIsPro] = useState(false);
@@ -50,6 +51,9 @@ export const useRevenueCat = (userId: string | null) => {
         }
 
         if (!selectedPackage) {
+            const res = await sendPurchaseToBackend("", token);
+            console.log(res);
+
             Alert.alert('Error', 'No hay paquetes disponibles para comprar.');
             return;
         }
@@ -66,7 +70,7 @@ export const useRevenueCat = (userId: string | null) => {
                 Alert.alert('¡Gracias!', 'Tu suscripción ha sido activada.');
                 Alert.alert('Detalles de la compra', `ID de usuario: ${userId}`);
                 Alert.alert('Detalles de la compra', `ID de suscripción: ${customerInfo.entitlements.active.suscripcion_premium}`);
-                // Puedes enviar la información al backend: sendPurchaseToBackend(customerInfo, userId);
+                await sendPurchaseToBackend("", token);
             } else {
                 Alert.alert('Error', 'La suscripción no está activa.');
             }

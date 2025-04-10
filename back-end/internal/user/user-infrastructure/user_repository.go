@@ -264,9 +264,6 @@ func (u *UserRepository) ChangeNameUserCodeAdmin(changeNameUser domain.ChangeNam
 		return err
 	}
 
-	if err != nil {
-		return err
-	}
 	err = u.updateUserInformationInAllRooms(ctx, db, changeNameUser)
 	if err != nil {
 		return err

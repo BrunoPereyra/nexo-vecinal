@@ -169,8 +169,8 @@ export const subscribeUser = async (token: string) => {
 };
 export const sendPurchaseToBackend = async (purchase: any, token: string) => {
     try {
-        const res = await fetch(`${API}/user/validate-purchase`, {
-            method: "POST",
+        const res = await fetch(`${API}/user/premium`, {
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`,

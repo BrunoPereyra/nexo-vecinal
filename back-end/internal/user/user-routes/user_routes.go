@@ -31,6 +31,7 @@ func UserRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Cli
 	App.Post("/user/LoginTOTPSecret", UserHandler.LoginTOTPSecret)
 	App.Post("/generate-totp-key", middleware.UseExtractor(), UserHandler.GenerateTOTPKey)
 	App.Post("/validate-totp-code", middleware.UseExtractor(), UserHandler.ValidateTOTPCode)
+
 	App.Get("/user/get-user-token", middleware.UseExtractor(), UserHandler.GetUserByIdTheToken)
 	App.Get("/user/get-user-by-id", UserHandler.GetUserById)
 
