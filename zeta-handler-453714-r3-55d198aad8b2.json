@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "zeta-handler-453714-r3",
+  "private_key_id": "55d198aad8b282d5d6f776e7d48f30ff736e3853",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCqCau4HvQkB02y\nrmlFOPAjR6v4+VVVhJF0Yax3js0Gd+HIXx6paNYehklpv0bJXaPs38ouaUiliwsp\nVVuhh+pVpyZZDghxO4jNVjco+pBeh4rXbRgwtga/P8/nckW9mFFClEBkRkfP7Dom\nNs1VBS7KUcpYcWUnmPD6weA2HM1d4I2itOaHQu4ZUV5eGLpMn9WojN6eJgGwZT69\nUxlr9DrzwaN6e6UYIL6U3j8x1nlPjN4OMVcPSM/ehN7TMhbhOYTYPjhlpHHON0iA\nxWQ5A6aaxlPAr3PVIHG8992DRIUvOsXv/3jGTsuR8+fNd6BC+OFlscPDm3RuyK8Z\n2+hDrB3bAgMBAAECggEAFSqLA6pmva1jEKEBXaqOyfV8BMwUwUZ1TMVz0JYoE2wM\n4QJmMLRqIvaYYN98kkhjxXK+GjTk5CaAxy5m756ZnvvlnCRRDLdaeiUHTMSUABBj\nShm8byPZhykMWkUxRT6WrvEBavoMqmc/fc5IlRLGFk1EIOpMqzcwmCZWIKZJMiwz\nQB8DFxwmpMWIhmBsdli0QB01RFtqNIcNsExZ9J/I2FTtZgAmK6MIFHt5FNG+rl9Z\nUReERq6W8VJhNH9PYgFcruIqUfH1KBjTyLsmGUClgS+76PE03hXpBNb2rW2ElBcY\nlXddX1yRphiQS222PTU5pOKdPgb0J1hciPXpMEz+UQKBgQDwJ9S1gZ7jk66UfbTt\nPR7D9rwHlSaaa3q+IVhLYRCl4CFph/PnHvIPZGOzAj7w5lolwel3Ms9eg5zkVATv\nG7ABFABFrcG6bh7K4rq2FqFijmV2QITU36+H0lcpTJSskwdXASy8JagbtQ+nJx1v\nDAtJJo9224jVoORuNBHU5QwpjwKBgQC1QZEzZzHDElbe12KlHugaZIMJUedpR4Mx\nHLM//CX/5C+kfE2++/gHYhLRdtyl14e1FVbUzyRZ8r66dB1H3RyainnIqlIU4wO4\ngCNxzxPKnLBJHRhtJi56fj2u3d/ro43Zm6rLep6/WAVguH1pSyde0Tt2n0Oxf1yx\n0zLBZdYo9QKBgQCtRM+fNSoiIAcxc5D6KcLsuDPpdJ8pgqpIS16c5CdSxmbU8RX0\nhss2d8PG/7PRsyEPZNzA95POKT8lLclxipRt8rRPkZHYpGLrFrKHdcRyizKBIwOz\nYsAOSqBAV9RcvqfpChvwk2q6suPcQchmulXaLUwNAU+0ciTdrgu/gpJH2QKBgQCL\nLFIiRv1FjEJZjsX2hTmwcjbPJC1sf/Vy81eLLL+8sOgIA03q9Cuo95v9a6fWSxyv\nZTgr5PVDf4kFP3zwHg4Fd4g1FNo7oWfM9c7BZ0AKFa+iJA4KWQPdGCuipkh19TpI\nuSc2X+uefiZ68o2RGJydSEjBN17R3jo9bC4Po3MCNQKBgGLj5MsdsexfKQvCtrZb\nZ5gkscfGP4pTZ0w1bh0UcmHmQXqpOlfH6r+VHZG+MdtSAoFLmhJMSWmUmZ0GxRvA\ngBDEqIJ3WWsDl8XRfM4iA3iBLLNHTOr8/zs++vc2kQ6Finu4vjvJ8acC9aIAG5hV\nku6gmL+TrKk4bdZLHXRE7oL7\n-----END PRIVATE KEY-----\n",
+  "client_email": "nexovecinal@zeta-handler-453714-r3.iam.gserviceaccount.com",
+  "client_id": "108276666740034593551",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/nexovecinal%40zeta-handler-453714-r3.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
