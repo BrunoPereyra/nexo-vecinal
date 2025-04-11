@@ -578,7 +578,6 @@ func (h *UserHandler) SavePushToken(c *fiber.Ctx) error {
 }
 func (h *UserHandler) UserPremiumAmonth(c *fiber.Ctx) error {
 	IdUserToken := c.Context().UserValue("_id").(string)
-
 	IdUserTokenP, errinObjectID := primitive.ObjectIDFromHex(IdUserToken)
 	if errinObjectID != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

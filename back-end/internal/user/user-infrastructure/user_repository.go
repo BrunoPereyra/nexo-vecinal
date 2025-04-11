@@ -108,36 +108,46 @@ func (u *UserRepository) UserPremiumExtend(userID primitive.ObjectID) error {
 	ctx := context.Background()
 	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 
-	filter := bson.M{"_id": userID}
-	update := mongo.Pipeline{
-		{{
-			Key: "$set",
-			Value: bson.M{
-				"Premium.SubscriptionEnd": bson.M{
-					"$dateAdd": bson.M{
-						"startDate": "$Premium.SubscriptionEnd",
-						"unit":      "month",
-						"amount":    1,
-					},
-				},
-				"Premium.MonthsSubscribed": bson.M{
-					"$add": []interface{}{"$Premium.MonthsSubscribed", 1},
-				},
-				"Premium.SubscriptionStart": bson.M{
-					"$cond": bson.M{
-						"if":   bson.M{"$eq": []interface{}{"$Premium.SubscriptionStart", nil}},
-						"then": time.Now(),
-						"else": "$Premium.SubscriptionStart",
-					},
-				},
-			},
-		}},
+	// Traer el usuario actual
+	var user struct {
+		Premium struct {
+			SubscriptionStart time.Time `bson:"SubscriptionStart"`
+			SubscriptionEnd   time.Time `bson:"SubscriptionEnd"`
+			MonthsSubscribed  int       `bson:"MonthsSubscribed"`
+		} `bson:"Premium"`
+	}
+	err := usersCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
+	if err != nil {
+		return err
 	}
 
-	_, err := usersCollection.UpdateOne(ctx, filter, update)
+	now := time.Now()
 
+	start := user.Premium.SubscriptionStart
+	if start.IsZero() || start.Year() <= 1 {
+		start = now
+	}
+
+	end := user.Premium.SubscriptionEnd
+	if end.IsZero() || end.Year() <= 1 {
+		end = now
+	}
+	newEnd := end.AddDate(0, 1, 0) // +1 mes
+
+	update := bson.M{
+		"$set": bson.M{
+			"Premium.SubscriptionStart": start,
+			"Premium.SubscriptionEnd":   newEnd,
+		},
+		"$inc": bson.M{
+			"Premium.MonthsSubscribed": 1,
+		},
+	}
+
+	_, err = usersCollection.UpdateOne(ctx, bson.M{"_id": userID}, update)
 	return err
 }
+
 func (r *UserRepository) UpdateRecommendedWorkerPremium(workerID primitive.ObjectID) error {
 	ctx := context.Background()
 	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedWorkers")
