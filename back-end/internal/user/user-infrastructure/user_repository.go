@@ -148,36 +148,45 @@ func (u *UserRepository) UserPremiumExtend(userID primitive.ObjectID) error {
 	return err
 }
 
-func (r *UserRepository) UpdateRecommendedWorkerPremium(workerID primitive.ObjectID) error {
+func (j *UserRepository) UpdateRecommendedWorkerPremium(workerId primitive.ObjectID) error {
 	ctx := context.Background()
-	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedWorkers")
-	filter := bson.M{"workerId": workerID}
-	update := mongo.Pipeline{
-		{{
-			Key: "$set",
-			Value: bson.M{
-				"Premium.SubscriptionEnd": bson.M{
-					"$dateAdd": bson.M{
-						"startDate": "$Premium.SubscriptionEnd",
-						"unit":      "month",
-						"amount":    1,
-					},
-				},
-				"Premium.MonthsSubscribed": bson.M{
-					"$add": []interface{}{"$Premium.MonthsSubscribed", 1},
-				},
-				"Premium.SubscriptionStart": bson.M{
-					"$cond": bson.M{
-						"if":   bson.M{"$eq": []interface{}{"$Premium.SubscriptionStart", nil}},
-						"then": time.Now(),
-						"else": "$Premium.SubscriptionStart",
-					},
-				},
-			},
-		}},
+	now := time.Now()
+
+	// Obtener info del usuario
+	usersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	var user struct {
+		Premium *userdomain.Premium `bson:"Premium"`
+		Tags    []string            `bson:"tags"`
+	}
+	if err := usersColl.FindOne(ctx, bson.M{"_id": workerId}).Decode(&user); err != nil {
+		return err
 	}
 
-	_, err := collection.UpdateOne(ctx, filter, update)
+	isPremium := user.Premium != nil && user.Premium.SubscriptionEnd.After(now)
+
+	recommendedWorkersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedWorkers")
+	update := bson.M{
+		"$set": bson.M{
+			"updatedAt":      now,
+			"oldestFeedback": now,
+			"premium":        user.Premium,
+		},
+
+		"$setOnInsert": bson.M{
+			"workerId":  workerId,
+			"createdAt": now,
+		},
+		"$addToSet": bson.M{
+			"tags": bson.M{"$each": user.Tags},
+		},
+	}
+
+	if isPremium {
+		update["$set"].(bson.M)["premium"] = user.Premium
+	}
+
+	opts := options.Update().SetUpsert(true)
+	_, err := recommendedWorkersColl.UpdateOne(ctx, bson.M{"workerId": workerId}, update, opts)
 	return err
 }
 
