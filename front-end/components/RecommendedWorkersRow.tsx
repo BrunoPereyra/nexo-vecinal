@@ -14,8 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/AuthContext";
 
 // Importa las funciones de tus servicios
-import { getFilteredUsers, ReqLocationTags } from "@/services/userService";
-import { getRecommendedWorkers } from "@/services/JobsService";
+import { getFilteredUsers, getRecommendedWorkers, ReqLocationTags } from "@/services/userService";
 import colors from '@/style/colors';
 
 export interface RecommendedWorker {
@@ -60,12 +59,12 @@ const RecommendedWorkersRow: React.FC = () => {
                     setWorkers(filteredData.users);
                 } else {
                     // Si no hay usuarios filtrados, se solicita la recomendación
-                    const recommendedData = await getRecommendedWorkers(page, token, parsedTags);
-                    if (recommendedData && recommendedData.workers) {
-                        setWorkers(recommendedData.workers);
-                    } else {
-                        setWorkers([]);
-                    }
+                    // const recommendedData = await getRecommendedWorkers(page, token, parsedTags);
+                    // if (recommendedData && recommendedData.workers) {
+                    //     setWorkers(recommendedData.workers);
+                    // } else {
+                    //     setWorkers([]);
+                    // }
                 }
             } catch (error) {
                 console.error("Error fetching recommended workers:", error);

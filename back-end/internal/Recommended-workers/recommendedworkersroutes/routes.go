@@ -4,6 +4,7 @@ import (
 	recommendedworkersapplication "back-end/internal/Recommended-workers/RecommendedWorkers-application"
 	recommendedworkersinfrastructure "back-end/internal/Recommended-workers/RecommendedWorkers-infrastructure"
 	recommendedworkersinterfaces "back-end/internal/Recommended-workers/RecommendedWorkers-interfaces"
+	"back-end/pkg/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
@@ -15,6 +16,6 @@ func RecommendedWorkersRoutes(app *fiber.App, redisClient *redis.Client, mongoCl
 	service := recommendedworkersapplication.NewRecommendedWorkersService(repo)
 	handler := recommendedworkersinterfaces.NewRecommendedWorkersHandler(service)
 
-	app.Get("/workers/recommended", handler.GetRecommendedUsersHandler)
+	app.Post("/workers/recommended", middleware.UseExtractor(), handler.GetRecommendedUsersHandler)
 
 }

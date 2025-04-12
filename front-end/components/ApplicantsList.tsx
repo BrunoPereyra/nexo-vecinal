@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { LayoutAnimation, UIManager, Platform, View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { assignJob, reassignJob, getRecommendedWorkers } from '../services/JobsService';
+import { assignJob, reassignJob, } from '../services/JobsService';
 import { useRouter } from 'expo-router';
 import colors from '@/style/colors';
+import { getRecommendedWorkers } from '@/services/userService';
 
 // Habilitar animaciones en Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -35,7 +36,7 @@ interface JobDetails {
 }
 
 interface ApplicantsListProps {
-    job: JobDetails;
+    job: any;
     token: string;
 }
 
@@ -82,20 +83,32 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
     const router = useRouter();
     const [recommendedWorkers, setRecommendedWorkers] = useState<User[]>([]);
 
-    // Consultar recomendados al montar el componente
     useEffect(() => {
         async function fetchRecommended() {
             try {
-                const res = await getRecommendedWorkers(1, token, job.tags);
+                const geoPoint = {
+                    type: "Point",
+                    coordinates: [job.location.coordinates[1], job.location.coordinates[0]], // [longitud, latitud]
+                };
+
+                const res = await getRecommendedWorkers(
+                    token,
+                    1,                  // page
+                    geoPoint,           // geoPoint
+                    15000,               // maxDistance (en metros)
+                    job.tags            // categories
+                );
+
                 if (res && res.recommendedUsers) {
                     setRecommendedWorkers(res.recommendedUsers);
                 }
             } catch (error) {
-                console.error('Error fetching recommended workers:', error);
+                console.error("Error fetching recommended workers:", error);
             }
         }
+
         fetchRecommended();
-    }, [token]);
+    }, [token, job]);
 
     const handleAssign = async (workerId: string) => {
         try {
@@ -128,7 +141,7 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
         job.assignedTo &&
         (job.assignedTo.userData ||
             job.applicants.find(
-                (applicant) => applicant.applicantId === job.assignedTo?.applicantId
+                (applicant: any) => applicant.applicantId === job.assignedTo?.applicantId
             )?.userData);
 
     const renderApplicantItem = (applicant: Applicant) => {

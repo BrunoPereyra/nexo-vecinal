@@ -194,3 +194,40 @@ export const sendPurchaseToBackend = async (purchase: any, token: string) => {
         return { success: false, message: "Error de red o del servidor" };
     }
 };
+
+export const getRecommendedWorkers = async (
+    token: string,
+    page: number,
+    geoPoint: GeoPoint,
+    maxDistance: number,
+    categories?: string[]
+) => {
+    try {
+        const body = {
+            page,
+            limit: 10,
+            categories: categories || [],
+            geoPoint,
+            maxDistance,
+        };
+
+        const res = await fetch(`${API}/workers/recommended`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+            throw new Error(`HTTP error: ${res.status}`);
+        }
+        console.log("Response from getRecommendedWorkers:", res.json());
+
+        return await res.json();
+    } catch (error) {
+        console.error("Error in getRecommendedWorkers:", error);
+        return null;
+    }
+};

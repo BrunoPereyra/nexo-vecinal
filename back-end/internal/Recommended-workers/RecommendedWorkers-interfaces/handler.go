@@ -22,7 +22,7 @@ func (rw *RecommendedWorkersHandler) GetRecommendedUsersHandler(c *fiber.Ctx) er
 	var req recommendedworkersdomain.GetWorkers
 
 	// Bind desde query y body (por si acaso lo usás en POST también)
-	if err := c.QueryParser(&req); err != nil {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Error parsing query parameters",
 			"error":   err.Error(),
