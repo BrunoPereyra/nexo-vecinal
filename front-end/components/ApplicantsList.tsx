@@ -96,9 +96,8 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
                     1,                  // page
                     geoPoint,           // geoPoint
                     15000,               // maxDistance (en metros)
-                    job.tags            // categories
+                    typeof job.tags === "string" ? JSON.parse(job.tags) : job.tags
                 );
-
                 if (res && res.recommendedUsers) {
                     setRecommendedWorkers(res.recommendedUsers);
                 }

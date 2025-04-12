@@ -208,8 +208,10 @@ export const getRecommendedWorkers = async (
             limit: 10,
             geoPoint,
             maxDistance,
-            categories,
+            categories: ["Herrero"],
         };
+        console.log("Body:", body);
+
         const res = await fetch(`${API}/workers/recommended`, {
             method: "POST",
             headers: {
