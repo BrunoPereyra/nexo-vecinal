@@ -1448,6 +1448,8 @@ func (u *UserRepository) GetSupportAgent(ctx context.Context, userID primitive.O
 }
 func (u *UserRepository) SaveLocationTags(userID primitive.ObjectID, location userdomain.ReqLocationTags) error {
 	ctx := context.Background()
+
+	// Actualiza la colección Users
 	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	filter := bson.M{"_id": userID}
 	update := bson.M{
@@ -1457,8 +1459,40 @@ func (u *UserRepository) SaveLocationTags(userID primitive.ObjectID, location us
 			"tags":     location.Tags,
 		},
 	}
+	if _, err := usersCollection.UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
 
-	_, err := usersCollection.UpdateOne(ctx, filter, update)
+	// Obtener info actualizada del usuario
+	var user struct {
+		GeoPoint userdomain.GeoPoint `bson:"location"`
+		Tags     []string            `bson:"tags"`
+		Ratio    float64             `bson:"ratio"`
+	}
+	if err := usersCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user); err != nil {
+		return err
+	}
+
+	// Actualiza o crea el RecommendedWorker
+	recommendedColl := u.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedWorkers")
+	now := time.Now()
+
+	upd := bson.M{
+		"$set": bson.M{
+			"geoPoint":  user.GeoPoint,
+			"updatedAt": now,
+			"ratio":     user.Ratio,
+		},
+		"$addToSet": bson.M{
+			"tags": bson.M{"$each": user.Tags},
+		},
+		"$setOnInsert": bson.M{
+			"workerId": userID,
+		},
+	}
+
+	opts := options.Update().SetUpsert(true)
+	_, err := recommendedColl.UpdateOne(ctx, bson.M{"workerId": userID}, upd, opts)
 	return err
 }
 
