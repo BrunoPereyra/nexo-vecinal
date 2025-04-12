@@ -198,7 +198,7 @@ export const sendPurchaseToBackend = async (purchase: any, token: string) => {
 export const getRecommendedWorkers = async (
     token: string,
     page: number,
-    geoPoint: GeoPoint,
+    geoPoint: { type: string; coordinates: number[] },
     maxDistance: number,
     categories?: string[]
 ) => {
@@ -206,16 +206,15 @@ export const getRecommendedWorkers = async (
         const body = {
             page,
             limit: 10,
-            categories: categories || [],
             geoPoint,
             maxDistance,
+            categories,
         };
-
         const res = await fetch(`${API}/workers/recommended`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
+                "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify(body),
         });
@@ -223,11 +222,10 @@ export const getRecommendedWorkers = async (
         if (!res.ok) {
             throw new Error(`HTTP error: ${res.status}`);
         }
-        console.log("Response from getRecommendedWorkers:", res.json());
 
         return await res.json();
     } catch (error) {
         console.error("Error in getRecommendedWorkers:", error);
-        return null;
     }
 };
+
