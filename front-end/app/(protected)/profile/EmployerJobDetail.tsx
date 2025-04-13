@@ -191,8 +191,8 @@ export default function EmployerJobDetail() {
             >
               <Marker
                 coordinate={{
-                  latitude: jobDetail.location.coordinates[1],
                   longitude: jobDetail.location.coordinates[0],
+                  latitude: jobDetail.location.coordinates[1],
                 }}
                 title={jobDetail.title}
                 description={jobDetail.description}

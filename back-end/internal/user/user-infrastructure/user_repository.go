@@ -133,14 +133,12 @@ func (u *UserRepository) UserPremiumExtend(userID primitive.ObjectID) error {
 		end = now
 	}
 	newEnd := end.AddDate(0, 1, 0) // +1 mes
-
+	newMontch := user.Premium.MonthsSubscribed + 1
 	update := bson.M{
 		"$set": bson.M{
 			"Premium.SubscriptionStart": start,
 			"Premium.SubscriptionEnd":   newEnd,
-		},
-		"$inc": bson.M{
-			"Premium.MonthsSubscribed": 1,
+			"Premium.MonthsSubscribed":  newMontch,
 		},
 	}
 
@@ -1448,51 +1446,54 @@ func (u *UserRepository) GetSupportAgent(ctx context.Context, userID primitive.O
 }
 func (u *UserRepository) SaveLocationTags(userID primitive.ObjectID, location userdomain.ReqLocationTags) error {
 	ctx := context.Background()
+	now := time.Now()
 
 	// Actualiza la colección Users
 	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	filter := bson.M{"_id": userID}
-	update := bson.M{
+	updateUser := bson.M{
 		"$set": bson.M{
 			"location": location.Location,
 			"ratio":    location.Ratio,
 			"tags":     location.Tags,
 		},
 	}
-	if _, err := usersCollection.UpdateOne(ctx, filter, update); err != nil {
+	if _, err := usersCollection.UpdateOne(ctx, filter, updateUser); err != nil {
 		return err
 	}
 
-	// Obtener info actualizada del usuario
+	// Obtener info actualizada del usuario (para tener los tags completos y posible info futura)
 	var user struct {
-		GeoPoint userdomain.GeoPoint `bson:"location"`
-		Tags     []string            `bson:"tags"`
-		Ratio    float64             `bson:"ratio"`
+		Tags    []string            `bson:"tags"`
+		Premium *userdomain.Premium `bson:"Premium,omitempty"`
 	}
 	if err := usersCollection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user); err != nil {
 		return err
 	}
 
-	// Actualiza o crea el RecommendedWorker
+	// Crear o actualizar RecommendedWorker
 	recommendedColl := u.mongoClient.Database("NEXO-VECINAL").Collection("RecommendedWorkers")
-	now := time.Now()
 
-	upd := bson.M{
+	updateRecommended := bson.M{
 		"$set": bson.M{
-			"geoPoint":  user.GeoPoint,
-			"updatedAt": now,
-			"ratio":     user.Ratio,
+			"geoPoint":       location.Location,
+			"updatedAt":      now,
+			"ratio":          location.Ratio,
+			"oldestFeedback": now, // opcional: si no querés tocar esto, removelo
+			"premium":        user.Premium,
+		},
+		"$setOnInsert": bson.M{
+			"workerId":  userID,
+			"createdAt": now,
 		},
 		"$addToSet": bson.M{
 			"tags": bson.M{"$each": user.Tags},
 		},
-		"$setOnInsert": bson.M{
-			"workerId": userID,
-		},
 	}
 
 	opts := options.Update().SetUpsert(true)
-	_, err := recommendedColl.UpdateOne(ctx, bson.M{"workerId": userID}, upd, opts)
+	_, err := recommendedColl.UpdateOne(ctx, bson.M{"workerId": userID}, updateRecommended, opts)
+	fmt.Println(err)
 	return err
 }
 

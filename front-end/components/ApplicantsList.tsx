@@ -88,16 +88,19 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
             try {
                 const geoPoint = {
                     type: "Point",
-                    coordinates: [job.location.coordinates[1], job.location.coordinates[0]], // [longitud, latitud]
+                    // longitud y latitud invertidos para GeoJSON
+                    coordinates: [job.location.coordinates[0], job.location.coordinates[1]], // [longitud, latitud]
                 };
 
                 const res = await getRecommendedWorkers(
                     token,
                     1,                  // page
                     geoPoint,           // geoPoint
-                    15000,               // maxDistance (en metros)
+                    150000,               // maxDistance (en metros)
                     typeof job.tags === "string" ? JSON.parse(job.tags) : job.tags
                 );
+                console.log(res);
+
                 if (res && res.recommendedUsers) {
                     setRecommendedWorkers(res.recommendedUsers);
                 }

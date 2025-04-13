@@ -29,38 +29,40 @@ func (r *RecommendedWorkersRepository) GetRecommendedWorkers(req recommendedwork
 	now := time.Now()
 	oneMonthAgo := now.AddDate(0, -1, 0)
 
-	// Condición base: feedback reciente o premium activo
-	match := bson.M{
-		"$or": []bson.M{
-			{"oldestFeedback": bson.M{"$gte": oneMonthAgo}},
-			{"premium.SubscriptionEnd": bson.M{"$gt": now}},
-		},
-	}
-
+	// Parámetros del request
 	categories := req.Categories
 	GeoPoint := req.GeoPoint
 	page := req.Page
 	limit := req.Limit
 	maxDistance := req.MaxDistance
 
-	if len(categories) > 0 {
-		match["tags"] = bson.M{"$in": categories}
-	}
-
-	// Agregar condición de geolocalización con $near
-	match["location"] = bson.M{
-		"$near": bson.M{
-			"$geometry": bson.M{
-				"type":        GeoPoint.Type,
-				"coordinates": GeoPoint.Coordinates,
-			},
-			"$maxDistance": maxDistance, // en metros
+	// Filtro base
+	filter := bson.M{
+		"$or": []bson.M{
+			{"oldestFeedback": bson.M{"$gte": oneMonthAgo}},
+			{"premium.SubscriptionEnd": bson.M{"$gt": now}},
 		},
 	}
 
-	// Construir pipeline
+	// Filtro por tags si hay
+	if len(categories) > 0 {
+		filter["tags"] = bson.M{"$in": categories}
+	}
+
+	// Agregar filtro geográfico (usando centerSphere en lugar de $geoNear)
+	radiusInRadians := float64(maxDistance) / 6371000.0 // Radio de la Tierra en metros
+	filter["geoPoint"] = bson.M{
+		"$geoWithin": bson.M{
+			"$centerSphere": []interface{}{
+				GeoPoint.Coordinates,
+				radiusInRadians,
+			},
+		},
+	}
+
+	// Construcción del pipeline
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: match}},
+		{{Key: "$match", Value: filter}},
 		{{Key: "$skip", Value: (page - 1) * limit}},
 		{{Key: "$limit", Value: limit}},
 		{{

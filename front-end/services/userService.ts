@@ -208,7 +208,7 @@ export const getRecommendedWorkers = async (
             limit: 10,
             geoPoint,
             maxDistance,
-            categories: ["Herrero"],
+            categories: ["Ahora"],
         };
         console.log("Body:", body);
 
@@ -220,10 +220,6 @@ export const getRecommendedWorkers = async (
             },
             body: JSON.stringify(body),
         });
-
-        if (!res.ok) {
-            throw new Error(`HTTP error: ${res.status}`);
-        }
 
         return await res.json();
     } catch (error) {
