@@ -1463,7 +1463,7 @@ func (j *JobRepository) GetUserBanAndDemographics(userId primitive.ObjectID) (bo
 	// Estructura temporal para obtener solo lo que te interesa
 	var result struct {
 		Banned    bool      `bson:"Banned"`
-		Gender    string    `bson:"Gender "`
+		Gender    string    `bson:"Gender"`
 		BirthDate time.Time `bson:"BirthDate"`
 	}
 

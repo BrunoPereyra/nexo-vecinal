@@ -5,7 +5,6 @@ import (
 	jobdomain "back-end/internal/Job/Job-domain"
 	"back-end/pkg/helpers"
 	"encoding/json"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -29,8 +28,6 @@ func NewJobHandler(jobService *Jobapplication.JobService) *JobHandler {
 func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 	var createReq jobdomain.CreateJobRequest
 	if err := c.BodyParser(&createReq); err != nil {
-		fmt.Println(err.Error())
-		fmt.Println("err 0")
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "Bad Request",
 		})
