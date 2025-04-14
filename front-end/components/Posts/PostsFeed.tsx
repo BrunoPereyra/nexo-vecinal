@@ -42,6 +42,8 @@ const PostsFeed: React.FC = () => {
     }, [token]);
 
     const loadPosts = async (pageNumber: number) => {
+        console.log("pageNumber", pageNumber);
+
         if (!token) return;
         setLoading(true);
         try {

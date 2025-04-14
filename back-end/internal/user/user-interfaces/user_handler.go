@@ -228,8 +228,9 @@ func (h *UserHandler) GoogleLogin(c *fiber.Ctx) error {
 }
 
 type ReqCodeInRedisSignup struct {
-	Code     string `json:"code"`
-	Referral string `json:"referral"`
+	Code       string `json:"code"`
+	Referral   string `json:"referral"`
+	Intentions string `json:"Intentions,omitempty" bson:"Intentions"` // Ej:hirex work
 }
 
 // login
@@ -327,14 +328,13 @@ func (h *UserHandler) SaveUserCodeConfirm(c *fiber.Ctx) error {
 		})
 	}
 
-	// err = h.userService.UpdatePinkkerProfitPerMonthRegisterLinkReferent(newUser.Referral)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-	// 		"message": "token error",
-	// 		"data":    err.Error(),
-	// 	})
-	// }
-
+	metricsErr := h.userService.UserMetricts(user, newUser.Intentions, newUser.Referral)
+	if metricsErr != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+			"data":    metricsErr,
+		})
+	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":  "token",
 		"token":    tokenRequest,

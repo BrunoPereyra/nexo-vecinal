@@ -5,6 +5,7 @@ import (
 	userdomain "back-end/internal/user/user-domain"
 	"back-end/pkg/authGoogleAuthenticator"
 	"back-end/pkg/helpers"
+	"back-end/pkg/metrics"
 	"math/rand"
 
 	"context"
@@ -153,8 +154,10 @@ func (j *UserRepository) UpdateRecommendedWorkerPremium(workerId primitive.Objec
 	// Obtener info del usuario
 	usersColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	var user struct {
-		Premium *userdomain.Premium `bson:"Premium"`
-		Tags    []string            `bson:"tags"`
+		Premium   *userdomain.Premium `bson:"Premium"`
+		Tags      []string            `bson:"tags"`
+		Sex       string              `bson:"Sex"`
+		BirthDate time.Time           `bson:"BirthDate"`
 	}
 	if err := usersColl.FindOne(ctx, bson.M{"_id": workerId}).Decode(&user); err != nil {
 		return err
@@ -185,9 +188,16 @@ func (j *UserRepository) UpdateRecommendedWorkerPremium(workerId primitive.Objec
 
 	opts := options.Update().SetUpsert(true)
 	_, err := recommendedWorkersColl.UpdateOne(ctx, bson.M{"workerId": workerId}, update, opts)
+	if err != nil {
+		return err
+	}
+	err = j.UserMetrictsPrime(user.Sex, user.BirthDate)
 	return err
 }
-
+func (u *UserRepository) UserMetrictsPrime(Sex string, birthDate time.Time) error {
+	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
+	return metricsService.RegisterSubscription(context.Background(), Sex, birthDate)
+}
 func (u *UserRepository) GetTOTPSecret(ctx context.Context, userID primitive.ObjectID) (string, error) {
 	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
 	filter := bson.M{"_id": userID}
@@ -504,6 +514,10 @@ func (u *UserRepository) SaveUser(User *domain.User) (primitive.ObjectID, error)
 	}
 	insertedID := insertResult.InsertedID.(primitive.ObjectID)
 	return insertedID, nil
+}
+func (u *UserRepository) UserMetricts(user *domain.User, Intentions, Referral string) error {
+	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
+	return metricsService.RegisterUser(context.Background(), user.Sex, Intentions, Referral, user.BirthDate)
 }
 func (u *UserRepository) FindNameUser(NameUser string, Email string) (*domain.User, error) {
 	var FindUserInDb primitive.D

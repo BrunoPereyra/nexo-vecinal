@@ -3,6 +3,7 @@ package jobinfrastructure
 import (
 	jobdomain "back-end/internal/Job/Job-domain"
 	userdomain "back-end/internal/user/user-domain"
+	"back-end/pkg/metrics"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -32,7 +33,7 @@ func NewjobRepository(redisClient *redis.Client, mongoClient *mongo.Client) *Job
 }
 
 func (t *JobRepository) CreateJob(Tweet jobdomain.Job) (primitive.ObjectID, error) {
-	banned, err := t.IsUserBanned(Tweet.UserID)
+	banned, sex, birthDate, err := t.GetUserBanAndDemographics(Tweet.UserID)
 	if err != nil {
 		return primitive.ObjectID{}, err
 	}
@@ -46,26 +47,8 @@ func (t *JobRepository) CreateJob(Tweet jobdomain.Job) (primitive.ObjectID, erro
 		return primitive.ObjectID{}, errInsertOne
 	}
 	insertedID := result.InsertedID.(primitive.ObjectID)
-	return insertedID, nil
-}
-
-// IsUserBanned verifica si el usuario se encuentra baneado.
-
-func (j *JobRepository) IsUserBanned(userId primitive.ObjectID) (bool, error) {
-	// Conexión a la colección de Usuarios
-	GoMongoDBCollUsers := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
-
-	// Buscar al usuario por su ID
-	var user struct {
-		Banned bool `bson:"Banned"`
-	}
-	err := GoMongoDBCollUsers.FindOne(context.Background(), bson.D{{Key: "_id", Value: userId}}).Decode(&user)
-	if err != nil {
-		return false, fmt.Errorf("no se pudo encontrar al usuario: %v", err)
-	}
-
-	// Devolver el estado de baneado
-	return user.Banned, nil
+	err = t.RegisterJobPublicationMetricts(sex, birthDate)
+	return insertedID, err
 }
 
 // ApplyToJob permite que un trabajador se postule a un job agregando su aplicación (con propuesta y precio).
@@ -287,7 +270,12 @@ func (j *JobRepository) UpdateJobStatusToCompleted(jobID, idUser primitive.Objec
 			return nil, err
 		}
 	}
-	return updatedJob, nil
+	_, sex, birthDate, err := j.GetUserBanAndDemographics(idUser)
+	if err != nil {
+		return updatedJob, err
+	}
+	err = j.RegisterJobCompletionMetrics(sex, birthDate)
+	return updatedJob, err
 }
 
 // incrementUserJobCount incrementa en 1 el contador de trabajos completados de un usuario.
@@ -1490,4 +1478,33 @@ func (j *JobRepository) UpdateRecommendedWorkers(workerId primitive.ObjectID, ca
 	}
 
 	return nil
+}
+func (j *JobRepository) GetUserBanAndDemographics(userId primitive.ObjectID) (bool, string, time.Time, error) {
+	GoMongoDBCollUsers := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Estructura temporal para obtener solo lo que te interesa
+	var result struct {
+		Banned    bool      `bson:"Banned"`
+		Sex       string    `bson:"Sex"`
+		BirthDate time.Time `bson:"BirthDate"`
+	}
+
+	err := GoMongoDBCollUsers.FindOne(
+		context.Background(),
+		bson.M{"_id": userId},
+	).Decode(&result)
+
+	if err != nil {
+		return false, "", time.Time{}, fmt.Errorf("no se pudo encontrar al usuario: %v", err)
+	}
+
+	return result.Banned, result.Sex, result.BirthDate, nil
+}
+func (u *JobRepository) RegisterJobPublicationMetricts(Sex string, birthDate time.Time) error {
+	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
+	return metricsService.RegisterJobPublication(context.Background(), Sex, birthDate)
+}
+func (u *JobRepository) RegisterJobCompletionMetrics(Sex string, birthDate time.Time) error {
+	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
+	return metricsService.RegisterJobCompletion(context.Background(), Sex, birthDate)
 }

@@ -88,18 +88,23 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
             try {
                 const geoPoint = {
                     type: "Point",
-                    // longitud y latitud invertidos para GeoJSON
                     coordinates: [job.location.coordinates[0], job.location.coordinates[1]], // [longitud, latitud]
                 };
+                let parsedTags = job.tags;
+
+                if (Array.isArray(parsedTags) && parsedTags.length === 1 && typeof parsedTags[0] === "string" && parsedTags[0].startsWith("[")) {
+                    parsedTags = JSON.parse(parsedTags[0]);
+                }
+
 
                 const res = await getRecommendedWorkers(
                     token,
-                    1,                  // page
-                    geoPoint,           // geoPoint
-                    150000,               // maxDistance (en metros)
-                    typeof job.tags === "string" ? JSON.parse(job.tags) : job.tags
+                    1,
+                    geoPoint,
+                    150000,
+                    parsedTags
+
                 );
-                console.log(res);
 
                 if (res && res.recommendedUsers) {
                     setRecommendedWorkers(res.recommendedUsers);
@@ -228,7 +233,7 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
             </CollapsibleSection>
 
             {/* Sección de Recomendados, usando la consulta al endpoint */}
-            <CollapsibleSection title="Recomendados" fixedHeight={80}>
+            <CollapsibleSection title="Recomendados" fixedHeight={200}>
                 {recommendedWorkers.length > 0 ? (
                     recommendedWorkers.map(renderRecommendedItem)
                 ) : (
