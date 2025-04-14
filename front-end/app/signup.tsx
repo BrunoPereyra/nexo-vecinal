@@ -24,16 +24,19 @@ export default function SignupScreen() {
   // Estado para la fecha de nacimiento: se inicia con la fecha actual
   const [birthDate, setBirthDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [sex, setSex] = useState<'Masculino' | 'Femenino'>('Masculino');
+  const [Gender, setGender] = useState<'Masculino' | 'Femenino'>('Masculino');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  // Nuevo estados para intención y referencia
+  // La intención internamente se maneja como "hire" o "work", pero se muestran en español
+  const [intention, setIntention] = useState<'hire' | 'work'>('hire');
+  const [referral, setReferral] = useState<'amigo' | 'instagram' | 'facebook'>('amigo');
 
   const { login, pushToken } = useAuth();
   const router = useRouter();
 
-  // Función para validar el nameUser según las reglas:
-  // Longitud entre 3 y 20 y solo caracteres alfanuméricos
+  // Validación de nombre de usuario (debe tener entre 3 y 20 caracteres y solo ser alfanumérico)
   const validateNameUser = (name: string): boolean => {
     if (name.length < 3 || name.length > 20) return false;
     const regex = /^[a-zA-Z0-9]+$/;
@@ -88,12 +91,13 @@ export default function SignupScreen() {
         nameUser,
         fullName,
         formattedBirthDate,
-        sex
+        Gender
       );
 
       if (data) {
         if (data.message === "email to confirm") {
-          await handleSaveUserCodeConfirm(data.code);
+          // Se envían también la intención y la referencia
+          await handleSaveUserCodeConfirm(data.code, referral, intention);
         } else {
           if (
             data.code === 409 ||
@@ -117,9 +121,9 @@ export default function SignupScreen() {
     }
   };
 
-  const handleSaveUserCodeConfirm = async (code: any) => {
+  const handleSaveUserCodeConfirm = async (code: any, referral: string, Intentions: string) => {
     try {
-      const resConfirm = await SaveUserCodeConfirm(code);
+      const resConfirm = await SaveUserCodeConfirm(code, referral, Intentions);
       await login(
         resConfirm.token,
         resConfirm._id,
@@ -179,7 +183,7 @@ export default function SignupScreen() {
           <Ionicons
             name={showPassword ? "eye-off-outline" : "eye-outline"}
             size={24}
-            colo={colors.gold}
+            color={colors.gold}
           />
         </TouchableOpacity>
       </View>
@@ -200,8 +204,7 @@ export default function SignupScreen() {
           <Ionicons
             name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
             size={24}
-            colo={colors.gold}
-
+            color={colors.gold}
           />
         </TouchableOpacity>
       </View>
@@ -225,29 +228,97 @@ export default function SignupScreen() {
       )}
       {/* Selección de género con check (iconos) */}
       <View style={styles.genderContainer}>
-        <Text style={styles.label}>Género / Sexo:</Text>
+        <Text style={styles.label}>Género:</Text>
         <View style={styles.genderOptions}>
           <TouchableOpacity
             style={styles.genderOption}
-            onPress={() => setSex('Masculino')}
+            onPress={() => setGender('Masculino')}
           >
             <Ionicons
-              name={sex === 'Masculino' ? "radio-button-on" : "radio-button-off"}
+              name={Gender === 'Masculino' ? "radio-button-on" : "radio-button-off"}
               size={24}
-              color={sex === 'Masculino' ? colors.gold : "#888"}
+              color={Gender === 'Masculino' ? colors.gold : "#888"}
             />
             <Text style={styles.genderOptionText}>Masculino</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.genderOption}
-            onPress={() => setSex('Femenino')}
+            onPress={() => setGender('Femenino')}
           >
             <Ionicons
-              name={sex === 'Femenino' ? "radio-button-on" : "radio-button-off"}
+              name={Gender === 'Femenino' ? "radio-button-on" : "radio-button-off"}
               size={24}
-              color={sex === 'Femenino' ? colors.gold : "#888"}
+              color={Gender === 'Femenino' ? colors.gold : "#888"}
             />
             <Text style={styles.genderOptionText}>Femenino</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {/* Nueva sección: Intención */}
+      <View style={styles.intentionContainer}>
+        <Text style={styles.label}>Intención:</Text>
+        <View style={styles.intentionOptions}>
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => setIntention('hire')}
+          >
+            <Ionicons
+              name={intention === 'hire' ? "radio-button-on" : "radio-button-off"}
+              size={24}
+              color={intention === 'hire' ? colors.gold : "#888"}
+            />
+            {/* Se muestra en español */}
+            <Text style={styles.optionText}>Contratar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => setIntention('work')}
+          >
+            <Ionicons
+              name={intention === 'work' ? "radio-button-on" : "radio-button-off"}
+              size={24}
+              color={intention === 'work' ? colors.gold : "#888"}
+            />
+            <Text style={styles.optionText}>Trabajar</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      {/* Nueva sección: Referencia */}
+      <View style={styles.referralContainer}>
+        <Text style={styles.label}>Referencia:</Text>
+        <View style={styles.referralOptions}>
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => setReferral('amigo')}
+          >
+            <Ionicons
+              name={referral === 'amigo' ? "radio-button-on" : "radio-button-off"}
+              size={24}
+              color={referral === 'amigo' ? colors.gold : "#888"}
+            />
+            <Text style={styles.optionText}>Amigo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => setReferral('instagram')}
+          >
+            <Ionicons
+              name={referral === 'instagram' ? "radio-button-on" : "radio-button-off"}
+              size={24}
+              color={referral === 'instagram' ? colors.gold : "#888"}
+            />
+            <Text style={styles.optionText}>Instagram</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.option}
+            onPress={() => setReferral('facebook')}
+          >
+            <Ionicons
+              name={referral === 'facebook' ? "radio-button-on" : "radio-button-off"}
+              size={24}
+              color={referral === 'facebook' ? colors.gold : "#888"}
+            />
+            <Text style={styles.optionText}>Facebook</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -260,7 +331,6 @@ export default function SignupScreen() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -341,6 +411,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 5,
   },
+  intentionContainer: {
+    marginBottom: 20,
+  },
+  intentionOptions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  referralContainer: {
+    marginBottom: 20,
+  },
+  referralOptions: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  option: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  optionText: {
+    color: colors.textMuted,
+    fontSize: 16,
+    marginLeft: 5,
+  },
   signupButton: {
     backgroundColor: colors.gold,
     paddingVertical: 15,
@@ -371,4 +464,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-

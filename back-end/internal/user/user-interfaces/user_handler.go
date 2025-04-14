@@ -227,12 +227,6 @@ func (h *UserHandler) GoogleLogin(c *fiber.Ctx) error {
 	})
 }
 
-type ReqCodeInRedisSignup struct {
-	Code       string `json:"code"`
-	Referral   string `json:"referral"`
-	Intentions string `json:"Intentions,omitempty" bson:"Intentions"` // Ej:hirex work
-}
-
 // login
 func (h *UserHandler) Login(c *fiber.Ctx) error {
 	var DataForLogin domain.LoginValidatorStruct
@@ -299,10 +293,16 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	})
 }
 func (h *UserHandler) SaveUserCodeConfirm(c *fiber.Ctx) error {
-	var newUser ReqCodeInRedisSignup
+	var newUser userdomain.ReqCodeInRedisSignup
 	if err := c.BodyParser(&newUser); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"messages": "Bad Request",
+		})
+	}
+	if err := newUser.Validate(); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Bad Request",
+			"error":   err.Error(),
 		})
 	}
 	user, errGetUserinRedis := h.userService.GetUserinRedis(newUser.Code)

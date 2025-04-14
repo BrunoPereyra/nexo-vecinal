@@ -33,7 +33,7 @@ const processResponse = async (res: Response) => {
 
 /**
  * Realiza una petición POST para signup.
- * Se envían: email, password, nameUser, fullName, BirthDate y sex.
+ * Se envían: email, password, nameUser, fullName, BirthDate y Gender.
  */
 export const SignupService = async (
     email: string,
@@ -41,13 +41,13 @@ export const SignupService = async (
     nameUser: string,
     fullName: string,
     birthDate: string,
-    sex: string
+    Gender: string
 ) => {
     try {
         const res = await fetch(API + "/user/signupNotConfirmed", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password, nameUser, fullName, BirthDate: birthDate, sex }),
+            body: JSON.stringify({ email, password, nameUser, fullName, BirthDate: birthDate, Gender }),
         });
         if (!res.ok) {
             throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -61,12 +61,12 @@ export const SignupService = async (
 };
 
 
-export const SaveUserCodeConfirm = async (code: string) => {
+export const SaveUserCodeConfirm = async (code: string, referral: string, Intentions: string) => {
     try {
         const res = await fetch(API + "/user/SaveUserCodeConfirm", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
+            body: JSON.stringify({ code, referral, Intentions })
         });
         return await res.json();
 

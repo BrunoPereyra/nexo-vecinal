@@ -47,7 +47,7 @@ type User struct {
 	} `json:"socialnetwork,omitempty" bson:"socialnetwork"`
 	Verified              bool                              `json:"verified,omitempty" bson:"Verified"`
 	Phone                 string                            `json:"phone,omitempty" bson:"Phone"`
-	Sex                   string                            `json:"sex,omitempty" bson:"Sex"`
+	Gender                string                            `json:"Gender,omitempty" bson:"Gender"`
 	Situation             string                            `json:"situation,omitempty" bson:"Situation"`
 	Following             map[primitive.ObjectID]FollowInfo `json:"Following" bson:"Following"`
 	Followers             map[primitive.ObjectID]FollowInfo `json:"Followers" bson:"Followers"`
@@ -103,7 +103,7 @@ type UserModelValidator struct {
 	Wallet        string    `json:"Wallet" default:""`
 	BirthDate     string    `json:"BirthDate" default:""`
 	BirthDateTime time.Time `json:"-" bson:"BirthDate"`
-	Sex           string    `json:"sex,omitempty" bson:"Sex"`
+	Gender        string    `json:"Gender,omitempty" bson:"Gender"`
 }
 
 func (u *UserModelValidator) ValidateUser() error {
@@ -262,7 +262,7 @@ type GetUser struct {
 	Verified                 bool   `json:"verified,omitempty" bson:"Verified"`
 	Website                  string `json:"website,omitempty" bson:"Website"`
 	Phone                    string `json:"phone,omitempty" bson:"Phone"`
-	Sex                      string `json:"sex,omitempty" bson:"Sex"`
+	Gender                   string `json:"Gender,omitempty" bson:"Gender"`
 	Situation                string `json:"situation,omitempty" bson:"Situation"`
 	UserFriendsNotifications int    `json:"userFriendsNotifications,omitempty" bson:"UserFriendsNotifications"`
 	// Following                map[primitive.ObjectID]FollowInfo `json:"Following" bson:"Following"`
@@ -294,7 +294,7 @@ type EditProfile struct {
 
 	BirthDate     string    `json:"birthDate"`
 	BirthDateTime time.Time `json:"-" bson:"BirthDate"`
-	Sex           string    `json:"sex,omitempty"`
+	Gender        string    `json:"Gender,omitempty"`
 	Situation     string    `json:"situation,omitempty"`
 	ZodiacSign    string    `json:"ZodiacSign,omitempty"`
 }
@@ -322,7 +322,7 @@ type Google_callback_Complete_Profile_And_Username struct {
 	Biography  string    `json:"biography" validate:"max=600"`
 	HeadImage  string    `json:"headImage"`
 	BirthDate  time.Time `json:"birthDate"`
-	Sex        string    `json:"sex,omitempty"`
+	Gender     string    `json:"Gender,omitempty"`
 	Situation  string    `json:"situation,omitempty"`
 	ZodiacSign string    `json:"zodiacSign,omitempty"`
 	Referral   string    `json:"referral"`
@@ -370,6 +370,17 @@ type ReqLocationTags struct {
 }
 
 func (u *ReqLocationTags) Validate() error {
+	validate := validator.New()
+	return validate.Struct(u)
+}
+
+type ReqCodeInRedisSignup struct {
+	Code       string `json:"code" validate:"-"`
+	Referral   string `json:"referral" validate:"required,oneof=amigo instagram facebook"`
+	Intentions string `json:"Intentions,omitempty" bson:"Intentions" validate:"required,oneof=hire work"`
+}
+
+func (u *ReqCodeInRedisSignup) Validate() error {
 	validate := validator.New()
 	return validate.Struct(u)
 }

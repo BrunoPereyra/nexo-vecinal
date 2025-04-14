@@ -39,7 +39,6 @@ func (ms *MetricsService) getOrCreateDailyDoc(ctx context.Context, date time.Tim
 	return collection, docID, dayKey, nil
 }
 
-// agregar info en la interfaz falta test
 func (ms *MetricsService) RegisterUser(ctx context.Context, gender, intention, referer string, birthDate time.Time) error {
 	birthYearStr := strconv.Itoa(birthDate.Year())
 	coll, docID, day, err := ms.getOrCreateDailyDoc(ctx, time.Now())
@@ -77,18 +76,16 @@ func (ms *MetricsService) RegisterSubscription(ctx context.Context, gender strin
 		"$inc": bson.M{
 			path + ".genders." + gender:          1,
 			path + ".birthYears." + birthYearStr: 1,
+			path + ".count":                      1,
 		},
 	}
 	_, err = coll.UpdateByID(ctx, docID, update)
 	return err
 }
 
-// falta test
 func (ms *MetricsService) RegisterJobPublication(ctx context.Context, gender string, birthDate time.Time) error {
 	return ms.registerJobEvent(ctx, "jobPublications", gender, birthDate)
 }
-
-// falta test
 
 func (ms *MetricsService) RegisterJobCompletion(ctx context.Context, gender string, birthDate time.Time) error {
 	return ms.registerJobEvent(ctx, "jobCompletions", gender, birthDate)

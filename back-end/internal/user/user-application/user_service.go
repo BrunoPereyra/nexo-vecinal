@@ -80,7 +80,16 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	modelNewUser.EditProfiile.Biography = fifteenDaysAgo
 	modelNewUser.EditProfiile.NameUser = time.Now()
 	modelNewUser.Location = domain.GeoPoint{}
-	modelNewUser.Sex = newUser.Sex
+	genderMap := map[string]string{
+		"Masculino": "male",
+		"Femenino":  "female",
+	}
+	if translatedGender, exists := genderMap[newUser.Gender]; exists {
+		modelNewUser.Gender = translatedGender
+	} else {
+		modelNewUser.Gender = newUser.Gender // Si no se encuentra, lo dejamos tal cual
+	}
+
 	return &modelNewUser
 }
 

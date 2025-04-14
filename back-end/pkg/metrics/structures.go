@@ -27,6 +27,7 @@ type UserDemographicTotals struct {
 type SubscriptionMetrics struct {
 	Genders    map[string]int `bson:"genders"`    // Ej: {"male": 3, "female": 6}
 	BirthYears map[int]int    `bson:"birthYears"` // Ej: {1995: 1, 2001: 2}
+	Count      int            `bson:"count"`      // Total de publicaciones o finalizaciones
 }
 type JobEventMetrics struct {
 	Genders    map[string]int `bson:"genders"`    // Género de quien publica o finaliza

@@ -219,10 +219,6 @@ func (j *JobRepository) ReassignJob(jobID, newWorkerID primitive.ObjectID) error
 		return errors.New("job not found")
 	}
 
-	// Enviar notificación push al trabajador reasignado
-	fmt.Println(job.Title)
-	fmt.Println("reading")
-
 	if err := j.notifyWorker(selectedApp.ApplicantID, job.Title); err != nil {
 		return fmt.Errorf("error sending push notification: %v", err)
 	}
@@ -370,31 +366,13 @@ func (j *JobRepository) UpdateJob(jobID primitive.ObjectID, update bson.M) error
 }
 func (j *JobRepository) GetJobByID(jobID primitive.ObjectID) (*jobdomain.Job, error) {
 	ctx := context.Background()
-	cacheKey := fmt.Sprintf("job:%s", jobID.Hex())
 	var job jobdomain.Job
-
-	// Intentar obtener de Redis
-	cachedJob, err := j.redisClient.Get(ctx, cacheKey).Result()
-	if err == nil {
-		// Si se encuentra en cache, decodificar el JSON y devolverlo.
-		if err := json.Unmarshal([]byte(cachedJob), &job); err == nil {
-			return &job, nil
-		}
-		// Si falla el Unmarshal, se sigue consultando en MongoDB.
-	}
-
 	// Consultar MongoDB
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
 	filter := bson.M{"_id": jobID}
 	if err := jobColl.FindOne(ctx, filter).Decode(&job); err != nil {
 		return nil, err
 	}
-
-	// Serializar y guardar en Redis con expiración de 2 minutos
-	if jobBytes, err := json.Marshal(job); err == nil {
-		j.redisClient.Set(ctx, cacheKey, jobBytes, 2*time.Minute)
-	}
-
 	return &job, nil
 }
 
@@ -1485,7 +1463,7 @@ func (j *JobRepository) GetUserBanAndDemographics(userId primitive.ObjectID) (bo
 	// Estructura temporal para obtener solo lo que te interesa
 	var result struct {
 		Banned    bool      `bson:"Banned"`
-		Sex       string    `bson:"Sex"`
+		Gender    string    `bson:"Gender "`
 		BirthDate time.Time `bson:"BirthDate"`
 	}
 
@@ -1498,13 +1476,13 @@ func (j *JobRepository) GetUserBanAndDemographics(userId primitive.ObjectID) (bo
 		return false, "", time.Time{}, fmt.Errorf("no se pudo encontrar al usuario: %v", err)
 	}
 
-	return result.Banned, result.Sex, result.BirthDate, nil
+	return result.Banned, result.Gender, result.BirthDate, nil
 }
-func (u *JobRepository) RegisterJobPublicationMetricts(Sex string, birthDate time.Time) error {
+func (u *JobRepository) RegisterJobPublicationMetricts(Gender string, birthDate time.Time) error {
 	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
-	return metricsService.RegisterJobPublication(context.Background(), Sex, birthDate)
+	return metricsService.RegisterJobPublication(context.Background(), Gender, birthDate)
 }
-func (u *JobRepository) RegisterJobCompletionMetrics(Sex string, birthDate time.Time) error {
+func (u *JobRepository) RegisterJobCompletionMetrics(Gender string, birthDate time.Time) error {
 	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
-	return metricsService.RegisterJobCompletion(context.Background(), Sex, birthDate)
+	return metricsService.RegisterJobCompletion(context.Background(), Gender, birthDate)
 }

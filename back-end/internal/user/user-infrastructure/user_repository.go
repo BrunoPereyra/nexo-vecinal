@@ -156,7 +156,7 @@ func (j *UserRepository) UpdateRecommendedWorkerPremium(workerId primitive.Objec
 	var user struct {
 		Premium   *userdomain.Premium `bson:"Premium"`
 		Tags      []string            `bson:"tags"`
-		Sex       string              `bson:"Sex"`
+		Gender    string              `bson:"Gender"`
 		BirthDate time.Time           `bson:"BirthDate"`
 	}
 	if err := usersColl.FindOne(ctx, bson.M{"_id": workerId}).Decode(&user); err != nil {
@@ -191,7 +191,7 @@ func (j *UserRepository) UpdateRecommendedWorkerPremium(workerId primitive.Objec
 	if err != nil {
 		return err
 	}
-	err = j.UserMetrictsPrime(user.Sex, user.BirthDate)
+	err = j.UserMetrictsPrime(user.Gender, user.BirthDate)
 	return err
 }
 func (u *UserRepository) UserMetrictsPrime(Sex string, birthDate time.Time) error {
@@ -517,8 +517,9 @@ func (u *UserRepository) SaveUser(User *domain.User) (primitive.ObjectID, error)
 }
 func (u *UserRepository) UserMetricts(user *domain.User, Intentions, Referral string) error {
 	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
-	return metricsService.RegisterUser(context.Background(), user.Sex, Intentions, Referral, user.BirthDate)
+	return metricsService.RegisterUser(context.Background(), user.Gender, Intentions, Referral, user.BirthDate)
 }
+
 func (u *UserRepository) FindNameUser(NameUser string, Email string) (*domain.User, error) {
 	var FindUserInDb primitive.D
 	if Email == "" {
@@ -824,7 +825,7 @@ func (u *UserRepository) FindEmailForOauth2Updata(user *domain.Google_callback_C
 				"Biography":    user.Biography,
 				"HeadImage":    user.HeadImage,
 				"BirthDate":    user.BirthDate,
-				"Sex":          user.Sex,
+				"Sex":          user.Gender,
 				"Situation":    user.Situation,
 				"ZodiacSign":   user.ZodiacSign,
 			},
@@ -881,7 +882,7 @@ func (u *UserRepository) EditProfile(profile domain.EditProfile, id primitive.Ob
 			"EditProfiile.Biography": time.Now(),
 			"HeadImage":              profile.HeadImage,
 			"BirthDate":              profile.BirthDateTime,
-			"Sex":                    profile.Sex,
+			"Sex":                    profile.Gender,
 			"Situation":              profile.Situation,
 			"ZodiacSign":             profile.ZodiacSign,
 		},
