@@ -7,7 +7,7 @@ import Purchases, {
     PurchasesPackage,
 } from 'react-native-purchases';
 
-const REVENUECAT_PUBLIC_API_KEY = 'goog_oIZTsprdqkzekMuxDuIgcXGHqczgoog_oIZTsprdqkzekMuxDuIgcXGHqcz';
+const REVENUECAT_PUBLIC_API_KEY = 'goog_oIZTsprdqkzekMuxDuIgcXGHqcz';
 
 export const useRevenueCat = (userId: string | null, token: string) => {
     const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
