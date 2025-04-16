@@ -323,12 +323,12 @@ export default function ProfileScreen() {
                     >
                         <Text style={styles.dropdownButtonText}>Chat de Soporte</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity
+                    {/* <TouchableOpacity
                         style={styles.dropdownButton}
                         onPress={() => setModalVisible(true)}
                     >
                         <Text style={styles.dropdownButtonText}>agrega curso</Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     {userProfile?.PanelAdminNexoVecinal?.Level > 0 && (
                         <TouchableOpacity
                             onPress={() => router.push("/(protected)/(admin)/adminPanel")}

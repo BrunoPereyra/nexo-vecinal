@@ -14,8 +14,9 @@ import MapView, { Marker, MapPressEvent, Circle } from "react-native-maps";
 import { MaterialIcons } from "@expo/vector-icons";
 import colors from "@/style/colors";
 import { useAuth } from "@/context/AuthContext";
-import { ReqLocationTags, saveLocationTags, subscribeUser } from "@/services/userService";
+import { ReqLocationTags, saveLocationTags, } from "@/services/userService";
 import { useRevenueCat } from "@/hooks/useInAppPurchase";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 interface SubscriptionSectionProps {
@@ -34,7 +35,16 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
     const [modalVisible, setModalVisible] = useState(false);
     const [subscribing, setSubscribing] = useState(false);
     const [subscriptionConfirmVisible, setSubscriptionConfirmVisible] = useState(false);
-    const { buySubscription } = useRevenueCat("ss", token as string);
+    const [UserId, setUserId] = useState<string>("");
+
+    useEffect(() => {
+        const id = async () => {
+            const userid = await AsyncStorage.getItem('id');
+            setUserId(userid as string);
+        }
+        id()
+    }, [])
+    const { buySubscription } = useRevenueCat(UserId, token as string);
 
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {

@@ -51,9 +51,6 @@ export const useRevenueCat = (userId: string | null, token: string) => {
         }
 
         if (!selectedPackage) {
-            const res = await sendPurchaseToBackend("", token);
-            console.log("premuu", res);
-
             Alert.alert('Error', 'No hay paquetes disponibles para comprar.');
             return;
         }
