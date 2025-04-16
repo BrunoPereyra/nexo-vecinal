@@ -59,6 +59,7 @@ type Job struct {
 	PaymentStatus       string             `json:"paymentStatus" bson:"paymentStatus"`
 	PaymentAmount       float64            `json:"paymentAmount" bson:"paymentAmount"`
 	PaymentIntentID     string             `json:"paymentIntentId" bson:"paymentIntentId"`
+	Available           bool               `json:"Available" bson:"available"`
 }
 
 // CreateJobRequest representa la información necesaria para crear un job.

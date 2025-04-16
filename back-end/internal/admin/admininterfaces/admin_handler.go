@@ -4,6 +4,7 @@ import (
 	"back-end/internal/admin/adminapplication"
 	"back-end/internal/admin/admindomain"
 	"context"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -43,6 +44,26 @@ func (h *ReportHandler) CreateReport(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.Status(fiber.StatusCreated).JSON(report)
+}
+func (h *ReportHandler) CreateOrUpdateContentReport(c *fiber.Ctx) error {
+	// Se obtiene el ID del usuario desde el token
+	idValue := c.Context().UserValue("_id").(string)
+	userID, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
+	}
+
+	var req admindomain.ReportDetailReq
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err})
+	}
+	err = h.ReportService.CreateOrUpdateContentReport(req, userID)
+	if err != nil {
+		return err
+	}
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Reporte creado o actualizado correctamente"})
 }
 
 // GetReportById endpoint para obtener un reporte por su ID.
@@ -157,4 +178,39 @@ func (h *ReportHandler) DeleteJob(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "job delete"})
+}
+func (h *ReportHandler) DeletePost(c *fiber.Ctx) error {
+	type request struct {
+		PostId    primitive.ObjectID `json:"PostId"`
+		AdminCode string             `json:"AdminCode"`
+	}
+	var req request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	idValue := c.Context().UserValue("_id").(string)
+	if err := h.ReportService.CheckAdminAuthorization(context.Background(), idValue, req.AdminCode); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No autorizado: " + err.Error()})
+	}
+	if err := h.ReportService.DeletePost(context.Background(), req.PostId); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "job delete"})
+}
+func (h *ReportHandler) GetContentReports(c *fiber.Ctx) error {
+	pageStr := c.Query("page", "1")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	ctx := context.Background()
+	reports, err := h.ReportService.GetContentReports(ctx, page)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "StatusOK",
+		"job":     reports,
+	})
 }

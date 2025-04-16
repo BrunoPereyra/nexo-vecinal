@@ -19,6 +19,7 @@ type Post struct {
 	Dislikes  []primitive.ObjectID `json:"dislikes" bson:"dislikes"`
 	CreatedAt time.Time            `json:"createdAt" bson:"createdAt"`
 	UpdatedAt time.Time            `json:"updatedAt" bson:"updatedAt"`
+	Available bool                 `json:"Available" bson:"available"`
 }
 
 // Comment representa un comentario en un post.

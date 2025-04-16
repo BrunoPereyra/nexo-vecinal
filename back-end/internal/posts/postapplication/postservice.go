@@ -30,6 +30,7 @@ func (ps *PostService) CreatePost(req postdomain.CreatePostRequest, userID primi
 		Comments:    []primitive.ObjectID{},
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+		Available:   true,
 	}
 
 	return ps.PostRepository.CreatePost(newPost)

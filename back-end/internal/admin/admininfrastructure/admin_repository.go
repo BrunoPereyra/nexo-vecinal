@@ -220,19 +220,103 @@ func (r *ReportRepository) RemoveTag(ctx context.Context, tag string) error {
 	return err
 }
 
-// Ddlete job
+// "Elimina" un Job marcándolo como no disponible
 func (r *ReportRepository) DeleteJob(ctx context.Context, jobId string) error {
 	oid, err := primitive.ObjectIDFromHex(jobId)
 	if err != nil {
 		return fmt.Errorf("invalid job id: %v", err)
 	}
 	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Job")
-	res, err := collection.DeleteOne(ctx, bson.M{"_id": oid})
+
+	update := bson.M{"$set": bson.M{"available": false}}
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": oid}, update)
 	if err != nil {
-		return fmt.Errorf("failed to delete job: %v", err)
+		return fmt.Errorf("failed to update job: %v", err)
 	}
-	if res.DeletedCount == 0 {
+	if res.MatchedCount == 0 {
 		return errors.New("job not found")
 	}
 	return nil
+}
+
+// "Elimina" un Post marcándolo como no disponible
+func (r *ReportRepository) DeletePost(ctx context.Context, PostId primitive.ObjectID) error {
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Posts")
+
+	update := bson.M{"$set": bson.M{"available": false}}
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": PostId}, update)
+	if err != nil {
+		return fmt.Errorf("failed to update post: %v", err)
+	}
+	if res.MatchedCount == 0 {
+		return errors.New("post not found")
+	}
+	return nil
+}
+func (r *ReportRepository) CreateOrUpdateContentReport(ctx context.Context, req admindomain.ReportDetailReq, userId primitive.ObjectID) error {
+
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("content_reports")
+
+	// Construimos el filtro para identificar el documento del contenido reportado.
+	filter := bson.M{
+		"reportedContentId": req.ReportedContentID,
+		"contentType":       req.ContentType,
+	}
+
+	// Creamos el objeto reporte individual (detalle del reporte).
+	newReport := bson.M{
+		"reporterUserId": userId,
+		"description":    req.Description,
+		"reportedAt":     time.Now(),
+	}
+
+	// Definimos la actualización:
+	// - Si el documento existe, hacemos $push al array "reports"
+	// - Establecemos "updatedAt" a la fecha actual.
+	// - Con upsert true, si el documento no existe se crea uno nuevo.
+	update := bson.M{
+		"$push": bson.M{"reports": newReport},
+		"$set":  bson.M{"updatedAt": time.Now()},
+		"$setOnInsert": bson.M{
+			"reportedContentId": req.ReportedContentID,
+			"contentType":       req.ContentType,
+			"createdAt":         time.Now(),
+		},
+	}
+
+	opts := options.Update().SetUpsert(true)
+
+	_, err := collection.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		return fmt.Errorf("failed to create or update content report: %v", err)
+	}
+	return nil
+}
+
+// GetContentReports devuelve los documentos de reportes de contenido
+// Paginados según los parámetros: page (número de página) y pageSize (tamaño de página).
+func (r *ReportRepository) GetContentReports(ctx context.Context, page int) ([]admindomain.ContentReport, error) {
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("content_reports")
+	pageSize := 10
+	// Calculamos cuántos documentos omitirs
+	skip := (page - 1) * pageSize
+
+	// Creamos las opciones de búsqueda: skip, limit y opcionalmente un orden (por ejemplo, los más recientes primero)
+	opts := options.Find().
+		SetSkip(int64(skip)).
+		SetLimit(int64(pageSize)).
+		SetSort(bson.D{{Key: "createdAt", Value: -1}})
+
+	// Buscamos los documentos sin filtro (podés agregar algún filtro si lo necesitas)
+	cursor, err := collection.Find(ctx, bson.M{}, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get content reports: %v", err)
+	}
+	defer cursor.Close(ctx)
+
+	var reports []admindomain.ContentReport
+	if err = cursor.All(ctx, &reports); err != nil {
+		return nil, fmt.Errorf("failed to decode content reports: %v", err)
+	}
+	return reports, nil
 }

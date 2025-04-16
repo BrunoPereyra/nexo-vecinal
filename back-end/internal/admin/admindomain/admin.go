@@ -35,3 +35,23 @@ type UserReportResponse struct {
 type Tag struct {
 	Tag string `bson:"tag" json:"tag"`
 }
+type ContentReport struct {
+	ID                primitive.ObjectID `bson:"_id,omitempty"`
+	ReportedContentID primitive.ObjectID `bson:"reportedContentId"`
+	ContentType       string             `bson:"contentType"` // "post" o "job"
+	Reports           []ReportDetail     `bson:"reports"`
+	CreatedAt         time.Time          `bson:"createdAt"`
+	UpdatedAt         time.Time          `bson:"updatedAt"`
+}
+
+type ReportDetail struct {
+	ReporterUserID primitive.ObjectID `bson:"reporterUserId"`
+	Description    string             `bson:"description"`
+	ReportedAt     time.Time          `bson:"reportedAt"`
+}
+type ReportDetailReq struct {
+	ContentType       string             `bson:"contentType"` // "post" o "job"
+	Description       string             `bson:"description"`
+	ReportedAt        time.Time          `bson:"reportedAt"`
+	ReportedContentID primitive.ObjectID `bson:"reportedContentId"`
+}

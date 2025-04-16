@@ -40,6 +40,7 @@ func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID pri
 		CreatedAt:           time.Now(),
 		UpdatedAt:           time.Now(),
 		Images:              []string{createReq.Image},
+		Available:           true,
 	}
 
 	jobID, err := js.JobRepository.CreateJob(newJob)

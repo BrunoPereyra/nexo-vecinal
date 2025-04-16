@@ -5,6 +5,8 @@ import (
 
 	"back-end/internal/admin/admindomain"
 	"back-end/internal/admin/admininfrastructure"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // ReportService contiene la lógica de negocio para reportes y bloqueo.
@@ -68,4 +70,19 @@ func (s *ReportService) RemoveTag(ctx context.Context, tag string) error {
 // BlockUser bloquea a un usuario.
 func (s *ReportService) DeleteJob(ctx context.Context, userID string) error {
 	return s.ReportRepository.DeleteJob(ctx, userID)
+}
+
+// BlockUser bloquea a un usuario.
+func (s *ReportService) DeletePost(ctx context.Context, userID primitive.ObjectID) error {
+	return s.ReportRepository.DeletePost(ctx, userID)
+}
+
+// BlockUser bloquea a un usuario.
+func (s *ReportService) CreateOrUpdateContentReport(req admindomain.ReportDetailReq, userId primitive.ObjectID) error {
+	ctx := context.Background()
+	return s.ReportRepository.CreateOrUpdateContentReport(ctx, req, userId)
+}
+
+func (s *ReportService) GetContentReports(ctx context.Context, page int) ([]admindomain.ContentReport, error) {
+	return s.ReportRepository.GetContentReports(ctx, page)
 }
