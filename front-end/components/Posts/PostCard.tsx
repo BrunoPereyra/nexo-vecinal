@@ -53,7 +53,7 @@ const PostCard: React.FC<PostCardProps> = ({
         try {
             await createOrUpdateContentReport(
                 {
-                    contentType: "job",
+                    contentType: "post",
                     description: reportDescription,
                     reportedContentId: post.id,
                 },
@@ -111,7 +111,8 @@ const PostCard: React.FC<PostCardProps> = ({
         if (onShare) {
             onShare(post);
         } else {
-            Alert.alert("Compartir", "Se presionó compartir");
+            console.log("Compartir", post);
+
         }
     };
 
@@ -173,9 +174,10 @@ const PostCard: React.FC<PostCardProps> = ({
                                 <Ionicons name="chatbubble-outline" size={20} color={colors.textDark} />
                                 <Text style={styles.actionText}>{post.commentCount}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
+                            {/* compartir */}
+                            {/* <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
                                 <Ionicons name="share-social-outline" size={20} color={colors.textDark} />
-                            </TouchableOpacity>
+                            </TouchableOpacity> */}
                             {/* NUEVO BOTÓN DE REPORTE */}
                             <TouchableOpacity
                                 style={styles.actionButton}

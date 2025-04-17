@@ -301,13 +301,11 @@ func (r *ReportRepository) CreateOrUpdateContentReport(ctx context.Context, req 
 }
 func (r *ReportRepository) DeleteContentReportForPost_Job(ctx context.Context, contentId primitive.ObjectID) error {
 	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("content_reports")
-	fmt.Println("contentId", contentId)
 	_, err := collection.DeleteOne(ctx, bson.M{"reportedContentId": contentId})
 	if err != nil {
 		fmt.Println("error", err)
 		return fmt.Errorf("failed to delete content report: %v", err)
 	}
-	fmt.Println("contentId 2", contentId)
 	return nil
 }
 func (r *ReportRepository) DeleteContentReport(ctx context.Context, contentId primitive.ObjectID) error {

@@ -25,7 +25,7 @@ const processResponse = async (res: Response) => {
  */
 export const createReports = async (reportData: any, token: string) => {
     try {
-        const res = await fetch(`${API}/admin/reports`, {
+        const res = await fetch(`${API}/reports/reports`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -340,8 +340,8 @@ export const deleteContentReport = async (IdReport: string, code: string, token:
 export type ContentReport = {
     id: string;
     text: string;
-    ReportedContentID: string;
-    ContentType: 'post' | 'job';
+    reportedContentId: string;
+    contentType: 'post' | 'job';
     reports: { description: string }[];
     createdAt: string;
     read: boolean;

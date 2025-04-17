@@ -394,7 +394,6 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	// Se inicia el filtro vacío
 	filter := bson.M{}
 	skip := int64((page - 1) * 10)
-	fmt.Println("page", skip)
 	// Si se proporcionan etiquetas, se filtra que al menos una esté presente
 	if len(jobFilter.Tags) > 0 {
 		filter["tags"] = bson.M{
@@ -421,6 +420,7 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 	filter["status"] = bson.M{
 		"$nin": []jobdomain.JobStatus{jobdomain.JobStatusCompleted},
 	}
+	filter["available"] = true
 	// Definir el pipeline de agregación
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
@@ -467,7 +467,7 @@ func (j *JobRepository) FindOldestJobs(limit int) ([]jobdomain.JobDetailsUsers, 
 			"$nin": []jobdomain.JobStatus{jobdomain.JobStatusCompleted},
 		},
 	}
-
+	filter["available"] = true
 	// Pipeline para traer los trabajos más antiguos
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
@@ -816,7 +816,7 @@ func (j *JobRepository) GetJobsByUserID(userID primitive.ObjectID, page int) ([]
 
 	// Filtrar por el userId
 	filter := bson.M{"userId": userID}
-
+	filter["available"] = true
 	// Configurar la paginación: 10 trabajos por página, ordenados de más recientes a más viejos
 	opts := options.Find().
 		SetLimit(10).
@@ -1219,7 +1219,6 @@ func (j *JobRepository) notifyWorker(workerID primitive.ObjectID, jobTitle strin
 	// Supongamos que tienes una función que obtiene el push token del usuario
 	pushToken, err := j.getPushTokenUser(workerID)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	// Construir payload para notificación push de Expo

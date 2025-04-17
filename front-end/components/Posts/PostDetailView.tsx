@@ -204,9 +204,10 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                         />
                         <Text style={styles.actionText}>{post.likeCount}</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
+                    {/* compartir */}
+                    {/* <TouchableOpacity style={styles.actionButton}>
                         <Ionicons name="share-social-outline" size={20} color={colors.textDark} />
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                     {/* NUEVO BOTÓN DE REPORTE */}
                     <TouchableOpacity
                         style={styles.actionButton}

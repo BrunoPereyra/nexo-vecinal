@@ -139,7 +139,7 @@ export default function ProfileDetailWorker() {
                 <View style={styles.jobCard}>
                     <Text style={styles.jobTitle}>{jobDetail.title}</Text>
                     <Text style={styles.jobDescription}>{jobDetail.description}</Text>
-                    {Array.isArray(jobDetail.Images) && jobDetail.Images.length > 0 && (
+                    {Array.isArray(jobDetail.Images) && jobDetail.Images?.[0] && (
                         <View style={styles.imageContainer}>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
                                 {jobDetail.Images.map((imageUrl: string, index: number) => (

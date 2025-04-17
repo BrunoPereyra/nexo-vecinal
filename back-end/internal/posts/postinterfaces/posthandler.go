@@ -4,7 +4,6 @@ import (
 	"back-end/internal/posts/postapplication"
 	"back-end/internal/posts/postdomain"
 	"back-end/pkg/helpers"
-	"fmt"
 	"mime/multipart"
 	"strconv"
 
@@ -110,7 +109,6 @@ func (ph *PostHandler) CreatePost(c *fiber.Ctx) error {
 	}
 
 	post, err := ph.PostService.GetPostByID(postId, userID)
-	fmt.Println(post)
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"message": "Post created successfully",
 		"post":    post,

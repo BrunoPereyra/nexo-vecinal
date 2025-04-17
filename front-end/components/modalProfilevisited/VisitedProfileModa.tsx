@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     Modal,
     Button,
+    TextInput,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/context/AuthContext';
@@ -37,6 +38,8 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     const [currentPageEmployer, setCurrentPageEmployer] = useState(1);
     const [currentPageWorker, setCurrentPageWorker] = useState(1);
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+    const [reportModalVisible, setReportModalVisible] = useState(false);
+    const [reportMessage, setReportMessage] = useState('');
 
     useEffect(() => {
         if (!visible) return;
@@ -212,6 +215,62 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                         onEndReachedThreshold={0.5}
                         contentContainerStyle={styles.listContainer}
                     />
+                    <TouchableOpacity
+                        style={styles.reportFab}
+                        onPress={() => setReportModalVisible(true)}
+                    >
+                        <Ionicons name="flag-outline" size={24} color={colors.textDark} />
+                    </TouchableOpacity>
+                    <Modal
+                        visible={reportModalVisible}
+                        animationType="slide"
+                        transparent
+                        onRequestClose={() => setReportModalVisible(false)}
+                    >
+                        <View style={styles.modalOverlay}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalTitle}>Enviar Reporte</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    placeholder="Escribe tu reporte..."
+                                    placeholderTextColor="#888"
+                                    value={reportMessage}
+                                    onChangeText={setReportMessage}
+                                    multiline
+                                />
+                                <View style={styles.modalButtons}>
+                                    <Button
+                                        title="Enviar"
+                                        onPress={async () => {
+                                            if (!reportMessage.trim() || !token || !userId) {
+                                                alert('El reporte no puede estar vacío');
+                                                return;
+                                            }
+                                            try {
+                                                const reportData = {
+                                                    reportedUserId: userId,
+                                                    text: reportMessage,
+                                                };
+                                                const res = await createReports(reportData, token);
+                                                if (res && res.reporterUserId) {
+                                                    alert('Reporte enviado exitosamente');
+                                                    setReportMessage('');
+                                                    setReportModalVisible(false);
+                                                } else {
+                                                    alert('No se pudo enviar el reporte');
+                                                }
+                                            } catch (error) {
+                                                console.error('Error enviando reporte:', error);
+                                                alert('Ocurrió un error al enviar el reporte');
+                                            }
+                                        }}
+                                        color="#FFD700"
+                                    />
+                                    <Button title="Cancelar" onPress={() => setReportModalVisible(false)} color="#FFD700" />
+                                </View>
+                            </View>
+                        </View>
+                    </Modal>
                     {/* Botón flotante para abrir el chat */}
                     {
                         userProfile &&
@@ -235,6 +294,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
 };
 import colors from "@/style/colors";
 import { router } from 'expo-router';
+import { createReports } from '@/services/admin';
 
 const styles = StyleSheet.create({
     fullScreenContainer: {
@@ -334,7 +394,77 @@ const styles = StyleSheet.create({
         fontSize: 30,
         fontWeight: "bold",
     },
-
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.7)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContent: {
+        backgroundColor: colors.cream, // "#FFF8DC"
+        padding: 20,
+        borderRadius: 8,
+        width: "80%",
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+    },
+    modalInput: {
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+        borderRadius: 5,
+        padding: 10,
+        minHeight: 80,
+        marginBottom: 12,
+        backgroundColor: colors.background,
+        color: colors.textDark,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        color: colors.primary,
+        marginBottom: 12,
+        textAlign: "center",
+    },
+    modalButtons: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+    },
+    reportButton: {
+        position: "absolute",
+        top: 60,
+        right: 16,
+        backgroundColor: colors.cream, // "#FFF8DC"
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+        zIndex: 10,
+    },
+    reportButtonText: {
+        color: colors.textDark,
+        fontWeight: "bold",
+        fontSize: 14,
+    },
+    reportFab: {
+        position: "absolute",
+        bottom: 110,
+        right: 36,
+        backgroundColor: colors.gold,       // fondo contrastante
+        width: 48,                          // tamaño fijo
+        height: 48,
+        borderRadius: 24,                   // círculo
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+        zIndex: 10,
+    },
 });
 
 

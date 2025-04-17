@@ -116,8 +116,6 @@ export default function AdminPanelScreen() {
 
     const ListHeader = () => (
         <View style={styles.headerContainer}>
-            <Text style={styles.header}>Panel Administrador</Text>
-            {/* ToggleTabs con la nueva pestaña "jobs" */}
             <ToggleTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
             {/* Solo mostramos los filtros y tags cuando estamos en 'courses' */}

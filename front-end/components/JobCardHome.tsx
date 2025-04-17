@@ -59,7 +59,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
         try {
             await createOrUpdateContentReport(
                 {
-                    contentType: "post",
+                    contentType: "job",
                     description: reportDescription,
                     reportedContentId: job.id,
                 },

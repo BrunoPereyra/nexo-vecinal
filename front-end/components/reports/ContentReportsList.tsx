@@ -37,8 +37,8 @@ export default function ContentReportsList() {
 
     const handleDelete = async (item: ContentReport) => {
         try {
-            const method = item.ContentType === 'post' ? DeletePost : DeleteJob;
-            await method(item.ReportedContentID, 'bruno', token as string);
+            const method = item.contentType === 'post' ? DeletePost : DeleteJob;
+            await method(item.reportedContentId, 'bruno', token as string);
             Alert.alert('Contenido eliminado');
         } catch (err) {
             Alert.alert('Error al eliminar contenido');
@@ -58,8 +58,8 @@ export default function ContentReportsList() {
 
     const renderContentReport = ({ item }: { item: ContentReport }) => (
         <View style={styles.card}>
-            <Text style={styles.text}>Tipo: {item.ContentType}</Text>
-            <Text style={styles.text}>ID Contenido: {item.ReportedContentID}</Text>
+            <Text style={styles.text}>Tipo: {item.contentType}</Text>
+            <Text style={styles.text}>ID Contenido: {item.reportedContentId}</Text>
             {Array.isArray(item.reports) && item.reports.map((report, idx) => (
                 <View key={idx}>
                     <Text style={styles.text}>Motivo: {report.description}</Text>

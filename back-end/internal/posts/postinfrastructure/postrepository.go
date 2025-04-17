@@ -182,8 +182,11 @@ func (pr *PostRepository) GetLatestPostsDetailed(currentUserID primitive.ObjectI
 	defer cancel()
 
 	skip := (page - 1) * limit
+	filter := bson.M{}
+	filter["available"] = true
 
 	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: filter}},
 		// Ordenar por CreatedAt descendente
 		{{Key: "$sort", Value: bson.D{{Key: "createdAt", Value: -1}}}},
 		// Aplicar paginación: skip y limit
