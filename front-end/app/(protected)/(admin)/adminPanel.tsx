@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
 import { getActiveCourses, getCoursesPaginated, Course } from '@/services/cursos';
-import ReportsList from '@/components/cursos/ReportsList';
+import ReportsList from '@/components/reports/ReportsList';
 import SupportChatsList, { Conversation, User as ChatUser } from '@/components/admin/SupportChatsList';
 import SupportChatAdmin from '@/components/chatsupport/SupportChatAdmin';
 import { getTags, addTag, removeTag } from '@/services/admin';

@@ -236,6 +236,9 @@ func (r *ReportRepository) DeleteJob(ctx context.Context, jobId string) error {
 	if res.MatchedCount == 0 {
 		return errors.New("job not found")
 	}
+	if err := r.DeleteContentReportForPost_Job(ctx, oid); err != nil {
+		return fmt.Errorf("job updated but failed to delete report: %v", err)
+	}
 	return nil
 }
 
@@ -251,6 +254,10 @@ func (r *ReportRepository) DeletePost(ctx context.Context, PostId primitive.Obje
 	if res.MatchedCount == 0 {
 		return errors.New("post not found")
 	}
+	if err := r.DeleteContentReportForPost_Job(ctx, PostId); err != nil {
+		return fmt.Errorf("post updated but failed to delete report: %v", err)
+	}
+
 	return nil
 }
 func (r *ReportRepository) CreateOrUpdateContentReport(ctx context.Context, req admindomain.ReportDetailReq, userId primitive.ObjectID) error {
@@ -289,6 +296,26 @@ func (r *ReportRepository) CreateOrUpdateContentReport(ctx context.Context, req 
 	_, err := collection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		return fmt.Errorf("failed to create or update content report: %v", err)
+	}
+	return nil
+}
+func (r *ReportRepository) DeleteContentReportForPost_Job(ctx context.Context, contentId primitive.ObjectID) error {
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("content_reports")
+	fmt.Println("contentId", contentId)
+	_, err := collection.DeleteOne(ctx, bson.M{"reportedContentId": contentId})
+	if err != nil {
+		fmt.Println("error", err)
+		return fmt.Errorf("failed to delete content report: %v", err)
+	}
+	fmt.Println("contentId 2", contentId)
+	return nil
+}
+func (r *ReportRepository) DeleteContentReport(ctx context.Context, contentId primitive.ObjectID) error {
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("content_reports")
+	_, err := collection.DeleteOne(ctx, bson.M{"_id": contentId})
+	if err != nil {
+		fmt.Println("error", err)
+		return fmt.Errorf("failed to delete content report: %v", err)
 	}
 	return nil
 }

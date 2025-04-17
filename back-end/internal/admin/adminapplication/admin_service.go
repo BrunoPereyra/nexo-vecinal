@@ -86,3 +86,7 @@ func (s *ReportService) CreateOrUpdateContentReport(req admindomain.ReportDetail
 func (s *ReportService) GetContentReports(ctx context.Context, page int) ([]admindomain.ContentReport, error) {
 	return s.ReportRepository.GetContentReports(ctx, page)
 }
+
+func (s *ReportService) DeleteContentReport(ctx context.Context, report primitive.ObjectID) error {
+	return s.ReportRepository.DeleteContentReport(ctx, report)
+}

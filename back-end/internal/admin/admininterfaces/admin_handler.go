@@ -46,7 +46,6 @@ func (h *ReportHandler) CreateReport(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(report)
 }
 func (h *ReportHandler) CreateOrUpdateContentReport(c *fiber.Ctx) error {
-	// Se obtiene el ID del usuario desde el token
 	idValue := c.Context().UserValue("_id").(string)
 	userID, err := primitive.ObjectIDFromHex(idValue)
 	if err != nil {
@@ -61,7 +60,9 @@ func (h *ReportHandler) CreateOrUpdateContentReport(c *fiber.Ctx) error {
 	}
 	err = h.ReportService.CreateOrUpdateContentReport(req, userID)
 	if err != nil {
-		return err
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
 	}
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "Reporte creado o actualizado correctamente"})
 }
@@ -197,6 +198,25 @@ func (h *ReportHandler) DeletePost(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "job delete"})
 }
+func (h *ReportHandler) DeleteContentReport(c *fiber.Ctx) error {
+	type request struct {
+		IdReport  primitive.ObjectID `json:"IdReport"`
+		AdminCode string             `json:"AdminCode"`
+	}
+	var req request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	idValue := c.Context().UserValue("_id").(string)
+	if err := h.ReportService.CheckAdminAuthorization(context.Background(), idValue, req.AdminCode); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No autorizado: " + err.Error()})
+	}
+	if err := h.ReportService.DeleteContentReport(context.Background(), req.IdReport); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ContentReport delete"})
+}
+
 func (h *ReportHandler) GetContentReports(c *fiber.Ctx) error {
 	pageStr := c.Query("page", "1")
 	page, err := strconv.Atoi(pageStr)
@@ -211,6 +231,6 @@ func (h *ReportHandler) GetContentReports(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "StatusOK",
-		"job":     reports,
+		"data":    reports,
 	})
 }

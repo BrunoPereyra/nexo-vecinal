@@ -7,9 +7,14 @@ import {
     Image,
     Animated,
     Modal,
+    Alert,
+    TextInput,
 } from "react-native";
 import colors from "@/style/colors";
 import { Job } from "@/services/JobsService";
+import { createOrUpdateContentReport } from "@/services/reports";
+import { useAuth } from "@/context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
 
 interface JobCardProps {
     job: Job;
@@ -19,7 +24,7 @@ interface JobCardProps {
 const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
     const truncateDescription = (text: string, maxLength: number) =>
         text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
-
+    const { token } = useAuth();
     // Valor animado para la escala de la imagen
     const scaleValue = useRef(new Animated.Value(1)).current;
     // Estado para mostrar la imagen en grande en un modal
@@ -43,7 +48,34 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
             useNativeDriver: true,
         }).start();
     };
+    const [reportModalVisible, setReportModalVisible] = useState(false);
+    const [reportDescription, setReportDescription] = useState("");
 
+    const sendReport = async () => {
+        if (!reportDescription.trim()) {
+            Alert.alert("Error", "La descripción no puede estar vacía.");
+            return;
+        }
+        try {
+            await createOrUpdateContentReport(
+                {
+                    contentType: "post",
+                    description: reportDescription,
+                    reportedContentId: job.id,
+                },
+                token as string
+            );
+            Alert.alert("Gracias", "Tu reporte ha sido enviado.");
+            setReportModalVisible(false);
+        } catch (e: any) {
+            console.error(e);
+            Alert.alert("Error", "No se pudo enviar el reporte.");
+        }
+    };
+    const openReportModal = () => {
+        setReportDescription("");
+        setReportModalVisible(true);
+    };
     return (
         <>
             <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
@@ -67,6 +99,18 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                             <Text style={styles.userName}>
                                 {job.userDetails?.nameUser || "Usuario Desconocido"}
                             </Text>
+                            {/* NUEVO BOTÓN DE REPORTE */}
+                            <TouchableOpacity
+                                style={styles.actionButton}
+                                onPress={openReportModal}
+                            >
+                                <Ionicons
+                                    name="flag-outline"
+                                    size={20}
+                                    color={colors.textDark}
+                                />
+                            </TouchableOpacity>
+
                         </View>
 
                         <Text style={styles.title}>{job.title}</Text>
@@ -100,7 +144,39 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
             </Animated.View>
 
-
+            <Modal
+                visible={reportModalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setReportModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.reportModal}>
+                        <Text style={styles.modalTitle}>Reportar este trabajo</Text>
+                        <TextInput
+                            style={styles.reportInput}
+                            placeholder="Descripción del reporte"
+                            multiline
+                            value={reportDescription}
+                            onChangeText={setReportDescription}
+                        />
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: colors.borderLight }]}
+                                onPress={() => setReportModalVisible(false)}
+                            >
+                                <Text>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: colors.gold }]}
+                                onPress={sendReport}
+                            >
+                                <Text>Enviar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
             {/* Modal para mostrar la imagen en grande */}
             {job.Images?.[0] && (
                 <Modal
@@ -140,6 +216,7 @@ const styles = StyleSheet.create({
     userDetailsContainer: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
         // marginBottom: 10,
     },
     avatar: {
@@ -174,6 +251,7 @@ const styles = StyleSheet.create({
     budgetContainer: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-between",
     },
     budgetText: {
         fontSize: 14,
@@ -190,6 +268,42 @@ const styles = StyleSheet.create({
     enlargedImage: {
         width: "90%",
         height: "90%",
+    },
+    // report 
+    reportModal: {
+        width: "85%",
+        backgroundColor: colors.warmWhite,
+        borderRadius: 8,
+        padding: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 12,
+        color: colors.textDark,
+    },
+    reportInput: {
+        height: 100,
+        borderColor: colors.borderLight,
+        borderWidth: 1,
+        borderRadius: 6,
+        padding: 10,
+        marginBottom: 20,
+        textAlignVertical: "top",
+    },
+    modalButtons: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+    },
+    modalButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 6,
+        marginLeft: 10,
+    },
+    actionButton: {
+        flexDirection: "row",
+        alignItems: "center",
     },
 });
 

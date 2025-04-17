@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     View,
     Text,
@@ -8,11 +8,14 @@ import {
     Animated,
     Modal,
     Alert,
+    TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import colors from "@/style/colors";
 import { Post } from "@/services/posts";
 import PostDetailView from "./PostDetailView";
+import { createOrUpdateContentReport } from "@/services/reports";
+import { useAuth } from "@/context/AuthContext";
 
 interface PostCardProps {
     post: Post;
@@ -31,13 +34,42 @@ const PostCard: React.FC<PostCardProps> = ({
 }) => {
     const truncateDescription = (text: string, maxLength: number) =>
         text?.length > maxLength ? text.substring(0, maxLength) + "..." : text;
+    const { token } = useAuth();
 
     // Valor animado para la escala de la imagen
     const scaleValue = new Animated.Value(1);
     // Estado para mostrar la imagen en grande en un modal
     const [enlargedVisible, setEnlargedVisible] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+    // --- ESTADOS PARA EL MODAL DE REPORT ---
+    const [reportModalVisible, setReportModalVisible] = useState(false);
+    const [reportDescription, setReportDescription] = useState("");
 
+    const sendReport = async () => {
+        if (!reportDescription.trim()) {
+            Alert.alert("Error", "La descripción no puede estar vacía.");
+            return;
+        }
+        try {
+            await createOrUpdateContentReport(
+                {
+                    contentType: "job",
+                    description: reportDescription,
+                    reportedContentId: post.id,
+                },
+                token as string
+            );
+            Alert.alert("Gracias", "Tu reporte ha sido enviado.");
+            setReportModalVisible(false);
+        } catch (e: any) {
+            console.error(e);
+            Alert.alert("Error", "No se pudo enviar el reporte.");
+        }
+    };
+    const openReportModal = () => {
+        setReportDescription("");
+        setReportModalVisible(true);
+    };
     const handleLongPressIn = () => {
         Animated.spring(scaleValue, {
             toValue: 1.2,
@@ -82,6 +114,7 @@ const PostCard: React.FC<PostCardProps> = ({
             Alert.alert("Compartir", "Se presionó compartir");
         }
     };
+
 
     // Al abrir el detalle del post
     const handleOpenDetail = () => {
@@ -143,6 +176,18 @@ const PostCard: React.FC<PostCardProps> = ({
                             <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
                                 <Ionicons name="share-social-outline" size={20} color={colors.textDark} />
                             </TouchableOpacity>
+                            {/* NUEVO BOTÓN DE REPORTE */}
+                            <TouchableOpacity
+                                style={styles.actionButton}
+                                onPress={openReportModal}
+                            >
+                                <Ionicons
+                                    name="flag-outline"
+                                    size={20}
+                                    color={colors.textDark}
+                                />
+                            </TouchableOpacity>
+
                         </View>
                     </View>
                 </View>
@@ -152,6 +197,41 @@ const PostCard: React.FC<PostCardProps> = ({
                     <PostDetailView post={selectedPost} onClose={() => setSelectedPost(null)} />
                 </Modal>
             )}
+            {/* Modal de imagen agrandada */}
+            <Modal
+                visible={reportModalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setReportModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.reportModal}>
+                        <Text style={styles.modalTitle}>Reportar este post</Text>
+                        <TextInput
+                            style={styles.reportInput}
+                            placeholder="Descripción del reporte"
+                            multiline
+                            value={reportDescription}
+                            onChangeText={setReportDescription}
+                        />
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: colors.borderLight }]}
+                                onPress={() => setReportModalVisible(false)}
+                            >
+                                <Text>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: colors.gold }]}
+                                onPress={sendReport}
+                            >
+                                <Text>Enviar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {post.Images?.length > 0 && (
                 <Modal
                     visible={enlargedVisible}
@@ -250,6 +330,39 @@ const styles = StyleSheet.create({
     liked: {
         backgroundColor: colors.gold, // Fondo amarillo
     },
+    // report 
+    reportModal: {
+        width: "85%",
+        backgroundColor: colors.warmWhite,
+        borderRadius: 8,
+        padding: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 12,
+        color: colors.textDark,
+    },
+    reportInput: {
+        height: 100,
+        borderColor: colors.borderLight,
+        borderWidth: 1,
+        borderRadius: 6,
+        padding: 10,
+        marginBottom: 20,
+        textAlignVertical: "top",
+    },
+    modalButtons: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+    },
+    modalButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 6,
+        marginLeft: 10,
+    },
+
 });
 
 export default PostCard;

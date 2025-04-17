@@ -17,6 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
 import CommentItem from "@/components/Posts/CommentItem"; // Importa el componente
 import FullScreenImageModal from '../FullScreenImage/FullScreenImageModal';
+import { createOrUpdateContentReport } from "@/services/reports";
 
 interface PostDetailViewProps {
     post: Post;
@@ -52,6 +53,35 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
         };
         fetchComments();
     }, [post.id, token]);
+    // --- ESTADOS PARA EL MODAL DE REPORT ---
+    const [reportModalVisible, setReportModalVisible] = useState(false);
+    const [reportDescription, setReportDescription] = useState("");
+
+    const sendReport = async () => {
+        if (!reportDescription.trim()) {
+            Alert.alert("Error", "La descripción no puede estar vacía.");
+            return;
+        }
+        try {
+            await createOrUpdateContentReport(
+                {
+                    contentType: "post",
+                    description: reportDescription,
+                    reportedContentId: post.id,
+                },
+                token as string
+            );
+            Alert.alert("Gracias", "Tu reporte ha sido enviado.");
+            setReportModalVisible(false);
+        } catch (e: any) {
+            console.error(e);
+            Alert.alert("Error", "No se pudo enviar el reporte.");
+        }
+    };
+    const openReportModal = () => {
+        setReportDescription("");
+        setReportModalVisible(true);
+    };
 
     const handleLike = async () => {
         if (!token) return;
@@ -177,8 +207,53 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                     <TouchableOpacity style={styles.actionButton}>
                         <Ionicons name="share-social-outline" size={20} color={colors.textDark} />
                     </TouchableOpacity>
+                    {/* NUEVO BOTÓN DE REPORTE */}
+                    <TouchableOpacity
+                        style={styles.actionButton}
+                        onPress={openReportModal}
+                    >
+                        <Ionicons
+                            name="flag-outline"
+                            size={20}
+                            color={colors.textDark}
+                        />
+                    </TouchableOpacity>
                 </View>
             </View>
+            {/* Modal de imagen agrandada */}
+            <Modal
+                visible={reportModalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setReportModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.reportModal}>
+                        <Text style={styles.modalTitle}>Reportar este post</Text>
+                        <TextInput
+                            style={styles.reportInput}
+                            placeholder="Descripción del reporte"
+                            multiline
+                            value={reportDescription}
+                            onChangeText={setReportDescription}
+                        />
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: colors.borderLight }]}
+                                onPress={() => setReportModalVisible(false)}
+                            >
+                                <Text>Cancelar</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, { backgroundColor: colors.gold }]}
+                                onPress={sendReport}
+                            >
+                                <Text>Enviar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
             <View style={styles.commentsContainer}>
                 <View style={styles.commentsHeader}>
                     <Text style={styles.commentsTitle}>
@@ -333,7 +408,7 @@ const styles = StyleSheet.create({
     },
     actionsContainer: {
         flexDirection: "row",
-        justifyContent: "center",
+        justifyContent: "space-between",
         marginTop: 8,
     },
     actionButton: {
@@ -394,6 +469,44 @@ const styles = StyleSheet.create({
         color: "#888",
         marginVertical: 10,
         fontSize: 14,
+    },
+    // report 
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.8)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    reportModal: {
+        width: "85%",
+        backgroundColor: colors.warmWhite,
+        borderRadius: 8,
+        padding: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 12,
+        color: colors.textDark,
+    },
+    reportInput: {
+        height: 100,
+        borderColor: colors.borderLight,
+        borderWidth: 1,
+        borderRadius: 6,
+        padding: 10,
+        marginBottom: 20,
+        textAlignVertical: "top",
+    },
+    modalButtons: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+    },
+    modalButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 6,
+        marginLeft: 10,
     },
 });
 

@@ -22,8 +22,9 @@ func AdminReportRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *m
 	reportsGroup := app.Group("/reports")
 
 	// reports
-	reportsGroup.Post("/reports", middleware.UseExtractor(), reportHandler.CreateReport)       // Crear reporte a usuario
-	reportsGroup.Post("/reportContent", middleware.UseExtractor(), reportHandler.CreateReport) // Crear reporte
+	reportsGroup.Post("/reports", middleware.UseExtractor(), reportHandler.CreateReport)                      // Crear reporte a usuario
+	reportsGroup.Post("/reportContent", middleware.UseExtractor(), reportHandler.CreateOrUpdateContentReport) // Crear reporte
+
 	reportsGroup.Get("/GetContentReports", middleware.UseExtractor(), reportHandler.GetContentReports)
 
 	// admin
@@ -33,8 +34,9 @@ func AdminReportRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *m
 	adminGroup.Post("/reports/:id/read", reportHandler.MarkReportAsRead) // Marcar reporte como leído
 	adminGroup.Post("/block", reportHandler.BlockUser)                   // Bloquear usuario (requiere autorización de admin)
 
-	adminGroup.Delete("/deleteJob", middleware.UseExtractor(), reportHandler.DeleteJob)   // delete job(requiere autorización de admin)
-	adminGroup.Delete("/deletePost", middleware.UseExtractor(), reportHandler.DeletePost) // delete job(requiere autorización de admin)
+	adminGroup.Delete("/deleteJob", middleware.UseExtractor(), reportHandler.DeleteJob)                     // delete job(requiere autorización de admin)
+	adminGroup.Delete("/deletePost", middleware.UseExtractor(), reportHandler.DeletePost)                   // delete job(requiere autorización de admin)
+	adminGroup.Delete("/deleteContentReport", middleware.UseExtractor(), reportHandler.DeleteContentReport) // Crear reporte
 
 	// admin tags
 	adminGroup.Get("/tags", reportHandler.GetAllTagsHandler)

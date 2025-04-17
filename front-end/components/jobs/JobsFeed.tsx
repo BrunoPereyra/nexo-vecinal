@@ -18,9 +18,7 @@ import { useAuth } from "@/context/AuthContext";
 import JobCard from "@/components/JobCardHome";
 import JobSearchFilters, { FilterParams } from "@/components/jobCards/JobSearchFilters";
 import JobDetailView from "@/components/jobCards/JobDetailView";
-import RecommendedWorkersRow from "@/components/RecommendedWorkersRow";
 import colors from "@/style/colors";
-import { Ionicons } from "@expo/vector-icons";
 
 const HEADER_HEIGHT = 50;
 

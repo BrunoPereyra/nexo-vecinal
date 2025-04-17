@@ -283,3 +283,66 @@ export const DeleteJob = async (jobId: string, code: string, token: string) => {
         throw error;
     }
 };
+/*
+* Realiza una petición para deletear job
+* @param PostId - ID del Job
+* @param token - Token del usuario para autorización.
+* @returns La respuesta de la API en formato JSON.
+*/
+export const DeletePost = async (PostId: string, code: string, token: string) => {
+    try {
+        const res = await fetch(`${API}/admin/deletePost`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ PostId: PostId, AdminCode: code }), // Se envía también el código
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en DeleteJob:", error);
+        throw error;
+    }
+};
+
+export const deleteContentReport = async (IdReport: string, code: string, token: string) => {
+    try {
+        console.log("IdReport", IdReport);
+
+        const res = await fetch(`${API}/admin/deleteContentReport`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ IdReport, AdminCode: code }),
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en DeleteJob:", error);
+        throw error;
+    }
+};
+// Extender ContentReport con los campos necesarios para manejar los botones
+export type ContentReport = {
+    id: string;
+    text: string;
+    ReportedContentID: string;
+    ContentType: 'post' | 'job';
+    reports: { description: string }[];
+    createdAt: string;
+    read: boolean;
+};

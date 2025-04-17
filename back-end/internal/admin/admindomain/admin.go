@@ -25,18 +25,18 @@ type UserSummary struct {
 
 // UserReportResponse representa un reporte enriquecido con la información de los usuarios.
 type UserReportResponse struct {
-	ID           primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	ID           primitive.ObjectID `json:"id"           bson:"_id,omitempty"`
 	ReportedUser UserSummary        `json:"reportedUser"`
 	ReporterUser UserSummary        `json:"reporterUser"`
-	Text         string             `json:"text" bson:"text"`
-	CreatedAt    time.Time          `json:"createdAt" bson:"createdAt"`
-	Read         bool               `json:"read" bson:"read"`
+	Text         string             `json:"text"        bson:"text"`
+	CreatedAt    time.Time          `json:"createdAt"   bson:"createdAt"`
+	Read         bool               `json:"read"        bson:"read"`
 }
 type Tag struct {
 	Tag string `bson:"tag" json:"tag"`
 }
 type ContentReport struct {
-	ID                primitive.ObjectID `bson:"_id,omitempty"`
+	ID                primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	ReportedContentID primitive.ObjectID `bson:"reportedContentId"`
 	ContentType       string             `bson:"contentType"` // "post" o "job"
 	Reports           []ReportDetail     `bson:"reports"`
