@@ -9,7 +9,7 @@ export interface Job {
     userDetails: JobUserDetails;
     status: string;
     Images: string[];
-
+    createdAt: string;
 }
 export interface JobUserDetails {
     avatar: string;
@@ -531,4 +531,12 @@ export const GetJobDetailvisited = async (id: string) => {
     } catch (error) {
         console.error('Error en GetJobDetailvisited:', error);
     }
+};
+export const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
 };

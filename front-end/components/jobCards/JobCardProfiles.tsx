@@ -3,6 +3,7 @@ import { TouchableOpacity, Text, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { usePathname, useRouter } from "expo-router";
 import colors from "@/style/colors";
+import { formatDate } from "@/services/JobsService";
 
 interface JobCardProfilesProps {
     item: any;
@@ -61,6 +62,9 @@ export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({
                     </View>
                 </View>
             )}
+            <Text style={styles.cardStatus}>
+                Fecha: {formatDate(item.createdAt)}
+            </Text>
         </TouchableOpacity>
     );
 };

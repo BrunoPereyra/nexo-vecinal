@@ -11,7 +11,7 @@ import {
     TextInput,
 } from "react-native";
 import colors from "@/style/colors";
-import { Job } from "@/services/JobsService";
+import { formatDate, Job } from "@/services/JobsService";
 import { createOrUpdateContentReport } from "@/services/reports";
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,6 +29,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
     const scaleValue = useRef(new Animated.Value(1)).current;
     // Estado para mostrar la imagen en grande en un modal
     const [enlargedVisible, setEnlargedVisible] = useState(false);
+
 
     const handleLongPressIn = () => {
         Animated.spring(scaleValue, {
@@ -98,6 +99,8 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                         <View style={styles.userDetailsContainer}>
                             <Text style={styles.userName}>
                                 {job.userDetails?.nameUser || "Usuario Desconocido"}
+                                <Text style={styles.separator}>·</Text>{" "}
+                                <Text style={styles.date}>{formatDate(job.createdAt)}</Text>
                             </Text>
                             {/* NUEVO BOTÓN DE REPORTE */}
                             <TouchableOpacity
@@ -138,6 +141,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                             <Text style={styles.budgetText}>
                                 Presupuesto: ${job.budget?.toFixed(2) || "N/A"}
                             </Text>
+
                         </View>
                     </View>
                 </TouchableOpacity>
@@ -304,6 +308,15 @@ const styles = StyleSheet.create({
     actionButton: {
         flexDirection: "row",
         alignItems: "center",
+    },
+    separator: {
+        marginHorizontal: 6,
+        color: "#999", // o el color que quieras para el separador
+        fontSize: 16,
+    },
+    date: {
+        fontSize: 14,
+        color: "#777",
     },
 });
 

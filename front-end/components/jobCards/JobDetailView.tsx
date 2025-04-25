@@ -11,7 +11,7 @@ import {
     Modal,
     Dimensions,
 } from 'react-native';
-import { applyToJob, Job } from '@/services/JobsService';
+import { applyToJob, formatDate, Job } from '@/services/JobsService';
 import { useAuth } from '@/context/AuthContext';
 import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
 import colors from '@/style/colors';
@@ -89,7 +89,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                 <Text style={styles.title}>{job.title}</Text>
                 <Text style={styles.description}>{job.description}</Text>
                 {/* Mostrar imágenes en un ScrollView horizontal */}
-                {Array.isArray(job.Images) && job.Images.length > 0 && (
+                {Array.isArray(job.Images) && job.Images?.[0] && (
                     <View style={styles.imageContainer}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
                             {job.Images.map((imageUrl, index) => (
@@ -126,6 +126,9 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                             <Text style={styles.tagText}>{tag}</Text>
                         </View>
                     ))}
+                    <Text style={styles.cardStatus}>
+                        Fecha: {formatDate(job.createdAt)}
+                    </Text>
                 </View>
                 {showInputs && (
                     <View style={styles.applyForm}>
@@ -331,7 +334,11 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         resizeMode: "cover",
     },
-
+    cardStatus: {
+        fontSize: 14,
+        color: colors.textMuted, // "#888"
+        marginBottom: 6,
+    },
 });
 
 export default JobDetailView;

@@ -88,9 +88,9 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     avatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 110,
+        height: 110,
+        borderRadius: 100,
         borderWidth: 2,
         borderColor: colors.gold, // "#FFD700"
     },

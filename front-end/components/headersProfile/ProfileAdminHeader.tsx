@@ -112,30 +112,30 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
         <>
 
             <View style={styles.centerContainer}>
-                {/* Avatar con animación de escala */}
-                <Animated.View style={[styles.avatarWrapper, { transform: [{ scale: scaleAnim }] }]}>
-                    <TouchableOpacity
-                        onPress={handleAvatarEdit}
-                        onLongPress={handleAvatarLongPress}
-                        onPressIn={() => animateScale(0.95)}
-                        onPressOut={() => animateScale(1)}
-                        activeOpacity={0.8}
-                    >
-                        <Image source={{ uri: avatar }} style={styles.avatar} />
-                        <View style={styles.editIcon}>
-                            <MaterialIcons name="edit" size={20} color="#fff" />
-                        </View>
-                    </TouchableOpacity>
-                </Animated.View>
+                <View style={styles.topRow}>
+                    {/* Avatar con animación de escala */}
+                    <Animated.View style={[styles.avatarWrapper, { transform: [{ scale: scaleAnim }] }]}>
+                        <TouchableOpacity
+                            onPress={handleAvatarEdit}
+                            onLongPress={handleAvatarLongPress}
+                            onPressIn={() => animateScale(0.95)}
+                            onPressOut={() => animateScale(1)}
+                            activeOpacity={0.8}
+                        >
+                            <Image source={{ uri: avatar }} style={styles.avatar} />
+                            <View style={styles.editIcon}>
+                                <MaterialIcons name="edit" size={20} color="#fff" />
+                            </View>
+                        </TouchableOpacity>
+                    </Animated.View>
+                    <View style={styles.infoContainer}>
+                        {/* Nombre y Usuario */}
+                        <Text style={styles.fullName}>{user.FullName || "Sin Nombre"}</Text>
+                        <Text style={styles.username}>@{user.NameUser || "usuario"}</Text>
 
-                {/* Nombre y Usuario */}
-                <Text style={styles.fullName}>{user.FullName || "Sin Nombre"}</Text>
-                <Text style={styles.username}>@{user.NameUser || "usuario"}</Text>
-
-                {/* Biografía */}
-                {!!user.biography && (
-                    <Text style={styles.biography}>{user.biography}</Text>
-                )}
+                    </View>
+                </View>
+                <Text style={styles.biography}>{user.biography}</Text>
             </View>
 
             {/* Modal para mostrar el avatar en grande */}
@@ -158,28 +158,31 @@ export const ProfileAdminHeader: React.FC<ProfileAdminHeaderProps> = ({ user }) 
 };
 
 const styles = StyleSheet.create({
-    coverGradient: {
-        width: "100%",
-        paddingVertical: 40,
-        paddingHorizontal: 20,
-        borderBottomLeftRadius: 12,
-        borderBottomRightRadius: 12,
-        backgroundColor: colors.cream, // "#FFF8DC"
+    infoContainer: {
+        flex: 1,
+        marginLeft: 16,
+    },
+    topRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 12,
     },
     centerContainer: {
         alignItems: "center",
         justifyContent: "center",
+        width: "100%",
     },
     avatarWrapper: {
-        width: 110,
-        height: 110,
+        width: 100,
+        height: 100,
         marginBottom: 12,
     },
     avatar: {
-        width: "100%",
-        height: "100%",
-        borderRadius: 55,
-        resizeMode: "cover",
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: colors.gold, // "#FFD700"
     },
     editIcon: {
         position: "absolute",
@@ -194,20 +197,19 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: colors.textDark, // "#333"
         marginBottom: 4,
-        textAlign: "center",
+        textAlign: "left",
     },
     username: {
         fontSize: 16,
         fontStyle: "italic",
         marginBottom: 8,
-        textAlign: "center",
+        textAlign: "left",
     },
     biography: {
+        width: "100%",
         fontSize: 14,
-        lineHeight: 20,
-        color: colors.textMuted, // "#888"
-        textAlign: "center",
-        marginHorizontal: 16,
+        color: colors.textDark, // "#B0B0B0"
+        textAlign: "left",
     },
     modalOverlay: {
         flex: 1,

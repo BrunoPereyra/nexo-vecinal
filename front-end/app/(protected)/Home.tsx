@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Text,
   Image,
-  ActivityIndicator,
   Animated
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -54,7 +53,7 @@ const Home: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          {loadingAvatar ? (
+          {/* {loadingAvatar ? (
             <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             avatar ? (
@@ -64,7 +63,7 @@ const Home: React.FC = () => {
                 <Text style={styles.avatarText}>U</Text>
               </View>
             )
-          )}
+          )} */}
         </View>
         <Image source={require('@/assets/images/logo-nexovecinal-transparente.png')} style={styles.logo} />
         <View style={{ width: 40, height: 40 }}>

@@ -495,19 +495,18 @@ const styles = StyleSheet.create({
     toggleIcon: {
         marginRight: 6,
     },
+
+    activeToggleText: {
+        color: colors.textDark, // "#333"
+        fontWeight: "bold",
+    },
     toggleButtonText: {
         fontSize: 14,
-        flexShrink: 1,
         color: colors.textDark, // "#333"
-        textAlign: "center",
     },
     activeToggle: {
-        backgroundColor: "",
-        borderColor: colors.Black,
-    },
-    activeToggleText: {
-        color: colors.textDark, // Blanco para contraste sobre primary
-        fontWeight: "bold",
+        backgroundColor: colors.gold, // "#FFD700"
+        borderColor: colors.gold, // "#FFD700"
     },
     emptyContainer: {
         flex: 1,

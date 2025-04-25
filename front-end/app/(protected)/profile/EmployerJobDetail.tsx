@@ -16,7 +16,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   GetJobTokenAdmin,
   updateJobStatusToCompleted,
-  provideEmployerFeedback
+  provideEmployerFeedback,
+  formatDate
 } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ApplicantsList from '@/components/ApplicantsList';
@@ -173,6 +174,9 @@ export default function EmployerJobDetail() {
             <Text style={styles.detailLabel}>Estado:</Text>
             <Text style={styles.detailValue}>{jobDetail.status}</Text>
           </View>
+          <Text style={styles.cardStatus}>
+            Fecha: {formatDate(jobDetail.createdAt)}
+          </Text>
           {assignedCandidate && (
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Asignado a:</Text>
@@ -381,5 +385,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 10,
     resizeMode: "cover",
+  }, cardStatus: {
+    fontSize: 14,
+    color: colors.textMuted, // "#888"
+    marginBottom: 6,
   },
 });

@@ -16,6 +16,7 @@ import { Post } from "@/services/posts";
 import PostDetailView from "./PostDetailView";
 import { createOrUpdateContentReport } from "@/services/reports";
 import { useAuth } from "@/context/AuthContext";
+import { formatDate } from "@/services/JobsService";
 
 interface PostCardProps {
     post: Post;
@@ -141,9 +142,12 @@ const PostCard: React.FC<PostCardProps> = ({
                     <View style={styles.content}>
                         <View style={styles.headerContainer}>
                             <Text style={styles.userName}>
-                                {post.userDetails?.nameUser || "Usuario Desconocido"}
+                                {post.userDetails?.nameUser || "Usuario Desconocido"}{" "}
+                                <Text style={styles.separator}>·</Text>{" "}
+                                <Text style={styles.date}>{formatDate(post.createdAt)}</Text>
                             </Text>
                         </View>
+
                         <Text style={styles.title}>{post.title}</Text>
                         <Text style={styles.description}>
                             {truncateDescription(post.description, 100)}
@@ -301,6 +305,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: 200,
         marginBottom: 10,
+        borderRadius: 8,
     },
     actionsContainer: {
         flexDirection: "row",
@@ -365,6 +370,15 @@ const styles = StyleSheet.create({
         marginLeft: 10,
     },
 
+    separator: {
+        marginHorizontal: 6,
+        color: "#999", // o el color que quieras para el separador
+        fontSize: 16,
+    },
+    date: {
+        fontSize: 14,
+        color: "#777",
+    },
 });
 
 export default PostCard;

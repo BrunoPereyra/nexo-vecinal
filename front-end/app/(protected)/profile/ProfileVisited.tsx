@@ -186,9 +186,8 @@ export default function VisitedProfileScreen() {
                     </Text>
                 </View>
             )} */}
-            <TouchableOpacity style={styles.reportButton} onPress={() => setReportModalVisible(true)}>
-                <Text style={styles.reportButtonText}>Reportar</Text>
-            </TouchableOpacity>
+
+
             {/* Si se desea permitir la creación de trabajos en perfil de visita, se podría habilitar */}
             <View style={styles.toggleContainer}>
                 <TouchableOpacity
@@ -311,7 +310,12 @@ export default function VisitedProfileScreen() {
                     </View>
                 </View>
             </Modal>
-
+            <TouchableOpacity
+                style={styles.reportFab}
+                onPress={() => setReportModalVisible(true)}
+            >
+                <Ionicons name="flag-outline" size={24} color={colors.textDark} />
+            </TouchableOpacity>
             {/* Botón flotante para abrir el chat */}
             {
                 userProfile &&
@@ -403,21 +407,21 @@ const styles = StyleSheet.create({
         borderColor: colors.borderLight, // "#EAE6DA"
         marginHorizontal: 4,
         flexShrink: 1,
+        backgroundColor: colors.cream, // "#FFF8DC"
     },
-    activeToggle: {
-        backgroundColor: "",
-        borderColor: colors.Black,
-    },
+
     activeToggleText: {
-        color: colors.textDark, // Blanco para contraste sobre primary
+        color: colors.textDark, // "#333"
         fontWeight: "bold",
     },
     toggleButtonText: {
         fontSize: 16,
         color: colors.textDark, // "#333"
-        textAlign: "center",
     },
-
+    activeToggle: {
+        backgroundColor: colors.gold, // "#FFD700"
+        borderColor: colors.gold, // "#FFD700"
+    },
     reportButton: {
         position: "absolute",
         top: 16,
@@ -492,12 +496,30 @@ const styles = StyleSheet.create({
     },
     fab: {
         position: "absolute",
-        bottom: 90,
-        right: 10,
-        backgroundColor: colors.cream,
+        bottom: 30,
+        right: 30,
+        backgroundColor: colors.gold, // "#FFD700"
         width: 60,
         height: 60,
         borderRadius: 30,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1,
+        borderColor: colors.borderLight, // "#EAE6DA"
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    reportFab: {
+        position: "absolute",
+        bottom: 110,
+        right: 36,
+        backgroundColor: colors.gold,       // fondo contrastante
+        width: 48,                          // tamaño fijo
+        height: 48,
+        borderRadius: 24,                   // círculo
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 1,
@@ -507,5 +529,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
+        zIndex: 10,
     },
 });
