@@ -30,9 +30,11 @@ export const createJob = async (jobData: any, token: string) => {
         formData.append("title", jobData.title);
         formData.append("description", jobData.description);
         formData.append("budget", jobData.budget.toString());
-        formData.append("tags", JSON.stringify(jobData.tags));
         formData.append("locationStr", JSON.stringify(jobData.location));
 
+        jobData.tags.forEach((tag: string) => {
+            formData.append("tags", tag);
+        });
         if (jobData.image && jobData.image.uri) {
             const imageFile = {
                 uri: jobData.image.uri,

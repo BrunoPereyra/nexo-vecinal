@@ -12,7 +12,6 @@ import (
 )
 
 func UserRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Client) {
-
 	userRepository := infrastructure.NewUserRepository(redisClient, newMongoDB)
 	userService := application.NewChatService(userRepository)
 	UserHandler := interfaces.NewUserHandler(userService)

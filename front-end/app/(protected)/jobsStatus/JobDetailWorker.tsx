@@ -246,7 +246,6 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
     },
     avatarWrapper: {
         width: 60,
@@ -283,7 +282,6 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
     },
     jobTitle: {
         fontSize: 24,
@@ -321,7 +319,6 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
     },
     map: {
         flex: 1,
@@ -339,7 +336,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderWidth: 1,
         borderColor: colors.borderLight,
-        elevation: 5,
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },

@@ -21,7 +21,7 @@
             ],
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/logo-nexovecinal-transparente.png",
-                "backgroundColor": "#EAE6DA"
+                "backgroundColor": "#bcc6d4"
             }
         },
         "web": {
@@ -37,7 +37,7 @@
                     "image": "./assets/images/logo-nexovecinal-transparente.png",
                     "imageWidth": 200,
                     "resizeMode": "contain",
-                    "backgroundColor": "#EAE6DA"
+                    "backgroundColor": "#bcc6d4"
                 }
             ],
             [

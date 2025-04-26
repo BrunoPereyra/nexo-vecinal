@@ -13,6 +13,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { getJobsByFilters, Job } from '@/services/JobsService';
 import { DeleteJob } from '@/services/admin';
+import colors from '@/style/colors';
 
 export default function AdminJobsPanel() {
     const { token } = useAuth();
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: '#2c5364',
+        borderColor: colors.borderDark,
     },
     jobTitle: {
         color: '#E0E0E0',

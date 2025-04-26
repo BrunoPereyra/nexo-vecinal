@@ -159,14 +159,14 @@ export default function Agenda() {
     const renderFooter = () => {
         if (!loadingMore) return null;
         return (
-            <ActivityIndicator style={{ marginVertical: 16 }} color="#2c5364" />
+            <ActivityIndicator style={{ marginVertical: 16 }} color={colors.borderDark} />
         );
     };
 
     if (loading && page === 1) {
         return (
             <View style={styles.center}>
-                <ActivityIndicator size="large" color="#2c5364" />
+                <ActivityIndicator size="large" color={colors.borderDark} />
                 <Text style={styles.loadingText}>Cargando chats...</Text>
             </View>
         );

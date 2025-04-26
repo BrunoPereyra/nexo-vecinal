@@ -4,6 +4,8 @@ const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90
 
 
 export const loginNameUser = async (NameUser: string, password: string) => {
+    console.log("API", API + "/user/login");
+
     try {
         const res = await fetch(API + "/user/login", {
             method: 'POST',

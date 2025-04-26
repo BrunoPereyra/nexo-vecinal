@@ -19,6 +19,7 @@ import {
     GetSupportAgent,
 } from "@/services/supportChat";
 import { MaterialIcons } from '@expo/vector-icons';
+import colors from "@/style/colors";
 
 // Interfaz para el usuario
 export interface User {
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
         elevation: 6,
         height: "80%",
         borderWidth: 1,
-        borderColor: "#2c5364", // Borde destacado
+        borderColor: colors.borderDark, // Borde destacado
     },
     modalHeader: {
         flexDirection: "row",
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         borderWidth: 1,
-        borderColor: "#2c5364", // Borde destacado
+        borderColor: colors.borderDark, // Borde destacado
         borderRadius: 8,
         paddingHorizontal: 12,
         paddingVertical: 8,
@@ -277,7 +278,7 @@ const styles = StyleSheet.create({
         padding: 12,
         marginVertical: 4,
         borderWidth: 1,
-        borderColor: "#2c5364", // Borde para distinguir
+        borderColor: colors.borderDark, // Borde para distinguir
     },
     myMessage: {
         alignSelf: "flex-end",

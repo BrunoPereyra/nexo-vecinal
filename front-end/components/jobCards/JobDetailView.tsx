@@ -126,10 +126,11 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
                             <Text style={styles.tagText}>{tag}</Text>
                         </View>
                     ))}
-                    <Text style={styles.cardStatus}>
-                        Fecha: {formatDate(job.createdAt)}
-                    </Text>
+
                 </View>
+                <Text style={styles.cardStatus}>
+                    Fecha: {formatDate(job.createdAt)}
+                </Text>
                 {showInputs && (
                     <View style={styles.applyForm}>
                         <TextInput
@@ -234,7 +235,6 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 16,
         marginBottom: 20,
-        elevation: 3,
         shadowColor: "#000",
         shadowOpacity: 0.2,
         shadowOffset: { width: 0, height: 2 },

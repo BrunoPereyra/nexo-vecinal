@@ -292,7 +292,6 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
   jobTitle: {
     fontSize: 24,
@@ -323,13 +322,12 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 10,
     overflow: "hidden",
-    marginBottom: 16,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: colors.borderLight, // "#EAE6DA"
     shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
     backgroundColor: colors.cream, // "#FFF8DC"
   },
   map: {
@@ -340,7 +338,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 10,
-    margin: 15,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -349,7 +346,6 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
-    elevation: 3,
   },
   completeButtonText: {
     color: colors.textDark, // "#333"
@@ -369,7 +365,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: colors.borderLight,
-    elevation: 5,
     shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },

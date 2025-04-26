@@ -130,8 +130,6 @@ export const CreateJob: React.FC<CreateJobProps> = ({
         name: `image.${extension}`,
         type: "image/jpeg",
       };
-    } else {
-      jobData.image = null;
     }
 
     try {

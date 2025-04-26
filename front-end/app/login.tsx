@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { loginNameUser } from '../services/authService';
@@ -45,10 +45,14 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-      <Button title="Login" onPress={handleLogin} color={colors.gold} />
-      <View style={styles.buttonSpacing}>
-        <Button title="Ir a Signup" onPress={() => router.push('/signup')} color={colors.gold} />
-      </View>
+
+      <TouchableOpacity style={styles.signupButton} onPress={handleLogin}>
+        <Text style={styles.signupButtonText}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/signup')}>
+        <Text style={styles.loginButtonText}>Ir a registro</Text>
+      </TouchableOpacity>
+
     </View>
   );
 }
@@ -85,6 +89,41 @@ const styles = StyleSheet.create({
     color: colors.errorRed, // "#D32F2F" (Rojo para errores)
     textAlign: "center",
     marginBottom: 10,
+  },
+
+
+
+
+
+
+  signupButton: {
+    backgroundColor: colors.gold,
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 10,
+    shadowColor: colors.textDark,
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  signupButtonText: {
+    color: colors.textDark,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  loginButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.gold,
+    paddingVertical: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 10,
+  },
+  loginButtonText: {
+    color: colors.textDark,
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
 

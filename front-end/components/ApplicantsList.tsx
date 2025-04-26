@@ -282,7 +282,6 @@ const ApplicantsList: React.FC<ApplicantsListProps> = ({ job, token }) => {
 
 const styles = StyleSheet.create({
     container: {
-        padding: 16,
         backgroundColor: colors.background, // "#FFFFFF"
     },
     sectionContainer: {

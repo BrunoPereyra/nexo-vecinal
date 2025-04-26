@@ -164,7 +164,6 @@ const styles = StyleSheet.create({
         shadowColor: "#000",
         shadowOpacity: 0.3,
         shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
     },
     sectionTitle: {
         fontSize: 20,

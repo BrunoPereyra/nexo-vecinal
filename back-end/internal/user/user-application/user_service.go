@@ -63,6 +63,7 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	modelNewUser.FullName = newUser.FullName
 	modelNewUser.PasswordHash = passwordHash
 	modelNewUser.Banner = ""
+	modelNewUser.Biography = "Biografia no configurada"
 	modelNewUser.Pais = newUser.Pais
 	modelNewUser.Ciudad = newUser.Ciudad
 	modelNewUser.Email = newUser.Email

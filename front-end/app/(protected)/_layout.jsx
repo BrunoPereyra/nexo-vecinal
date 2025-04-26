@@ -20,8 +20,8 @@ export default function ProtectedLayout() {
               headerShown: false,
               tabBarShowLabel: false,
               tabBarStyle: styles.tabBarStyle,
-              tabBarActiveTintColor: colors.cream,
-              tabBarInactiveTintColor: '#757575',
+              tabBarActiveTintColor: '#757575',
+              tabBarInactiveTintColor:   colors.textDark,
             }}
           >
             <Tabs.Screen

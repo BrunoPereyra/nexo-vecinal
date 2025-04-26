@@ -18,6 +18,7 @@ import VisitedProfileModal from '../modalProfilevisited/VisitedProfileModa';
 import CommentItem from "@/components/Posts/CommentItem"; // Importa el componente
 import FullScreenImageModal from '../FullScreenImage/FullScreenImageModal';
 import { createOrUpdateContentReport } from "@/services/reports";
+import { formatDate } from '@/services/JobsService';
 
 interface PostDetailViewProps {
     post: Post;
@@ -195,6 +196,9 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
                         onClose={() => setShowImageModal(false)}
                     />
                 )}
+                <Text style={styles.cardStatus}>
+                    Fecha: {formatDate(post.createdAt)}
+                </Text>
                 <View style={styles.actionsContainer}>
                     <TouchableOpacity style={styles.actionButton} onPress={post.userLiked ? handledislike : handleLike}>
                         <Ionicons
@@ -508,6 +512,11 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         borderRadius: 6,
         marginLeft: 10,
+    },
+    cardStatus: {
+        fontSize: 14,
+        color: colors.textMuted, // "#888"
+        marginBottom: 6,
     },
 });
 
