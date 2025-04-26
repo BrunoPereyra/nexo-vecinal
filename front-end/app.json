@@ -110,8 +110,8 @@
         "projectId": "2e04fce3-d5b1-4292-ade0-021a4e6f8eb6"
       },
       "GOOGLE_MAPS_API_KEY": "@env.GOOGLE_MAPS_API_KEY",
-      "EXPO_URL_API": "http://192.168.0.28:9000",
-      "EXPO_URL_APIWS": "ws://192.168.0.28:9000",
+      "EXPO_URL_API": "https://www.pinkker.tv/9000",
+      "EXPO_URL_APIWS": "wss://www.pinkker.tv/9000",
       "router": {
         "origin": false
       }
