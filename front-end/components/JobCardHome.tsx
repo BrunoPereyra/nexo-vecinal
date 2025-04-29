@@ -22,8 +22,6 @@ interface JobCardProps {
 }
 
 const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
-    const truncateDescription = (text: string, maxLength: number) =>
-        text.length > maxLength ? text.substring(0, maxLength) + "..." : text;
     const { token } = useAuth();
     // Valor animado para la escala de la imagen
     const scaleValue = useRef(new Animated.Value(1)).current;
@@ -99,8 +97,14 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                                     }}
                                     style={styles.avatar}
                                 />
-                                <View >
-                                    <Text style={styles.title}>{job.title}</Text>
+                                <View style={styles.HeaderContainer}>
+                                    <Text
+                                        style={styles.title}
+                                        numberOfLines={1}
+                                        ellipsizeMode="tail"
+                                    >
+                                        {job.title}
+                                    </Text>
                                     <Text style={styles.userName}>
                                         {job.userDetails?.nameUser || "Usuario Desconocido"}
                                         <Text style={styles.separator}>·</Text>{" "}
@@ -123,8 +127,12 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
                         </View>
 
-                        <Text style={styles.description}>
-                            {truncateDescription(job.description, 100)}
+                        <Text
+                            numberOfLines={5}
+                            ellipsizeMode="tail"
+                            style={styles.description}>
+                            {
+                                job.description}
                         </Text>
 
                         {/* Imagen del trabajo (si existe) */}
@@ -224,13 +232,16 @@ const styles = StyleSheet.create({
         // marginRight: 40
     },
     contentContainer: {
-        flex: 1, // Esto hace que el contenedor ocupe todo el espacio disponible
+        flex: 1,
     },
     userDetailsContainer: {
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        // marginBottom: 10,
+        marginBottom: 5,
+    },
+    HeaderContainer: {
+        width: "100%",
     },
     userDetailsNaAvaTitl: {
         flexDirection: "row",
@@ -253,6 +264,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: "500",
         color: colors.textDark,
+        width: "80%",
     },
     description: {
         fontSize: 14,

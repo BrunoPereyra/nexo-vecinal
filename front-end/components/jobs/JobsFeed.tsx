@@ -232,7 +232,6 @@ const styles = StyleSheet.create({
         right: 0,
         backgroundColor: colors.warmWhite,
         zIndex: 10,
-
     },
     filterContainer: {
         paddingVertical: 7,
@@ -260,6 +259,7 @@ const styles = StyleSheet.create({
         top: "0%",
         padding: 13,
         paddingBottom: 16,
+        width: "85%",
     },
     footer: {
         paddingVertical: 70,

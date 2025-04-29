@@ -360,14 +360,10 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     card: {
-        backgroundColor: colors.warmWhite,
+        backgroundColor: colors.cream,
         borderRadius: 10,
         padding: 16,
         marginBottom: 20,
-        elevation: 3,
-        shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowOffset: { width: 0, height: 2 },
     },
     title: {
         fontSize: 24,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
     View,
     Text,
@@ -144,7 +144,13 @@ const PostCard: React.FC<PostCardProps> = ({
                                 style={styles.avatar}
                             />
                             <View style={styles.headerContainer}>
-                                <Text style={styles.title}>{post.title}</Text>
+                                <Text
+                                    style={styles.title}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    {post.title}
+                                </Text>
 
                                 <Text style={styles.userName}>
                                     {post.userDetails?.nameUser || "Usuario Desconocido"}{" "}
@@ -154,8 +160,11 @@ const PostCard: React.FC<PostCardProps> = ({
                             </View>
                         </View>
 
-                        <Text style={styles.description}>
-                            {truncateDescription(post.description, 100)}
+                        <Text
+                            numberOfLines={6}
+                            ellipsizeMode="tail"
+                            style={styles.description}>
+                            {post.description}
                         </Text>
                         {post.Images?.length > 0 && (
                             <Animated.View style={{ transform: [{ scale: scaleValue }] }}>
@@ -174,18 +183,18 @@ const PostCard: React.FC<PostCardProps> = ({
                                 <Ionicons
                                     name={post.userLiked ? "heart" : "heart-outline"}
                                     size={20}
-                                    color={colors.textDark}
+                                    color={styles.IconsColors.color}
                                 />
                                 <Text style={styles.actionText}>{post.likeCount}</Text>
                             </TouchableOpacity>
 
                             <TouchableOpacity style={styles.actionButton} onPress={handleComment}>
-                                <Ionicons name="chatbubble-outline" size={20} color={colors.textDark} />
+                                <Ionicons name="chatbubble-outline" size={20} color={styles.IconsColors.color} />
                                 <Text style={styles.actionText}>{post.commentCount}</Text>
                             </TouchableOpacity>
                             {/* compartir */}
                             {/* <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-                                <Ionicons name="share-social-outline" size={20} color={colors.textDark} />
+                                <Ionicons name="share-social-outline" size={20} color={styles.IconsColors.color}} />
                             </TouchableOpacity> */}
                             {/* NUEVO BOTÓN DE REPORTE */}
                             <TouchableOpacity
@@ -195,7 +204,7 @@ const PostCard: React.FC<PostCardProps> = ({
                                 <Ionicons
                                     name="flag-outline"
                                     size={20}
-                                    color={colors.textDark}
+                                    color={styles.IconsColors.color}
                                 />
                             </TouchableOpacity>
 
@@ -299,10 +308,13 @@ const styles = StyleSheet.create({
         color: colors.textDark,
     },
     description: {
-        fontSize: 14,
+        fontSize: 13,
         color: colors.textDark,
+        // marginBottom: 8,
         lineHeight: 20,
-        marginBottom: 8,
+    },
+    IconsColors: {
+        color: colors.borderDark,
     },
     postImage: {
         width: "100%",
@@ -322,7 +334,7 @@ const styles = StyleSheet.create({
     actionText: {
         marginLeft: 4,
         fontSize: 12,
-        color: colors.textDark,
+        color: colors.textGrey,
     },
     modalOverlay: {
         flex: 1,
