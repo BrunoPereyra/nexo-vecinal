@@ -5,21 +5,22 @@ import {
   TouchableOpacity,
   Text,
   Image,
-  Animated
+  Animated,
+  Modal,
+  Button
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import JobsFeed from "@/components/jobs/JobsFeed";
 import PostsFeed from "@/components/Posts/PostsFeed";
 import colors from "@/style/colors";
+import SubscriptionSection from "@/components/Subscription/SubscriptionSection";
 
 const Home: React.FC = () => {
   const [activeFeed, setActiveFeed] = useState<"jobs" | "posts">("jobs");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loadingAvatar, setLoadingAvatar] = useState(true);
-  // Animated value para el indicador de la pestaña activa:
-  const indicatorAnim = useRef(new Animated.Value(0)).current; // 0: Trabajos, 1: Publicaciones
+  const indicatorAnim = useRef(new Animated.Value(0)).current;
 
-  // Cargar el avatar desde AsyncStorage
   useEffect(() => {
     const loadAvatar = async () => {
       try {
@@ -48,6 +49,59 @@ const Home: React.FC = () => {
     inputRange: [0, 1],
     outputRange: ["5%", "55%"],
   });
+  // promo banner
+  const [showPromoBanner, setShowPromoBanner] = useState(false);
+  const [subscriptionVisible, setSubscriptionVisible] = useState(false);
+
+  useEffect(() => {
+    const checkBannerStatus = async () => {
+      try {
+
+        const lastDismissed = await AsyncStorage.getItem('promoBannerDismissedAt');
+        if (!lastDismissed) {
+          setShowPromoBanner(true);
+          return;
+        }
+        const premiumDataJson = await AsyncStorage.getItem('userPremiumData');
+        if (premiumDataJson) {
+          const premiumData = JSON.parse(premiumDataJson);
+          if (new Date(premiumData.SubscriptionEnd).getTime() > Date.now()) {
+            setShowPromoBanner(false);
+            return
+          }
+        }
+
+        const lastDismissedTimestamp = parseInt(lastDismissed, 10);
+        const now = Date.now();
+        const threeDaysLater = lastDismissedTimestamp + 3 * 24 * 60 * 60 * 1000;
+
+        if (now >= threeDaysLater) {
+          setShowPromoBanner(true);
+        } else {
+          setShowPromoBanner(false);
+        }
+      } catch (err) {
+        console.error("Error comprobando estado del banner:", err);
+      }
+    };
+
+    checkBannerStatus();
+
+    const intervalId = setInterval(checkBannerStatus, 10 * 1000); // Revisar cada 10 segundos
+
+    return () => clearInterval(intervalId); // Limpiar cuando se destruya el componente
+  }, []);
+
+
+  const dismissPromoBanner = async () => {
+    try {
+      const now = Date.now().toString();
+      await AsyncStorage.setItem('promoBannerDismissedAt', now);
+      setShowPromoBanner(false);
+    } catch (err) {
+      console.error("Error ocultando el banner:", err);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -89,9 +143,39 @@ const Home: React.FC = () => {
         </TouchableOpacity>
         <Animated.View style={[styles.indicator, { left: indicatorLeft }]} />
       </View>
+      {showPromoBanner && (
+        <TouchableOpacity style={styles.promoBanner} onPress={() => setSubscriptionVisible(true)}>
+          <Text style={styles.promoText}>
+            ¡Aumenta tus oportunidades de trabajo con la versión Premium!
+          </Text>
+          <TouchableOpacity onPress={dismissPromoBanner} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>X</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      )}
+
+      <Modal
+        visible={subscriptionVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSubscriptionVisible(false)} // Cierra el modal al presionar atrás
+      >
+        <Button
+          title="Cerrar"
+          onPress={() => setSubscriptionVisible(false)}
+          color={colors.gold}
+        />
+        <View style={styles.modalOverlaySubscription}>
+          <View style={styles.modalContentSubscription}>
+            <SubscriptionSection isSubscribed={false} averageRating={4} jobsCompleted={24} />
+
+          </View>
+        </View>
+      </Modal>
       <View style={styles.feedContainer}>
         {activeFeed === "jobs" ? <JobsFeed /> : <PostsFeed />}
       </View>
+
     </View>
   );
 };
@@ -106,12 +190,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: 10,
     backgroundColor: colors.background,
   },
   avatarContainer: {
-    width: 40,
-    height: 40,
+    width: 20,
+    height: 20,
     marginRight: 8,
   },
   avatar: {
@@ -140,6 +224,7 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
     position: "relative",
+    zIndex: 100,
   },
   tabButton: {
     flex: 1,
@@ -163,6 +248,49 @@ const styles = StyleSheet.create({
   feedContainer: {
     flex: 1,
   },
+  // Promo Banner Styles
+  promoBanner: {
+    backgroundColor: colors.cream, // O el color que prefieras
+    padding: 10,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  promoText: {
+    color: colors.textDark,
+    flex: 1,
+    fontSize: 14,
+    marginRight: 10,
+  },
+  closeButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  modalOverlaySubscription: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContentSubscription: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    margin: 20
+  },
+
 });
 
 export default Home;

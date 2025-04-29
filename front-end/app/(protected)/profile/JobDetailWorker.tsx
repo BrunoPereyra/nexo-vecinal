@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import MapView, { Marker, } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { GetJobDetailvisited, provideWorkerFeedback } from '@/services/JobsService';
+import { formatDate, GetJobDetailvisited, provideWorkerFeedback } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedbackSection } from '@/components/FeedbackSection';
 import { useAuth } from '@/context/AuthContext';
@@ -165,6 +165,9 @@ export default function ProfileDetailWorker() {
                         <Text style={styles.detailLabel}>Estado:</Text>
                         <Text style={styles.detailValue}>{jobDetail.status}</Text>
                     </View>
+                    <Text style={styles.cardStatus}>
+                        Fecha: {formatDate(jobDetail.createdAt)}
+                    </Text>
                     {jobDetail.assignedCandidate && (
                         <View style={styles.detailRow}>
                             <Text style={styles.detailLabel}>Asignado a:</Text>
@@ -324,7 +327,7 @@ const styles = StyleSheet.create({
     detailLabel: {
         fontSize: 16,
         fontWeight: "600",
-        color: colors.gold, // "#FFD700"
+        color: colors.textDark, // "#333"
         marginRight: 8,
     },
     detailValue: {
@@ -375,5 +378,10 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 10,
         resizeMode: "cover",
+    },
+    cardStatus: {
+        fontSize: 14,
+        color: colors.textMuted, // "#888"
+        marginBottom: 6,
     },
 });

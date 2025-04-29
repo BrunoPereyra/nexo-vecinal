@@ -44,7 +44,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
         }
         id()
     }, [])
-    const { buySubscription } = useRevenueCat(UserId, token as string);
+    const { buySubscription } = useRevenueCat(UserId);
 
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {

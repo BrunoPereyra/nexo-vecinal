@@ -384,3 +384,19 @@ func (u *ReqCodeInRedisSignup) Validate() error {
 	validate := validator.New()
 	return validate.Struct(u)
 }
+
+type RevenueCatWebhook struct {
+	Event struct {
+		AppUserID      string `json:"app_user_id"`
+		ProductID      string `json:"product_id"`
+		PurchasedAtMs  int64  `json:"purchased_at_ms"`
+		ExpirationAtMs int64  `json:"expiration_at_ms"`
+		Type           string `json:"type"` // Ej: "RENEWAL", "INITIAL_PURCHASE"
+		Environment    string `json:"environment"`
+	} `json:"event"`
+}
+
+func (u *RevenueCatWebhook) Validate() error {
+	validate := validator.New()
+	return validate.Struct(u)
+}

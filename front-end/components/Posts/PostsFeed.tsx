@@ -180,7 +180,7 @@ const PostsFeed: React.FC = () => {
                             <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
                                 <Ionicons name="close" size={24} color={colors.textDark} />
                             </TouchableOpacity>
-                            <Text style={styles.modalTitle}>Agregar Comentario</Text>
+                            <Text style={styles.modalTitle}>Agregar comentario</Text>
                             <View style={styles.commentInputContainer}>
                                 <TextInput
                                     placeholder="Agrega un comentario..."

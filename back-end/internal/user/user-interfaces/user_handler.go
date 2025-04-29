@@ -10,6 +10,7 @@ import (
 	"back-end/pkg/helpers"
 	"back-end/pkg/jwt"
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -575,29 +576,31 @@ func (h *UserHandler) SavePushToken(c *fiber.Ctx) error {
 	})
 }
 func (h *UserHandler) UserPremiumAmonth(c *fiber.Ctx) error {
-	IdUserToken := c.Context().UserValue("_id").(string)
-	IdUserTokenP, errinObjectID := primitive.ObjectIDFromHex(IdUserToken)
+	var req domain.RevenueCatWebhook
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "StatusBadRequest",
+		})
+	}
+	userID, errinObjectID := primitive.ObjectIDFromHex(req.Event.AppUserID)
 	if errinObjectID != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"message": "StatusInternalServerError",
 			"data":    errinObjectID.Error(),
 		})
 	}
-	err := h.userService.UserPremiumAmonth(IdUserTokenP)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "StatusInternalServerError",
-			"data":    err.Error(),
-		})
+	fmt.Println(req.Event)
+	switch req.Event.Type {
+	case "RENEWAL", "INITIAL_PURCHASE":
+		err := h.userService.UserPremiumAmonth(userID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		err = h.userService.UpdateRecommendedWorkerPremium(userID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
 	}
-	err = h.userService.UpdateRecommendedWorkerPremium(IdUserTokenP)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "StatusInternalServerError",
-			"data":    err.Error(),
-		})
-	}
-
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message": "StatusOK",
 	})

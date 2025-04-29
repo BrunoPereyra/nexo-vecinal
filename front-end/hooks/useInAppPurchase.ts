@@ -9,7 +9,7 @@ import Purchases, {
 
 const REVENUECAT_PUBLIC_API_KEY = 'goog_oIZTsprdqkzekMuxDuIgcXGHqcz';
 
-export const useRevenueCat = (userId: string | null, token: string) => {
+export const useRevenueCat = (userId: string) => {
     const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
     const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
     const [isPro, setIsPro] = useState(false);
@@ -21,7 +21,6 @@ export const useRevenueCat = (userId: string | null, token: string) => {
             try {
                 // Configuramos RevenueCat con la API key y el appUserID
                 Purchases.configure({ apiKey: REVENUECAT_PUBLIC_API_KEY, appUserID: userId });
-
                 // Obtenemos los offerings y accedemos al offering con ID "Of_nexovecinal_premium"
                 const offeringsResponse = await Purchases.getOfferings();
                 const myOffering = offeringsResponse.all['Of_nexovecinal_premium'];
@@ -30,7 +29,6 @@ export const useRevenueCat = (userId: string | null, token: string) => {
                 } else {
                     console.warn('No se encontró el offering con ID "Of_nexovecinal_premium"');
                 }
-
                 // Obtenemos la información del cliente
                 const info = await Purchases.getCustomerInfo();
                 setCustomerInfo(info);
@@ -65,9 +63,7 @@ export const useRevenueCat = (userId: string | null, token: string) => {
 
             if (isActive) {
                 Alert.alert('¡Gracias!', 'Tu suscripción ha sido activada.');
-                Alert.alert('Detalles de la compra', `ID de usuario: ${userId}`);
-                Alert.alert('Detalles de la compra', `ID de suscripción: ${customerInfo.entitlements.active.suscripcion_premium}`);
-                await sendPurchaseToBackend("", token);
+                // await sendPurchaseToBackend(userId);
             } else {
                 Alert.alert('Error', 'La suscripción no está activa.');
             }

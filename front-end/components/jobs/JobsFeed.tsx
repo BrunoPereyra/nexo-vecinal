@@ -10,7 +10,6 @@ import {
     NativeScrollEvent,
     Easing,
     ActivityIndicator,
-    TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getJobsByFilters, Job } from "@/services/JobsService";
@@ -236,7 +235,7 @@ const styles = StyleSheet.create({
     },
     filterContainer: {
         paddingVertical: 12,
-        paddingHorizontal: 6,
+        paddingHorizontal: 10,
     },
     recommendedHeader: {
         flexDirection: "row",

@@ -208,6 +208,7 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
 const styles = StyleSheet.create({
     cardContainer: {
+        paddingTop: 10,
         paddingRight: 26,
         paddingBlock: 16,
         shadowOpacity: 0.15,

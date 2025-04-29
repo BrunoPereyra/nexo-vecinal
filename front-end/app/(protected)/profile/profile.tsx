@@ -69,15 +69,23 @@ export default function ProfileScreen() {
             }
             try {
                 const data = await getUserToken(token);
+
                 if (data?.data) {
                     setUserProfile(data.data);
                     setBiografia(data.data.Biography || "");
+                    if (data.data.Premium) {
+                        const Premium = data.data.Premium
+                        if (new Date(Premium.SubscriptionEnd).getTime() > Date.now()) {
+                            await AsyncStorage.setItem('userPremiumData', JSON.stringify(Premium));
+                        } else {
+                            await AsyncStorage.setItem('userPremiumData', JSON.stringify(Premium));
+                        }
+                    }
                 } else {
                     router.push('/login');
                 }
             } catch (err: any) {
                 setError("Error al obtener la información del usuario");
-                console.error(err);
             } finally {
                 setLoading(false);
             }

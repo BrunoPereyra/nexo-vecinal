@@ -167,18 +167,15 @@ export const subscribeUser = async (token: string) => {
         throw error;
     }
 };
-export const sendPurchaseToBackend = async (purchase: any, token: string) => {
+export const sendPurchaseToBackend = async (purchase: any) => {
     try {
         const res = await fetch(`${API}/user/premium`, {
-            method: "PUT",
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
             },
             body: JSON.stringify({
-                orderId: purchase.orderId,
-                productId: purchase.productId,
-                purchaseToken: purchase.purchaseToken,
+                userId: purchase,
             }),
         });
 
