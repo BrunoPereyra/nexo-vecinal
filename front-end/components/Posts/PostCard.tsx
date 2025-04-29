@@ -131,24 +131,29 @@ const PostCard: React.FC<PostCardProps> = ({
                 activeOpacity={0.7}
             >
                 <View style={styles.contentContainer}>
-                    <Image
-                        source={{
-                            uri:
-                                post.userDetails?.avatar ||
-                                "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
-                        }}
-                        style={styles.avatar}
-                    />
+
                     <View style={styles.content}>
-                        <View style={styles.headerContainer}>
-                            <Text style={styles.userName}>
-                                {post.userDetails?.nameUser || "Usuario Desconocido"}{" "}
-                                <Text style={styles.separator}>·</Text>{" "}
-                                <Text style={styles.date}>{formatDate(post.createdAt)}</Text>
-                            </Text>
+                        <View style={styles.userDetailsContainer}>
+
+                            <Image
+                                source={{
+                                    uri:
+                                        post.userDetails?.avatar ||
+                                        "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
+                                }}
+                                style={styles.avatar}
+                            />
+                            <View style={styles.headerContainer}>
+                                <Text style={styles.title}>{post.title}</Text>
+
+                                <Text style={styles.userName}>
+                                    {post.userDetails?.nameUser || "Usuario Desconocido"}{" "}
+                                    <Text style={styles.separator}>·</Text>{" "}
+                                    <Text style={styles.date}>{formatDate(post.createdAt)}</Text>
+                                </Text>
+                            </View>
                         </View>
 
-                        <Text style={styles.title}>{post.title}</Text>
                         <Text style={styles.description}>
                             {truncateDescription(post.description, 100)}
                         </Text>
@@ -262,19 +267,16 @@ const PostCard: React.FC<PostCardProps> = ({
 const styles = StyleSheet.create({
     cardContainer: {
         paddingVertical: 7,
-        paddingRight: 10,
         flexDirection: "row",
-        borderRadius: 0,
-        shadowOpacity: 0,
-        elevation: 0,
+        width: "100%",
+        alignItems: "center",
     },
     contentContainer: {
         flexDirection: "row",
         flex: 1,
     },
     headerContainer: {
-        flexDirection: "row",
-        alignItems: "center",
+
     },
     avatar: {
         width: 36,
@@ -288,11 +290,12 @@ const styles = StyleSheet.create({
     userName: {
         fontSize: 14,
         color: colors.textMuted,
-        fontWeight: "bold",
+        fontWeight: "condensed",
+
     },
     title: {
-        fontSize: 19,
-        fontWeight: "bold",
+        fontSize: 18,
+        fontWeight: "500",
         color: colors.textDark,
     },
     description: {
@@ -378,6 +381,14 @@ const styles = StyleSheet.create({
     date: {
         fontSize: 14,
         color: "#777",
+    },
+    userDetailsContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        // marginBottom: 10,
+
+
     },
 });
 

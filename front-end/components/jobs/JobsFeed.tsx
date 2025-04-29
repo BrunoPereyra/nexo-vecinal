@@ -169,7 +169,7 @@ const JobsFeed: React.FC = () => {
     };
 
     return (
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, }}>
             <Animated.View
                 style={[
                     styles.headerContainer,
@@ -232,10 +232,10 @@ const styles = StyleSheet.create({
         right: 0,
         backgroundColor: colors.warmWhite,
         zIndex: 10,
+
     },
     filterContainer: {
-        paddingVertical: 12,
-        paddingHorizontal: 10,
+        paddingVertical: 7,
     },
     recommendedHeader: {
         flexDirection: "row",
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
         padding: 6,
     },
     listContainer: {
-        top: "1%",
+        top: "0%",
         padding: 13,
         paddingBottom: 16,
     },

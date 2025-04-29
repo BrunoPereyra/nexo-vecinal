@@ -16,6 +16,7 @@ const colors = {
     textLight: "#E0E0E0",
     errorRed: "#CF6679",
     textGrey: "#B0B0B0",
+    ColorPrice: "#1aa98a",
 };
 
 export default colors;

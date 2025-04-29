@@ -217,8 +217,8 @@ const PostsFeed: React.FC = () => {
 
 const styles = StyleSheet.create({
     listContainer: {
-        padding: 16,
-        paddingBottom: 80,
+        padding: 13,
+        paddingBottom: 16,
     },
     commentModalOverlay: {
         flex: 1,

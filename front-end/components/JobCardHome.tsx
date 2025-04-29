@@ -86,22 +86,29 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
                     activeOpacity={0.7}
 
                 >
-                    <Image
-                        source={{
-                            uri: job.userDetails?.avatar ||
-                                "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
-                        }}
-                        style={styles.avatar}
-                    />
                     {/* Nuevo contenedor para el contenido que expanda el ancho restante */}
                     <View style={styles.contentContainer}>
+
                         {/* Sección de usuario en la parte superior */}
                         <View style={styles.userDetailsContainer}>
-                            <Text style={styles.userName}>
-                                {job.userDetails?.nameUser || "Usuario Desconocido"}
-                                <Text style={styles.separator}>·</Text>{" "}
-                                <Text style={styles.date}>{formatDate(job.createdAt)}</Text>
-                            </Text>
+                            <View style={styles.userDetailsNaAvaTitl} >
+                                <Image
+                                    source={{
+                                        uri: job.userDetails?.avatar ||
+                                            "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
+                                    }}
+                                    style={styles.avatar}
+                                />
+                                <View >
+                                    <Text style={styles.title}>{job.title}</Text>
+                                    <Text style={styles.userName}>
+                                        {job.userDetails?.nameUser || "Usuario Desconocido"}
+                                        <Text style={styles.separator}>·</Text>{" "}
+                                        <Text style={styles.date}>{formatDate(job.createdAt)}</Text>
+                                    </Text>
+                                </View>
+                            </View>
+
                             {/* NUEVO BOTÓN DE REPORTE */}
                             <TouchableOpacity
                                 style={styles.actionButton}
@@ -116,7 +123,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
                         </View>
 
-                        <Text style={styles.title}>{job.title}</Text>
                         <Text style={styles.description}>
                             {truncateDescription(job.description, 100)}
                         </Text>
@@ -139,7 +145,10 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 
                         <View style={styles.budgetContainer}>
                             <Text style={styles.budgetText}>
-                                Presupuesto: ${job.budget?.toFixed(2) || "N/A"}
+                                Presupuesto:
+                                <Text style={styles.budgetPrice}>
+                                    {""} ${job.budget?.toFixed(2) || "N/A"}
+                                </Text>
                             </Text>
 
                         </View>
@@ -209,7 +218,6 @@ const JobCard: React.FC<JobCardProps> = ({ job, onPress }) => {
 const styles = StyleSheet.create({
     cardContainer: {
         paddingTop: 10,
-        paddingRight: 26,
         paddingBlock: 16,
         shadowOpacity: 0.15,
         flexDirection: "row",
@@ -224,22 +232,27 @@ const styles = StyleSheet.create({
         justifyContent: "space-between",
         // marginBottom: 10,
     },
+    userDetailsNaAvaTitl: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        // marginBottom: 10,
+    },
     avatar: {
         width: 36,
         height: 36,
         borderRadius: 18,
-        marginRight: 5,
+        marginRight: 10,
     },
     userName: {
         fontSize: 14,
         color: colors.textMuted,
-        fontWeight: "bold",
+        fontWeight: "condensed",
     },
     title: {
         fontSize: 18,
-        fontWeight: "bold",
+        fontWeight: "500",
         color: colors.textDark,
-        marginBottom: 4,
     },
     description: {
         fontSize: 14,
@@ -263,7 +276,11 @@ const styles = StyleSheet.create({
         color: colors.textGrey,
         fontWeight: "bold",
     },
-
+    budgetPrice: {
+        fontSize: 14,
+        color: colors.ColorPrice,
+        fontWeight: "bold",
+    },
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.8)",
