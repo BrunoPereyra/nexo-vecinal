@@ -7,8 +7,6 @@ import {
     Modal,
     ActivityIndicator,
     Alert,
-    ScrollView,
-    TextInput,
 } from "react-native";
 import MapView, { Marker, MapPressEvent, Circle } from "react-native-maps";
 import { MaterialIcons } from "@expo/vector-icons";

@@ -9,6 +9,7 @@ import colors from '@/style/colors';
 export default function ProtectedLayout() {
   const router = useRouter();
 
+
   return (
     <ProtectedRoute>
       <SafeAreaView style={styles.container}>

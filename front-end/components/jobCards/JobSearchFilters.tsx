@@ -64,12 +64,12 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     useEffect(() => {
         const loadCachedFilters = async () => {
             try {
-                const cachedTitle = await AsyncStorage.getItem('searchTitle');
+                // const cachedTitle = await AsyncStorage.getItem('searchTitle');
                 const cachedTags = await AsyncStorage.getItem('selectedTags');
                 const cachedLocation = await AsyncStorage.getItem('location');
                 const cachedRadius = await AsyncStorage.getItem('radius');
 
-                setSearchTitle(cachedTitle || '');
+                setSearchTitle('');
                 setSelectedTags(cachedTags ? JSON.parse(cachedTags) : []);
                 setLocation(cachedLocation ? JSON.parse(cachedLocation) : null);
                 setRadius(cachedRadius ? Number(cachedRadius) : 5000);

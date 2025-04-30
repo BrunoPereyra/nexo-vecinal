@@ -164,6 +164,7 @@ const JobsFeed: React.FC = () => {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         const nextPage = page + 1;
         await fetchJobs(nextPage, true);
+
         setPage(nextPage);
         setLoadingMore(false);
     };
