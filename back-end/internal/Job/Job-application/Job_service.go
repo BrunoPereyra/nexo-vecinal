@@ -4,6 +4,7 @@ import (
 	jobdomain "back-end/internal/Job/Job-domain"
 	jobinfrastructure "back-end/internal/Job/Job-infrastructure"
 	"errors"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -47,7 +48,7 @@ func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID pri
 	if err != nil {
 		return jobID, err
 	}
-
+	go js.notifyUsersForJob(newJob, jobID)
 	return jobID, nil
 }
 
@@ -151,4 +152,45 @@ func (js *JobService) GetJobsAssignedNoCompleted(jobID primitive.ObjectID, page 
 func (js *JobService) GetJobsAssignedCompleted(jobID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.GetJobsAssignedCompleted(jobID, page)
 
+}
+func (js *JobService) notifyUsersForJob(job jobdomain.Job, jobID primitive.ObjectID) {
+	// 1. Buscar usuarios relevantes
+	UsersPushTokens, err := js.JobRepository.FindUsersByTagsAndLocationPushToken(job.Tags, job.Location)
+	if err != nil {
+		fmt.Println("Error al buscar usuarios:", err)
+		return
+	}
+	var pushTokens []string
+	var Users []primitive.ObjectID
+
+	for _, user := range UsersPushTokens {
+		if user.PushToken != "" {
+			pushTokens = append(pushTokens, user.PushToken)
+			Users = append(Users, user.ID)
+		}
+	}
+	const batchSize = 100
+	for i := 0; i < len(pushTokens); i += batchSize {
+		end := i + batchSize
+		if end > len(pushTokens) {
+			end = len(pushTokens)
+		}
+		batch := pushTokens[i:end]
+		err := js.JobRepository.SendBatchNotification(batch, fmt.Sprintf("Nuevo trabajo: %s", job.Title), "Se ha publicado un nuevo trabajo que podría interesarte.")
+		if err != nil {
+			fmt.Println("Error al enviar notificaciones:", err)
+			return
+		}
+	}
+
+	// 3. Actualizar el documento "Para Ti"
+	err = js.JobRepository.AddJobToUsersRecommendations(Users, jobID)
+	if err != nil {
+		fmt.Println("Error al actualizar recomendaciones:", err)
+		return
+	}
+}
+
+func (js *JobService) GetRecommendedJobsForUser(userID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
+	return js.JobRepository.GetRecommendedJobsForUser(userID, page)
 }

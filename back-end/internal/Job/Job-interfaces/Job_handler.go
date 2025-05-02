@@ -735,3 +735,29 @@ func (j *JobHandler) GetJobDetailvisited(c *fiber.Ctx) error {
 		"job":     jobs,
 	})
 }
+
+func (j *JobHandler) GetRecommendedJobsForUser(c *fiber.Ctx) error {
+	idValue := c.Context().UserValue("_id").(string)
+	userID, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid user ID",
+		})
+	}
+	pageStr := c.Query("page", "1")
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+	jobs, err := j.JobService.GetRecommendedJobsForUser(userID, page)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "StatusBadRequest",
+			"error":   err.Error(),
+		})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"jobs":    jobs,
+	})
+}

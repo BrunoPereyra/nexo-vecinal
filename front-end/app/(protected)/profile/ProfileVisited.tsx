@@ -259,6 +259,15 @@ export default function VisitedProfileScreen() {
                 onEndReached={onEndReached}
                 onEndReachedThreshold={0.5}
                 contentContainerStyle={styles.listContainer}
+                ListEmptyComponent={
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>
+                            {activeSection === "jobFeed"
+                                ? "Aquí se mostrarán los trabajos realizados por este usuario."
+                                : "Aquí se mostrarán los trabajos creados por este usuario."}
+                        </Text>
+                    </View>
+                }
             />
             <Modal
                 visible={reportModalVisible}
@@ -528,5 +537,16 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
         zIndex: 10,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
+    },
+    emptyText: {
+        color: colors.textMuted, // Color sutil para el texto
+        fontSize: 16,
+        textAlign: "center",
     },
 });

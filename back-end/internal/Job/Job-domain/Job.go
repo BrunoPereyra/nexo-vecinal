@@ -195,3 +195,7 @@ type GetJobByIDForEmployee struct {
 	PaymentIntentID  string              `json:"paymentIntentId" bson:"paymentIntentId"`
 	AssignedTo       *primitive.ObjectID `json:"assignedTo,omitempty" bson:"assignedTo,omitempty"`
 }
+type UserPushTokenId struct {
+	ID        primitive.ObjectID `bson:"_id"`
+	PushToken string             `bson:"pushToken"`
+}

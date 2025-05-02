@@ -14,9 +14,11 @@ import JobsFeed from "@/components/jobs/JobsFeed";
 import PostsFeed from "@/components/Posts/PostsFeed";
 import colors from "@/style/colors";
 import SubscriptionSection from "@/components/Subscription/SubscriptionSection";
+import RecommendedJobsFeed from "@/components/recommendedJobs/RecommendedJobsFeed";
 
 const Home: React.FC = () => {
-  const [activeFeed, setActiveFeed] = useState<"jobs" | "posts">("jobs");
+  const [activeFeed, setActiveFeed] = useState<"jobs" | "posts" | "para ti">("jobs");
+
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loadingAvatar, setLoadingAvatar] = useState(true);
   const indicatorAnim = useRef(new Animated.Value(0)).current;
@@ -37,8 +39,9 @@ const Home: React.FC = () => {
 
   // Cuando se cambie la pestaña, animar el indicador
   useEffect(() => {
+    const tabIndex = activeFeed === "para ti" ? 0 : activeFeed === "jobs" ? 1 : 2;
     Animated.timing(indicatorAnim, {
-      toValue: activeFeed === "jobs" ? 0 : 1,
+      toValue: tabIndex,
       duration: 300,
       useNativeDriver: false,
     }).start();
@@ -46,8 +49,8 @@ const Home: React.FC = () => {
 
   // La interpolación del indicador: asumiendo 2 pestañas de ancho igual (50% cada una)
   const indicatorLeft = indicatorAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["5%", "55%"],
+    inputRange: [0, 1, 2], // Índices de las pestañas
+    outputRange: ["0%", "33.33%", "66.66%"], // Posiciones de las pestañas
   });
   // promo banner
   const [showPromoBanner, setShowPromoBanner] = useState(false);
@@ -127,12 +130,22 @@ const Home: React.FC = () => {
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={styles.tabButton}
+          onPress={() => setActiveFeed("para ti")}
+        >
+          <Text style={[styles.tabButtonText, activeFeed === "para ti" && styles.activeTabText]}>
+            Para ti
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tabButton}
           onPress={() => setActiveFeed("jobs")}
         >
           <Text style={[styles.tabButtonText, activeFeed === "jobs" && styles.activeTabText]}>
             Trabajos
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.tabButton}
           onPress={() => setActiveFeed("posts")}
@@ -141,6 +154,7 @@ const Home: React.FC = () => {
             Publicaciones
           </Text>
         </TouchableOpacity>
+
         <Animated.View style={[styles.indicator, { left: indicatorLeft }]} />
       </View>
       {showPromoBanner && (
@@ -173,8 +187,11 @@ const Home: React.FC = () => {
         </View>
       </Modal>
       <View style={styles.feedContainer}>
-        {activeFeed === "jobs" ? <JobsFeed /> : <PostsFeed />}
+        {activeFeed === "jobs" && <JobsFeed />}
+        {activeFeed === "posts" && <PostsFeed />}
+        {activeFeed === "para ti" && <RecommendedJobsFeed />}
       </View>
+
 
     </View>
   );
@@ -241,7 +258,7 @@ const styles = StyleSheet.create({
   indicator: {
     position: "absolute",
     bottom: 0,
-    width: "40%", // Cada pestaña ocupa 50% del ancho
+    width: "33.33%", // Cada pestaña ocupa un tercio del ancho
     height: 2,
     backgroundColor: colors.cream,
   },

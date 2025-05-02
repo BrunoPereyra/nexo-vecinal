@@ -61,7 +61,11 @@ export default function CursosScreen() {
                                 onPress={() => handleCoursePress(course.id)}
                             >
                                 <Text style={styles.courseTitle}>{course.title}</Text>
-                                <Text style={styles.courseDescription}>{course.description}</Text>
+                                <Text
+
+                                    numberOfLines={3}
+                                    ellipsizeMode="tail"
+                                    style={styles.courseDescription}>{course.description}</Text>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>

@@ -1,6 +1,7 @@
 package userdomain
 
 import (
+	"fmt"
 	"regexp"
 	"time"
 
@@ -366,12 +367,32 @@ func (u *UserModelValidator) Validate() error {
 type ReqLocationTags struct {
 	Location GeoPoint `json:"location" bson:"location" validate:"required"`
 	Ratio    int64    `json:"ratio" bson:"ratio" validate:"required"`
-	Tags     []string `json:"tags" bson:"tags"`
+	Tags     []string `json:"tags" bson:"tags" validate:"maxTags"` // Validación personalizada
 }
 
 func (u *ReqLocationTags) Validate() error {
 	validate := validator.New()
-	return validate.Struct(u)
+
+	// Registrar la validación personalizada para limitar el número de tags
+	validate.RegisterValidation("maxTags", func(fl validator.FieldLevel) bool {
+		tags, ok := fl.Field().Interface().([]string)
+		if !ok {
+			return false
+		}
+		return len(tags) <= 4 // Máximo 4 tags
+	})
+
+	// Validar la estructura
+	err := validate.Struct(u)
+	if err != nil {
+		// Personalizar el mensaje de error
+		for _, err := range err.(validator.ValidationErrors) {
+			if err.Tag() == "maxTags" {
+				return fmt.Errorf("el campo 'tags' no puede tener más de 4 elementos")
+			}
+		}
+	}
+	return nil
 }
 
 type ReqCodeInRedisSignup struct {

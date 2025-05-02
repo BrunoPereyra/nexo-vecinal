@@ -1485,3 +1485,204 @@ func (u *JobRepository) RegisterJobCompletionMetrics(Gender string, birthDate ti
 	metricsService := metrics.NewMetricsService(u.mongoClient.Database("NEXO-VECINAL"))
 	return metricsService.RegisterJobCompletion(context.Background(), Gender, birthDate)
 }
+
+// FindUsersByTagsAndLocation busca usuarios por tags y ubicación pero devolve solo el array de pushtoken
+func (j *JobRepository) FindUsersByTagsAndLocationPushToken(tags []string, location jobdomain.GeoPoint) ([]jobdomain.UserPushTokenId, error) {
+	userColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Convertir el radio de metros a radianes
+	radiusInRadians := 5000 / 6378100.0 // Radio terrestre ≈ 6,378,100 metros
+
+	// Crear el filtro para la búsqueda
+	filter := bson.M{
+		"tags": bson.M{"$in": tags},
+		"location": bson.M{
+			"$geoWithin": bson.M{
+				"$centerSphere": []interface{}{
+					location.Coordinates, // [longitude, latitude]
+					radiusInRadians,      // Radio en radianes
+				},
+			},
+		},
+	}
+
+	// Proyección para obtener solo los campos "_id" y "pushToken"
+	projection := bson.M{"_id": 1, "pushToken": 1}
+
+	cursor, err := userColl.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	if err != nil {
+		return []jobdomain.UserPushTokenId{}, err
+	}
+	defer cursor.Close(context.Background())
+
+	var users []jobdomain.UserPushTokenId
+	if err := cursor.All(context.Background(), &users); err != nil {
+		return []jobdomain.UserPushTokenId{}, err
+	}
+
+	return users, nil
+}
+
+// SendBatchNotification
+func (j *JobRepository) SendBatchNotification(pushTokens []string, title string, body string) error {
+	// Construir un array de payloads para cada token
+	var payloads []map[string]interface{}
+	for _, token := range pushTokens {
+		payloads = append(payloads, map[string]interface{}{
+			"to":    token,
+			"title": title,
+			"body":  body,
+		})
+	}
+
+	// Serializar el array de payloads a JSON
+	payloadBytes, err := json.Marshal(payloads)
+	if err != nil {
+		return fmt.Errorf("error serializando payloads: %v", err)
+	}
+
+	// Enviar la solicitud al endpoint de batch de Expo
+	resp, err := http.Post("https://exp.host/--/api/v2/push/send", "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("error enviando notificaciones: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error enviando notificaciones, status: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+// AddJobToUserRecommendations
+func (j *JobRepository) AddJobToUsersRecommendations(userIDs []primitive.ObjectID, jobID primitive.ObjectID) error {
+	userColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Paso 1: Agregar el trabajo al array usando $addToSet
+	filter := bson.M{
+		"_id": bson.M{"$in": userIDs},
+	}
+	addToSetUpdate := bson.M{
+		"$addToSet": bson.M{
+			"recommendedJobs": jobID,
+		},
+	}
+
+	_, err := userColl.UpdateMany(context.Background(), filter, addToSetUpdate)
+	if err != nil {
+		return fmt.Errorf("error agregando trabajo a recomendaciones: %v", err)
+	}
+
+	// Paso 2: Limitar el tamaño del array a 100 elementos usando $push y $slice
+	pushUpdate := bson.M{
+		"$push": bson.M{
+			"recommendedJobs": bson.M{
+				"$each":  []primitive.ObjectID{},
+				"$slice": -100,
+			},
+		},
+	}
+
+	_, err = userColl.UpdateMany(context.Background(), filter, pushUpdate)
+	if err != nil {
+		return fmt.Errorf("error limitando tamaño de recomendaciones: %v", err)
+	}
+
+	return nil
+}
+func (j *JobRepository) getBaseJobPipeline() mongo.Pipeline {
+	return mongo.Pipeline{
+		// Lookup para unir la información del usuario creador
+		{{
+			Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "Users"},
+				{Key: "localField", Value: "userId"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "userDetails"},
+			},
+		}},
+		// Unwind para extraer el objeto de usuario (si existe)
+		{{
+			Key: "$unwind", Value: bson.M{
+				"path":                       "$userDetails",
+				"preserveNullAndEmptyArrays": true,
+			},
+		}},
+		// Proyección para limitar los campos
+		{{
+			Key: "$project", Value: bson.D{
+				{Key: "_id", Value: 1},
+				{Key: "title", Value: 1},
+				{Key: "description", Value: 1},
+				{Key: "location", Value: 1},
+				{Key: "tags", Value: 1},
+				{Key: "budget", Value: 1},
+				{Key: "finalCost", Value: 1},
+				{Key: "status", Value: 1},
+				{Key: "createdAt", Value: 1},
+				{Key: "updatedAt", Value: 1},
+				{Key: "userDetails._id", Value: 1},
+				{Key: "userDetails.NameUser", Value: 1},
+				{Key: "userDetails.Avatar", Value: 1},
+			},
+		}},
+	}
+}
+func (j *JobRepository) GetRecommendedJobsForUser(userID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
+	userColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	limit := 10
+	skip := (page - 1) * limit
+
+	// Pipeline específico para trabajos recomendados
+	pipeline := mongo.Pipeline{
+		// Paso 1: Match por usuario
+		{{
+			Key: "$match", Value: bson.D{
+				{Key: "_id", Value: userID},
+			},
+		}},
+		// Paso 2: Lookup a los trabajos recomendados
+		{{
+			Key: "$lookup", Value: bson.D{
+				{Key: "from", Value: "Job"},
+				{Key: "localField", Value: "recommendedJobs"},
+				{Key: "foreignField", Value: "_id"},
+				{Key: "as", Value: "recommendedJobsArr"},
+			},
+		}},
+		// Paso 3: Unwind para trabajar uno por uno
+		{{
+			Key: "$unwind", Value: bson.M{
+				"path": "$recommendedJobsArr",
+			},
+		}},
+		// 🚀 Paso 4: Reemplazar el root por cada trabajo
+		{{
+			Key: "$replaceRoot", Value: bson.M{
+				"newRoot": "$recommendedJobsArr",
+			},
+		}},
+	}
+
+	// Agregar el pipeline base
+	pipeline = append(pipeline, j.getBaseJobPipeline()...)
+
+	// Agregar paginación
+	pipeline = append(pipeline,
+		bson.D{{Key: "$skip", Value: skip}},
+		bson.D{{Key: "$limit", Value: limit}},
+	)
+
+	cursor, err := userColl.Aggregate(context.Background(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var jobs []jobdomain.JobDetailsUsers
+	if err := cursor.All(context.Background(), &jobs); err != nil {
+		return nil, err
+	}
+
+	return jobs, nil
+}

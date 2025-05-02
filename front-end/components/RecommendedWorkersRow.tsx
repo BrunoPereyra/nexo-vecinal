@@ -14,7 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "@/context/AuthContext";
 
 // Importa las funciones de tus servicios
-import { getFilteredUsers, getRecommendedWorkers, ReqLocationTags } from "@/services/userService";
+import { getFilteredUsers, ReqLocationTags } from "@/services/userService";
 import colors from '@/style/colors';
 
 export interface RecommendedWorker {

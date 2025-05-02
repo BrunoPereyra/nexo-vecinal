@@ -180,20 +180,7 @@ const JobsFeed: React.FC = () => {
                 <View style={styles.filterContainer}>
                     <JobSearchFilters onSearch={handleSearch} />
                 </View>
-                {/* <View style={styles.recommendedHeader}>
-                    <Text style={styles.recommendedHeaderText}>Trabajadores recomendados</Text>
-                    <TouchableOpacity
-                        onPress={() => setShowRecommended(!showRecommended)}
-                        style={styles.iconButton}
-                    >
-                        <Ionicons
-                            name={showRecommended ? "chevron-up-outline" : "chevron-down-outline"}
-                            size={24}
-                            color={colors.textDark}
-                        />
-                    </TouchableOpacity>
-                </View>
-                {showRecommended && <RecommendedWorkersRow />} */}
+
             </Animated.View>
             <Animated.FlatList
                 ref={flatListRef}

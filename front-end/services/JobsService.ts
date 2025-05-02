@@ -542,3 +542,20 @@ export const formatDate = (dateString: string) => {
         year: "numeric",
     });
 };
+export const recommendedJobs = async (token: string, page: string) => {
+    console.log(page);
+
+    try {
+        const res = await fetch(`${API}/job/get-recommended-jobs?page=${page}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        // Se asume que la respuesta es JSON
+        return await res.json();
+    } catch (error) {
+        console.error(error);
+    }
+};
