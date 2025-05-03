@@ -208,12 +208,21 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                     </TouchableOpacity>
                     <FlatList
                         data={data}
-                        keyExtractor={(item) => item.id}
+                        keyExtractor={(item) => item.id.toString()}
                         renderItem={renderItem}
                         ListHeaderComponent={ListHeader}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={0.5}
                         contentContainerStyle={styles.listContainer}
+                        ListEmptyComponent={
+                            <View style={styles.emptyContainer}>
+                                <Text style={styles.emptyText}>
+                                    {activeSection === "jobFeed"
+                                        ? "Este usuario no tiene trabajos realizados."
+                                        : "Este usuario no tiene trabajos creados."}
+                                </Text>
+                            </View>
+                        }
                     />
                     <TouchableOpacity
                         style={styles.reportFab}
@@ -462,6 +471,17 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
         zIndex: 10,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 20,
+    },
+    emptyText: {
+        color: colors.textMuted, // Color sutil para el texto
+        fontSize: 16,
+        textAlign: "center",
     },
 });
 

@@ -47,7 +47,6 @@ export default function ProfileScreen() {
     const [showDropdown, setShowDropdown] = useState(false);
     const [editBioVisible, setEditBioVisible] = useState(false);
     const [biografia, setBiografia] = useState("");
-    const [loadingJobs, setLoadingJobs] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
 
     // ---------------------- Chat de Soporte ----------------------
@@ -107,6 +106,7 @@ export default function ProfileScreen() {
             } catch (error) {
                 setWorkerJobs([]);
             } finally {
+
                 setLoading(false);
             }
         };
@@ -119,6 +119,7 @@ export default function ProfileScreen() {
                 setEmployerJobs([]);
                 console.error(error);
             } finally {
+
                 setLoading(false);
             }
         };
@@ -127,7 +128,7 @@ export default function ProfileScreen() {
         } else {
             fetchEmployer();
         }
-        setLoadingJobs(true);
+
     }, [activeSection, token]);
 
     const handleLogout = async () => {
@@ -288,7 +289,7 @@ export default function ProfileScreen() {
                 contentContainerStyle={styles.listContainer}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        {loadingJobs ? (
+                        {loading ? (
                             <ActivityIndicator size="large" color="#03DAC5" />
                         ) : (
                             <Text style={styles.emptyText}>
