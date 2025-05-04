@@ -19,8 +19,12 @@ export default function LoginScreen() {
 
       const data = await loginNameUser(nameUser, password);
       await login(data.token, data._id, data.avatar, data.nameUser);
+      console.log("Token:", data.token);
+      console.log("ID:", data._id);
+      console.log("savePushToken:", pushToken);
+
       await savePushToken(data.token, pushToken ? pushToken : "");
-      router.replace("/profile/Profile");
+      // router.replace("/profile/Profile");
     } catch (error) {
       setErrorMessage('Error al iniciar sesión. Verifica tus credenciales.');
     }

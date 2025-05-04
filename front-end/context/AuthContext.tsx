@@ -4,7 +4,6 @@ import { Alert, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { getTags as apiGetTags, addTag as apiAddTag } from '@/services/admin';
-import Constants from "expo-constants";
 
 interface AuthContextProps {
     token: string | null;
@@ -38,12 +37,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Función para registrar notificaciones y obtener el token push
 
     const registerForPushNotificationsAsync = async () => {
+        console.log("ayuda");
         if (!Device.isDevice) {
             Alert.alert('Advertencia', 'Debe usar un dispositivo físico para recibir notificaciones push.');
+            console.log('No se está ejecutando en un dispositivo físico.');
             return;
+        } else {
+            console.log('Se está ejecutando en un dispositivo físico.');
         }
 
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        console.log('Estado de permisos existentes:', existingStatus);
         let finalStatus = existingStatus;
         if (existingStatus !== 'granted') {
             const { status } = await Notifications.requestPermissionsAsync();
@@ -55,16 +59,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
 
-        const tokenData = await Notifications.getDevicePushTokenAsync();
+        try {
+            const tokenData = await Notifications.getDevicePushTokenAsync();
+            console.log('Push Token obtenido:', tokenData.data);
+            setPushToken(tokenData.data);
+            console.log(tokenData);
 
-        setPushToken(tokenData.data);
-        if (Platform.OS === 'android') {
-            await Notifications.setNotificationChannelAsync('default', {
-                name: 'default',
-                importance: Notifications.AndroidImportance.MAX,
-                vibrationPattern: [0, 250, 250, 250],
-                lightColor: '#FF231F7C',
-            });
+            console.log('Push Token obtenido:', tokenData.data); // Verifica si el token se obtiene correctamente
+
+            setPushToken(tokenData.data);
+            if (Platform.OS === 'android') {
+                await Notifications.setNotificationChannelAsync('default', {
+                    name: 'default',
+                    importance: Notifications.AndroidImportance.MAX,
+                    vibrationPattern: [0, 250, 250, 250],
+                    lightColor: '#FF231F7C',
+                });
+            }
+        } catch (error) {
+            console.error('Error al obtener el Push Token:', error);
         }
     };
     // Cargar el token almacenado

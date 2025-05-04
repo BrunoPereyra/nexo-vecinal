@@ -157,6 +157,7 @@ export default function ProfileScreen() {
     };
 
     const loadMoreEmployerJobs = async () => {
+
         if (!token) return;
         const nextPage = currentPageEmployer + 1;
         try {
