@@ -37,7 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Función para registrar notificaciones y obtener el token push
 
     const registerForPushNotificationsAsync = async () => {
-        console.log("ayuda");
         if (!Device.isDevice) {
             Alert.alert('Advertencia', 'Debe usar un dispositivo físico para recibir notificaciones push.');
             console.log('No se está ejecutando en un dispositivo físico.');
@@ -60,12 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
         try {
-            const tokenData = await Notifications.getDevicePushTokenAsync();
-            console.log('Push Token obtenido:', tokenData.data);
-            setPushToken(tokenData.data);
-            console.log(tokenData);
-
-            console.log('Push Token obtenido:', tokenData.data); // Verifica si el token se obtiene correctamente
+            const tokenData = await Notifications.getExpoPushTokenAsync();
 
             setPushToken(tokenData.data);
             if (Platform.OS === 'android') {

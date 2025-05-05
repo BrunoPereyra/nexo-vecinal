@@ -5,7 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Platform
+  Platform,
+  KeyboardAvoidingView,
+  ScrollView
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -140,204 +142,219 @@ export default function SignupScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Registro</Text>
-      {errorMessage ? (
-        <Text style={styles.errorText}>{errorMessage}</Text>
-      ) : null}
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre de usuario"
-        placeholderTextColor="#888"
-        value={nameUser}
-        onChangeText={setNameUser}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre completo"
-        placeholderTextColor="#888"
-        value={fullName}
-        onChangeText={setFullName}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#888"
-        value={email}
-        onChangeText={setEmail}
-      />
-      {/* Campo Password con ícono integrado */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[styles.input, styles.inputWithIcon]}
-          placeholder="Password"
-          placeholderTextColor="#888"
-          secureTextEntry={!showPassword}
-          value={password}
-          onChangeText={setPassword}
-        />
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => setShowPassword(!showPassword)}
-        >
-          <Ionicons
-            name={showPassword ? "eye-off-outline" : "eye-outline"}
-            size={24}
-            color={colors.gold}
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView
+        contentContainerStyle={[styles.container, { flexGrow: 1 }]}
+        keyboardShouldPersistTaps="handled"
+      >  <View style={styles.inner}>
+
+          <Text style={styles.title}>Registro</Text>
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre de usuario"
+            placeholderTextColor="#888"
+            value={nameUser}
+            onChangeText={setNameUser}
           />
-        </TouchableOpacity>
-      </View>
-      {/* Campo Confirm Password con ícono integrado */}
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[styles.input, styles.inputWithIcon]}
-          placeholder="Confirmar Password"
-          placeholderTextColor="#888"
-          secureTextEntry={!showConfirmPassword}
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
-        />
-        <TouchableOpacity
-          style={styles.iconContainer}
-          onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-        >
-          <Ionicons
-            name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
-            size={24}
-            color={colors.gold}
+          <TextInput
+            style={styles.input}
+            placeholder="Nombre completo"
+            placeholderTextColor="#888"
+            value={fullName}
+            onChangeText={setFullName}
           />
-        </TouchableOpacity>
-      </View>
-      {/* Selector de fecha de nacimiento usando DateTimePicker */}
-      <TouchableOpacity
-        style={styles.datePickerButton}
-        onPress={() => setShowDatePicker(true)}
-      >
-        <Text style={styles.datePickerText}>
-          Fecha de nacimiento: {getDisplayBirthDate()}
-        </Text>
-      </TouchableOpacity>
-      {showDatePicker && (
-        <DateTimePicker
-          value={birthDate}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-          maximumDate={new Date()} // No se pueden elegir fechas futuras
-        />
-      )}
-      {/* Selección de género con check (iconos) */}
-      <View style={styles.genderContainer}>
-        <Text style={styles.label}>Género:</Text>
-        <View style={styles.genderOptions}>
-          <TouchableOpacity
-            style={styles.genderOption}
-            onPress={() => setGender('Masculino')}
-          >
-            <Ionicons
-              name={Gender === 'Masculino' ? "radio-button-on" : "radio-button-off"}
-              size={24}
-              color={Gender === 'Masculino' ? colors.gold : "#888"}
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#888"
+            value={email}
+            onChangeText={setEmail}
+          />
+          {/* Campo Password con ícono integrado */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.input, styles.inputWithIcon]}
+              placeholder="Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
             />
-            <Text style={styles.genderOptionText}>Masculino</Text>
+            <TouchableOpacity
+              style={styles.iconContainer}
+              onPress={() => setShowPassword(!showPassword)}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color={colors.gold}
+              />
+            </TouchableOpacity>
+          </View>
+          {/* Campo Confirm Password con ícono integrado */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={[styles.input, styles.inputWithIcon]}
+              placeholder="Confirmar Password"
+              placeholderTextColor="#888"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+            <TouchableOpacity
+              style={styles.iconContainer}
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <Ionicons
+                name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                size={24}
+                color={colors.gold}
+              />
+            </TouchableOpacity>
+          </View>
+          {/* Selector de fecha de nacimiento usando DateTimePicker */}
+          <TouchableOpacity
+            style={styles.datePickerButton}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={styles.datePickerText}>
+              Fecha de nacimiento: {getDisplayBirthDate()}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.genderOption}
-            onPress={() => setGender('Femenino')}
-          >
-            <Ionicons
-              name={Gender === 'Femenino' ? "radio-button-on" : "radio-button-off"}
-              size={24}
-              color={Gender === 'Femenino' ? colors.gold : "#888"}
+          {showDatePicker && (
+            <DateTimePicker
+              value={birthDate}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              maximumDate={new Date()} // No se pueden elegir fechas futuras
             />
-            <Text style={styles.genderOptionText}>Femenino</Text>
+          )}
+          {/* Selección de género con check (iconos) */}
+          <View style={styles.genderContainer}>
+            <Text style={styles.label}>Género:</Text>
+            <View style={styles.genderOptions}>
+              <TouchableOpacity
+                style={styles.genderOption}
+                onPress={() => setGender('Masculino')}
+              >
+                <Ionicons
+                  name={Gender === 'Masculino' ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={Gender === 'Masculino' ? colors.gold : "#888"}
+                />
+                <Text style={styles.genderOptionText}>Masculino</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.genderOption}
+                onPress={() => setGender('Femenino')}
+              >
+                <Ionicons
+                  name={Gender === 'Femenino' ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={Gender === 'Femenino' ? colors.gold : "#888"}
+                />
+                <Text style={styles.genderOptionText}>Femenino</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          {/* Nueva sección: Intención */}
+          <View style={styles.intentionContainer}>
+            <Text style={styles.label}>Intención:</Text>
+            <View style={styles.intentionOptions}>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => setIntention('hire')}
+              >
+                <Ionicons
+                  name={intention === 'hire' ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={intention === 'hire' ? colors.gold : "#888"}
+                />
+                {/* Se muestra en español */}
+                <Text style={styles.optionText}>Contratar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => setIntention('work')}
+              >
+                <Ionicons
+                  name={intention === 'work' ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={intention === 'work' ? colors.gold : "#888"}
+                />
+                <Text style={styles.optionText}>Trabajar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          {/* Nueva sección: Referencia */}
+          <View style={styles.referralContainer}>
+            <Text style={styles.label}>Referencia:</Text>
+            <View style={styles.referralOptions}>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => setReferral('amigo')}
+              >
+                <Ionicons
+                  name={referral === 'amigo' ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={referral === 'amigo' ? colors.gold : "#888"}
+                />
+                <Text style={styles.optionText}>Amigo</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => setReferral('instagram')}
+              >
+                <Ionicons
+                  name={referral === 'instagram' ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={referral === 'instagram' ? colors.gold : "#888"}
+                />
+                <Text style={styles.optionText}>Instagram</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.option}
+                onPress={() => setReferral('facebook')}
+              >
+                <Ionicons
+                  name={referral === 'facebook' ? "radio-button-on" : "radio-button-off"}
+                  size={24}
+                  color={referral === 'facebook' ? colors.gold : "#888"}
+                />
+                <Text style={styles.optionText}>Facebook</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+            <Text style={styles.signupButtonText}>Registrarse</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+            <Text style={styles.loginButtonText}>Ir a Login</Text>
           </TouchableOpacity>
         </View>
-      </View>
-      {/* Nueva sección: Intención */}
-      <View style={styles.intentionContainer}>
-        <Text style={styles.label}>Intención:</Text>
-        <View style={styles.intentionOptions}>
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => setIntention('hire')}
-          >
-            <Ionicons
-              name={intention === 'hire' ? "radio-button-on" : "radio-button-off"}
-              size={24}
-              color={intention === 'hire' ? colors.gold : "#888"}
-            />
-            {/* Se muestra en español */}
-            <Text style={styles.optionText}>Contratar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => setIntention('work')}
-          >
-            <Ionicons
-              name={intention === 'work' ? "radio-button-on" : "radio-button-off"}
-              size={24}
-              color={intention === 'work' ? colors.gold : "#888"}
-            />
-            <Text style={styles.optionText}>Trabajar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      {/* Nueva sección: Referencia */}
-      <View style={styles.referralContainer}>
-        <Text style={styles.label}>Referencia:</Text>
-        <View style={styles.referralOptions}>
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => setReferral('amigo')}
-          >
-            <Ionicons
-              name={referral === 'amigo' ? "radio-button-on" : "radio-button-off"}
-              size={24}
-              color={referral === 'amigo' ? colors.gold : "#888"}
-            />
-            <Text style={styles.optionText}>Amigo</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => setReferral('instagram')}
-          >
-            <Ionicons
-              name={referral === 'instagram' ? "radio-button-on" : "radio-button-off"}
-              size={24}
-              color={referral === 'instagram' ? colors.gold : "#888"}
-            />
-            <Text style={styles.optionText}>Instagram</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => setReferral('facebook')}
-          >
-            <Ionicons
-              name={referral === 'facebook' ? "radio-button-on" : "radio-button-off"}
-              size={24}
-              color={referral === 'facebook' ? colors.gold : "#888"}
-            />
-            <Text style={styles.optionText}>Facebook</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-        <Text style={styles.signupButtonText}>Registrarse</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
-        <Text style={styles.loginButtonText}>Ir a Login</Text>
-      </TouchableOpacity>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  inner: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',  // antes era 'center'
+    paddingBottom: 40,
+  },
   container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    justifyContent: "center",
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
   },
   title: {
     fontSize: 28,
