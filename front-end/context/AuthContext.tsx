@@ -41,12 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             Alert.alert('Advertencia', 'Debe usar un dispositivo físico para recibir notificaciones push.');
             console.log('No se está ejecutando en un dispositivo físico.');
             return;
-        } else {
-            console.log('Se está ejecutando en un dispositivo físico.');
         }
-
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        console.log('Estado de permisos existentes:', existingStatus);
+
         let finalStatus = existingStatus;
         if (existingStatus !== 'granted') {
             const { status } = await Notifications.requestPermissionsAsync();
@@ -57,21 +54,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return;
         }
 
-
-        try {
-            const tokenData = await Notifications.getExpoPushTokenAsync();
-
-            setPushToken(tokenData.data);
-            if (Platform.OS === 'android') {
-                await Notifications.setNotificationChannelAsync('default', {
-                    name: 'default',
-                    importance: Notifications.AndroidImportance.MAX,
-                    vibrationPattern: [0, 250, 250, 250],
-                    lightColor: '#FF231F7C',
-                });
-            }
-        } catch (error) {
-            console.error('Error al obtener el Push Token:', error);
+        const tokenData = await Notifications.getExpoPushTokenAsync();
+        setPushToken(tokenData.data);
+        if (Platform.OS === 'android') {
+            await Notifications.setNotificationChannelAsync('default', {
+                name: 'default',
+                importance: Notifications.AndroidImportance.HIGH,
+                vibrationPattern: [0, 250, 250, 250],
+                lightColor: '#FF231F7C',
+                sound: "default",
+            });
         }
     };
     // Cargar el token almacenado
