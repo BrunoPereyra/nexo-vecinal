@@ -6,7 +6,10 @@ import colors from '@/style/colors';
 import { getRecommendedWorkers } from '@/services/userService';
 
 // Habilitar animaciones en Android
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+if (
+    Platform.OS === 'android' &&
+    UIManager.setLayoutAnimationEnabledExperimental
+) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 

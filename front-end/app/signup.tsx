@@ -150,8 +150,8 @@ export default function SignupScreen() {
       <ScrollView
         contentContainerStyle={[styles.container, { flexGrow: 1 }]}
         keyboardShouldPersistTaps="handled"
-      >  <View style={styles.inner}>
-
+      >
+        <View style={styles.inner}>
           <Text style={styles.title}>Registro</Text>
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>
@@ -353,6 +353,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   container: {
+    backgroundColor: colors.background,
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
   },

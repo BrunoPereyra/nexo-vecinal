@@ -122,7 +122,7 @@ export default {
         ],
 
         androidStatusBar: {
-            backgroundColor: "#0f2027"
+            backgroundColor: "#d2d4bc"
         },
 
         // No es oficial, pero puedes documentar tu política aquí:
