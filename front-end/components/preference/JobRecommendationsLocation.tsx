@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     ActivityIndicator,
     Alert,
+    ScrollView,
 } from "react-native";
 import MapView, { Marker, MapPressEvent, Circle } from "react-native-maps";
 import colors from "@/style/colors";
@@ -25,9 +26,16 @@ const JobRecommendationsLocation: React.FC<LocationPreferencesSetupProps> = ({ o
     const [saving, setSaving] = useState(false);
 
     const toggleTag = (tag: string) => {
-        setSelectedTags((prev) =>
-            prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-        );
+        setSelectedTags((prev) => {
+            if (prev.includes(tag)) {
+                return prev.filter((t) => t !== tag);
+            } else if (prev.length < 3) {
+                return [...prev, tag];
+            } else {
+                Alert.alert("Límite alcanzado", "Solo puedes seleccionar hasta 3 especializaciones.");
+                return prev;
+            }
+        });
     };
 
     const handleMapPress = (e: MapPressEvent) => {
@@ -76,72 +84,78 @@ const JobRecommendationsLocation: React.FC<LocationPreferencesSetupProps> = ({ o
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Guarda tus preferencias</Text>
-            <Text style={styles.description}>Selecciona tus especializaciones y zona de disponibilidad.</Text>
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+            <View style={styles.container}>
+                <Text style={styles.title}>Guarda tus preferencias</Text>
+                <Text style={styles.description}>Selecciona tus especializaciones y zona de disponibilidad.</Text>
 
-            <View style={styles.tagsContainer}>
-                {availableTags.map((tag, index) => (
-                    <TouchableOpacity
-                        key={index}
-                        style={[styles.tagButton, selectedTags.includes(tag) && styles.tagButtonSelected]}
-                        onPress={() => toggleTag(tag)}
-                    >
-                        <Text style={[styles.tagButtonText, selectedTags.includes(tag) && styles.tagButtonTextSelected]}>
-                            {tag}
-                        </Text>
+                <View style={styles.tagsContainer}>
+                    {availableTags.map((tag, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={[styles.tagButton, selectedTags.includes(tag) && styles.tagButtonSelected]}
+                            onPress={() => toggleTag(tag)}
+                        >
+                            <Text style={[styles.tagButtonText, selectedTags.includes(tag) && styles.tagButtonTextSelected]}>
+                                {tag}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                <Text style={styles.label}>Zona de disponibilidad:</Text>
+                <MapView
+                    style={styles.map}
+                    initialRegion={{
+                        latitude: location?.latitude || -31.4201,
+                        longitude: location?.longitude || -64.1811,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                    }}
+                    onPress={handleMapPress}
+                >
+                    {location && <Marker coordinate={location} />}
+                    {location && (
+                        <Circle
+                            center={location}
+                            radius={radius}
+                            strokeColor="rgba(3, 1, 6, 0.5)"
+                            fillColor="rgba(18, 7, 30, 0.2)"
+                            strokeWidth={2}
+                        />
+                    )}
+                </MapView>
+
+                <View style={styles.radiusContainer}>
+                    <Text style={styles.radiusLabel}>Alcance:</Text>
+                    <TouchableOpacity style={styles.radiusButton} onPress={decreaseRadius}>
+                        <Text style={styles.radiusButtonText}>–</Text>
                     </TouchableOpacity>
-                ))}
-            </View>
+                    <Text style={styles.radiusText}>{(radius / 1000).toFixed(1)} km</Text>
+                    <TouchableOpacity style={styles.radiusButton} onPress={increaseRadius}>
+                        <Text style={styles.radiusButtonText}>+</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <Text style={styles.label}>Zona de disponibilidad:</Text>
-            <MapView
-                style={styles.map}
-                initialRegion={{
-                    latitude: location?.latitude || -31.4201,
-                    longitude: location?.longitude || -64.1811,
-                    latitudeDelta: 0.05,
-                    longitudeDelta: 0.05,
-                }}
-                onPress={handleMapPress}
-            >
-                {location && <Marker coordinate={location} />}
-                {location && (
-                    <Circle
-                        center={location}
-                        radius={radius}
-                        strokeColor="rgba(3, 1, 6, 0.5)"
-                        fillColor="rgba(18, 7, 30, 0.2)"
-                        strokeWidth={2}
-                    />
-                )}
-            </MapView>
-
-            <View style={styles.radiusContainer}>
-                <Text style={styles.radiusLabel}>Alcance:</Text>
-                <TouchableOpacity style={styles.radiusButton} onPress={decreaseRadius}>
-                    <Text style={styles.radiusButtonText}>–</Text>
-                </TouchableOpacity>
-                <Text style={styles.radiusText}>{(radius / 1000).toFixed(1)} km</Text>
-                <TouchableOpacity style={styles.radiusButton} onPress={increaseRadius}>
-                    <Text style={styles.radiusButtonText}>+</Text>
-                </TouchableOpacity>
+                <View style={styles.modalButtons}>
+                    <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={onClose}>
+                        <Text style={styles.modalButtonTextCerrar}>Cerrar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.modalButton, styles.submitButton]} onPress={handleSubmit} disabled={saving}>
+                        {saving ? <ActivityIndicator color={colors.textLight} /> : <Text style={styles.modalButtonText}>Guardar</Text>}
+                    </TouchableOpacity>
+                </View>
             </View>
-
-            <View style={styles.modalButtons}>
-                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={onClose}>
-                    <Text style={styles.modalButtonTextCerrar}>Cerrar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalButton, styles.submitButton]} onPress={handleSubmit} disabled={saving}>
-                    {saving ? <ActivityIndicator color={colors.textLight} /> : <Text style={styles.modalButtonText}>Guardar</Text>}
-                </TouchableOpacity>
-            </View>
-        </View>
+        </ScrollView>
     );
 };
 
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        paddingBottom: 30,
+    },
+
     container: {
         flex: 1,
         padding: 16,

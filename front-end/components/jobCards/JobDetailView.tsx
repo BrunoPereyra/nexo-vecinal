@@ -51,6 +51,7 @@ const JobDetailView: React.FC<JobDetailViewProps> = ({ job, onClose }) => {
             Alert.alert("Error", "El precio debe estar entre 100 y 10,000,000");
             return;
         }
+
         const res = await applyToJob(job?.id, proposal, numericPrice, token as string);
         if (res && res.message === 'Applied to job successfully') {
             Alert.alert("Postulación enviada", "Has postulado exitosamente a este trabajo.");
