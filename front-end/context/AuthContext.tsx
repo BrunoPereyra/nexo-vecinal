@@ -87,7 +87,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 try {
                     const response = await apiGetTags(token);
                     if (response && Array.isArray(response)) {
-                        setTags(response);
+                        const uniqueTags = Array.from(new Set(response));
+                        setTags(uniqueTags);
                     } else {
                         setTags([]); // O dejar un valor por defecto
                     }
