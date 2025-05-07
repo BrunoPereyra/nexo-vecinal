@@ -39,7 +39,7 @@ func sanitizeFileName(basePath, originalName string) string {
 	}
 	return finalName
 }
-func ProcessImage(fileHeader *multipart.FileHeader, PostImageChanel chan string, errChanel chan error) {
+func ProcessImage(fileHeader *multipart.FileHeader, PostImageChanel chan string, errChanel chan error, dir string) {
 	if fileHeader == nil {
 		PostImageChanel <- ""
 		return
@@ -90,7 +90,7 @@ func ProcessImage(fileHeader *multipart.FileHeader, PostImageChanel chan string,
 	}
 
 	// Ruta base de almacenamiento local
-	basePath := filepath.Join(config.BasePathUpload(), "images")
+	basePath := filepath.Join(config.BasePathUpload(), "images", dir)
 	if err := os.MkdirAll(basePath, os.ModePerm); err != nil {
 		errChanel <- fmt.Errorf("error creating directories: %v", err)
 		return

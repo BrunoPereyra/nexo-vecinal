@@ -105,6 +105,7 @@ func (u *UserRepository) SavePushToken(userID primitive.ObjectID, pushToken stri
 	_, err := usersCollection.UpdateOne(ctx, filter, update)
 	return err
 }
+
 func (u *UserRepository) UserPremiumExtend(userID primitive.ObjectID) error {
 	ctx := context.Background()
 	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")

@@ -64,7 +64,7 @@ func (ph *PostHandler) CreatePost(c *fiber.Ctx) error {
 					var postImageCh = make(chan string)
 					var procErrCh = make(chan error)
 					// Procesa la imagen de forma asíncrona (función definida en helpers)
-					go helpers.ProcessImage(fh, postImageCh, procErrCh)
+					go helpers.ProcessImage(fh, postImageCh, procErrCh, "post")
 					select {
 					case imageUrl := <-postImageCh:
 						imageURLs[index] = imageUrl

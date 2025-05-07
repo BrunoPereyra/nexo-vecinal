@@ -77,7 +77,7 @@ func (j *JobHandler) CreateJob(c *fiber.Ctx) error {
 		errCh := make(chan error)
 
 		// Procesa la imagen de forma asíncrona
-		go helpers.ProcessImage(fileHeader, postImageCh, errCh)
+		go helpers.ProcessImage(fileHeader, postImageCh, errCh, "job")
 
 		select {
 		case imageUrl := <-postImageCh:

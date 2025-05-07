@@ -45,7 +45,7 @@
     const now = new Date();
     const plus30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const baseUser = {
-        Avatar: "https://www.pinkker.tv/uploads/imgs/assets/avatar_default/Fotoperfil1.png",
+        Avatar: "https://www.pinkker.tv/uploads/imgs/default/avatar_default/Fotoperfil1.png",
         Pais: "", Ciudad: "", Biography: "", Look: "", LookImage: "", Banner: "", headImage: "",
         CountryInfo: null, Partner: {},
         EditProfiile: { NameUser: now, Biography: now },
@@ -54,7 +54,7 @@
         Following: {}, Followers: {},
         Timestamp: now, Banned: false, TOTPSecret: "", LastConnection: new Date(0),
         PanelAdminNexoVecinal: { Level: 1, Code: "", Date: now },
-        completedJobs: 0, Soporte: "activo", pushToken: "", tags: ["Ahora"],
+        completedJobs: 0, Soporte: "", pushToken: "", tags: ["Test"],
         location: { type: "Point", coordinates: [-64.193 + Math.random() * 0.02, -31.411 + Math.random() * 0.02] },
         ratio: NumberLong(5000)
     };
