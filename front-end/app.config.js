@@ -88,6 +88,7 @@ export default {
                     googleServicesFile: "./google-services.json"
                 }
             ],
+
             "expo-font",
             "expo-web-browser"
         ],

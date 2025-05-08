@@ -7,13 +7,14 @@ import * as Device from 'expo-device';
 // Configuramos el handler para notificaciones en primer plano
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true, // Mostrar alerta
-        shouldShowBanner: true, // Mostrar banner
-        shouldShowList: true, // Mostrar en la lista de notificaciones
-        shouldPlaySound: false, // Sin sonido
-        shouldSetBadge: false, // Sin cambiar el ícono de la app
+        shouldShowAlert: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
     }),
 });
+
 
 export default function App() {
     const notificationListener = useRef<any>(null);

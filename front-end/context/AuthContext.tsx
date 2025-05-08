@@ -53,9 +53,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             Alert.alert('Permiso denegado', 'No se han otorgado permisos para recibir notificaciones.');
             return;
         }
+        try {
+            const tokenData = await Notifications.getExpoPushTokenAsync();
+            setPushToken(tokenData.data);
+        } catch (error) {
+            console.log("AYUD2A", error);
 
-        const tokenData = await Notifications.getExpoPushTokenAsync();
-        setPushToken(tokenData.data);
+        }
+
         if (Platform.OS === 'android') {
             await Notifications.setNotificationChannelAsync('default', {
                 name: 'default',
