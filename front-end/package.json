@@ -28,8 +28,11 @@
     "expo-clipboard": "^7.0.1",
     "expo-constants": "~17.1.5",
     "expo-crypto": "~14.1.4",
+    "expo-dev-client": "~5.1.8",
     "expo-device": "^7.0.2",
     "expo-dotenv": "^0.1.0",
+    "expo-firebase-core": "^6.0.0",
+    "expo-firebase-messaging": "^2.0.0",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
     "expo-image-manipulator": "^13.0.6",
@@ -56,8 +59,7 @@
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.10.0",
     "react-native-web": "^0.20.0",
-    "react-native-webview": "13.13.5",
-    "expo-dev-client": "~5.1.8"
+    "react-native-webview": "13.13.5"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

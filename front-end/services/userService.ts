@@ -27,8 +27,14 @@ export const savePushToken = async (token: string, pushToken: string) => {
                 'Authorization': `Bearer ${token}`
             },
         });
+        console.log(pushToken);
+
+        console.log(res.json());
+
         return await res.json();
     } catch (error) {
+        console.log(pushToken);
+
         console.error("Error saving push token:", error);
         throw error;
     }

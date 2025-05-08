@@ -101,6 +101,18 @@
           }
         }
       ],
+      [
+        "expo-firebase-core",
+        {
+          "googleServicesFile": "./google-services.json"
+        }
+      ],
+      [
+        "expo-firebase-messaging",
+        {
+          "googleServicesFile": "./google-services.json"
+        }
+      ],
       "expo-font",
       "expo-web-browser"
     ],

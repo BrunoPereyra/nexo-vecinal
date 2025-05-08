@@ -7,6 +7,7 @@ import {
     Modal,
     ActivityIndicator,
     Alert,
+    ScrollView,
 } from "react-native";
 import MapView, { Marker, MapPressEvent, Circle } from "react-native-maps";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -48,9 +49,14 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
         if (selectedTags.includes(tag)) {
             setSelectedTags(selectedTags.filter((t) => t !== tag));
         } else {
+            if (selectedTags.length >= 3) {
+                Alert.alert("Límite alcanzado", "Solo puedes seleccionar hasta 3 especializaciones.");
+                return;
+            }
             setSelectedTags([...selectedTags, tag]);
         }
     };
+
 
     const handleMapPress = (e: MapPressEvent) => {
         const { coordinate } = e.nativeEvent;
@@ -114,7 +120,8 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
             </Text>
 
 
-            <View style={styles.tagsContainer} >
+            <ScrollView style={styles.tagsScroll} contentContainerStyle={styles.tagsContainer}>
+
                 {availableTags.map((tag, index) => (
                     <TouchableOpacity
                         key={index}
@@ -126,7 +133,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
                         </Text>
                     </TouchableOpacity>
                 ))}
-            </View>
+            </ScrollView>
             <Text style={styles.label}>Selecciona tu zona de disponibilidad:</Text>
             <MapView
                 style={styles.map}
@@ -243,7 +250,6 @@ const styles = StyleSheet.create({
     tagsContainer: {
         flexDirection: "row",
         flexWrap: "wrap",
-        height: 60
     },
     tagButton: {
         backgroundColor: colors.cream,
@@ -365,6 +371,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
     },
+    tagsScroll: {
+        maxHeight: 900, // ajusta según necesidad
+        marginBottom: 12,
+    },
+
 });
 
 export default SubscriptionSection;
