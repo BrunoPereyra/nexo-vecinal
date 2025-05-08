@@ -82,13 +82,6 @@ export default {
                     }
                 }
             ],
-            [
-                "expo-firebase-core",
-                {
-                    googleServicesFile: "./google-services.json"
-                }
-            ],
-
             "expo-font",
             "expo-web-browser"
         ],
