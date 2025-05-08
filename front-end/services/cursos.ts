@@ -99,6 +99,7 @@ export async function getCoursesPaginated(
 export async function getActiveCourses(token?: string): Promise<Course[]> {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
+    console.log(API_BASE);
 
     const response = await fetch(`${API_BASE}/cursos/active`, { headers });
     if (!response.ok) {
