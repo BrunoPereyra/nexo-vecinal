@@ -261,7 +261,6 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 		})
 	}
 	if IsUserBlocked {
-
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"message": "Too many failed login attempts. Please try again late",
 		})
