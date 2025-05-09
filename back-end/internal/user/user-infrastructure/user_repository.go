@@ -1509,7 +1509,6 @@ func (u *UserRepository) SaveLocationTags(userID primitive.ObjectID, location us
 
 	opts := options.Update().SetUpsert(true)
 	_, err := recommendedColl.UpdateOne(ctx, bson.M{"workerId": userID}, updateRecommended, opts)
-	fmt.Println(err)
 	return err
 }
 

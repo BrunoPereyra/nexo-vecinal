@@ -78,14 +78,7 @@ async function registerForNotificationsAsync() {
             return;
         }
 
-        if (Platform.OS === 'android') {
-            Notifications.setNotificationChannelAsync('default', {
-                name: 'default',
-                importance: Notifications.AndroidImportance.MAX,
-                vibrationPattern: [0, 250, 250, 250],
-                lightColor: '#FF231F7C',
-            });
-        }
+
     } else {
         alert('Debe usar un dispositivo físico para recibir notificaciones push.');
     }

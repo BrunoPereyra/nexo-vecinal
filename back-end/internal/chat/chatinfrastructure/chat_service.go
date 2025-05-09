@@ -159,10 +159,11 @@ func (r *ChatRepository) notifyMessage(user primitive.ObjectID, messageText, sen
 		return err
 	}
 	payload := map[string]interface{}{
-		"to":    pushToken,
-		"title": senderName,
-		"body":  messageText,
-		"data":  map[string]string{"message": messageText},
+		"to":        pushToken,
+		"title":     senderName,
+		"body":      messageText,
+		"data":      map[string]string{"message": messageText},
+		"channelId": "chats",
 	}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {

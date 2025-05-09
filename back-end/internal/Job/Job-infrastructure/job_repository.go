@@ -1223,10 +1223,11 @@ func (j *JobRepository) notifyWorker(workerID primitive.ObjectID, jobTitle strin
 	}
 	// Construir payload para notificación push de Expo
 	payload := map[string]interface{}{
-		"to":    pushToken,
-		"title": "Trabajo asignado",
-		"body":  fmt.Sprintf("Has sido asignado al trabajo '%s'", jobTitle),
-		"data":  map[string]string{"jobTitle": jobTitle},
+		"to":        pushToken,
+		"title":     "Trabajo asignado",
+		"body":      fmt.Sprintf("Has sido asignado al trabajo '%s'", jobTitle),
+		"data":      map[string]string{"jobTitle": jobTitle},
+		"channelId": "jobs",
 	}
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
@@ -1529,9 +1530,10 @@ func (j *JobRepository) SendBatchNotification(pushTokens []string, title string,
 	var payloads []map[string]interface{}
 	for _, token := range pushTokens {
 		payloads = append(payloads, map[string]interface{}{
-			"to":    token,
-			"title": title,
-			"body":  body,
+			"to":        token,
+			"title":     title,
+			"body":      body,
+			"channelId": "jobs",
 		})
 	}
 

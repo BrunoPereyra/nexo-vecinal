@@ -55,6 +55,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         try {
             const tokenData = await Notifications.getExpoPushTokenAsync();
+            console.log(tokenData);
+
             setPushToken(tokenData.data);
         } catch (error) {
             console.log("AYUD2A", error);
@@ -62,13 +64,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (Platform.OS === 'android') {
-            await Notifications.setNotificationChannelAsync('default', {
-                name: 'default',
-                importance: Notifications.AndroidImportance.HIGH,
-                vibrationPattern: [0, 250, 250, 250],
-                lightColor: '#FF231F7C',
-                sound: "default",
-            });
+            try {
+                await Notifications.setNotificationChannelAsync('default', {
+                    name: 'default',
+                    importance: Notifications.AndroidImportance.HIGH,
+                    vibrationPattern: [0, 250, 250, 250],
+                    lightColor: '#FF231F7C',
+                });
+                await Notifications.setNotificationChannelAsync('jobs', {
+                    name: 'Trabajos',
+                    importance: Notifications.AndroidImportance.HIGH,
+                    sound: 'default',
+                    lightColor: '#FF231F7C',
+                });
+                await Notifications.setNotificationChannelAsync('chats', {
+                    name: 'chats',
+                    importance: Notifications.AndroidImportance.HIGH,
+                    sound: 'default',
+                    lightColor: '#FF231F7C',
+                });
+                console.log("YES 1111111");
+
+            } catch (error) {
+                console.log("BBB", error);
+            }
+
         }
     };
     // Cargar el token almacenado

@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
 
-const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:9000";
+const API = "http://192.168.0.28:9000";
 
 // Función para hacer un GET que envía un token en el header Authorization
 export const getUserToken = async (token: string) => {
@@ -27,14 +27,9 @@ export const savePushToken = async (token: string, pushToken: string) => {
                 'Authorization': `Bearer ${token}`
             },
         });
-        console.log(pushToken);
-
-        console.log(res.json());
-
         return await res.json();
     } catch (error) {
         console.log(pushToken);
-
         console.error("Error saving push token:", error);
         throw error;
     }
