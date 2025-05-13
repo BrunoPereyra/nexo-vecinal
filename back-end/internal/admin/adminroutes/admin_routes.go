@@ -28,11 +28,19 @@ func AdminReportRoutes(app *fiber.App, redisClient *redis.Client, mongoClient *m
 	reportsGroup.Get("/GetContentReports", middleware.UseExtractor(), reportHandler.GetContentReports)
 
 	// admin
-	adminGroup.Get("/reports/getid/:id", reportHandler.GetReportById)    // Obtener reporte por ID
-	adminGroup.Get("/reports", reportHandler.GetReportsByUser)           // Obtener reportes por usuario (query params)
-	adminGroup.Get("/reports/global", reportHandler.GetGlobalReports)    // Obtener reportes globales
-	adminGroup.Post("/reports/:id/read", reportHandler.MarkReportAsRead) // Marcar reporte como leído
-	adminGroup.Post("/block", reportHandler.BlockUser)                   // Bloquear usuario (requiere autorización de admin)
+	adminGroup.Get("/reports/getid/:id", reportHandler.GetReportById)                 // Obtener reporte por ID
+	adminGroup.Get("/reports", reportHandler.GetReportsByUser)                        // Obtener reportes por usuario (query params)
+	adminGroup.Get("/reports/global", reportHandler.GetGlobalReports)                 // Obtener reportes globales
+	adminGroup.Post("/reports/:id/read", reportHandler.MarkReportAsRead)              // Marcar reporte como leído
+	adminGroup.Post("/block", middleware.UseExtractor(), reportHandler.BlockUser)     // Bloquear usuario (requiere autorización de admin)
+	adminGroup.Post("/unblock", middleware.UseExtractor(), reportHandler.UnblockUser) // Bloquear usuario (requiere autorización de admin)
+
+	adminGroup.Get("/GetUsers", middleware.UseExtractor(), reportHandler.GetUsers) // Obtener a los usuarios desde admin
+
+	// admmistrar habilidad de trabajar
+
+	adminGroup.Post("/disableUserForWork", middleware.UseExtractor(), reportHandler.DisableUserForWork) // Bloquear usuario (requiere autorización de admin)
+	adminGroup.Post("/enableUserForWork", middleware.UseExtractor(), reportHandler.EnableUserForWork)   // Bloquear usuario (requiere autorización de admin)
 
 	adminGroup.Delete("/deleteJob", middleware.UseExtractor(), reportHandler.DeleteJob)                     // delete job(requiere autorización de admin)
 	adminGroup.Delete("/deletePost", middleware.UseExtractor(), reportHandler.DeletePost)                   // delete job(requiere autorización de admin)

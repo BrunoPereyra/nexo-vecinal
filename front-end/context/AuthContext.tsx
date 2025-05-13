@@ -55,11 +55,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         try {
             const tokenData = await Notifications.getExpoPushTokenAsync();
-            console.log(tokenData);
 
             setPushToken(tokenData.data);
         } catch (error) {
-            console.log("AYUD2A", error);
+            console.log(error);
 
         }
 

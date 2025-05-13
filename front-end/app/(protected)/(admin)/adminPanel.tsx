@@ -21,6 +21,7 @@ import ToggleTabs from './ToggleTabs';
 import TagManagementPanel from './TagManagementPanel';
 // Importa el nuevo panel
 import AdminJobsPanel from './AdminJobsPanel';
+import AdminUsersPanel from '@/components/AdminUsersPanel/AdminUsersPanel';
 
 // Agregamos "jobs" como parte de las pestañas disponibles
 type AdminTab = 'reports' | 'courses' | 'support' | 'jobs';
@@ -184,6 +185,9 @@ export default function AdminPanelScreen() {
             ) : activeTab === 'jobs' ? (
                 // Muestra el panel de trabajos
                 <AdminJobsPanel />
+            ) : activeTab === 'Users' ? (
+                // Muestra el panel de trabajos
+                <AdminUsersPanel />
             ) : null}
 
             {chatDetailVisible && selectedUserProfile && (

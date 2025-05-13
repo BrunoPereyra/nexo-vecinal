@@ -159,6 +159,24 @@ func (r *ReportRepository) BlockUser(ctx context.Context, userID string) error {
 	return nil
 }
 
+// UnblockUser actualiza el campo "Banned" del usuario a true para bloquearlo.
+func (r *ReportRepository) UnblockUser(ctx context.Context, userID string) error {
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("invalid user id: %v", err)
+	}
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	update := bson.M{"$set": bson.M{"Banned": false}}
+	res, err := collection.UpdateOne(ctx, bson.M{"_id": oid}, update)
+	if err != nil {
+		return fmt.Errorf("failed to block user: %v", err)
+	}
+	if res.MatchedCount == 0 {
+		return errors.New("user not found")
+	}
+	return nil
+}
+
 // CheckAdminAuthorization valida que el usuario sea administrador mediante PanelAdminNexoVecinal.
 func (r *ReportRepository) CheckAdminAuthorization(ctx context.Context, adminID string, code string) error {
 	oid, err := primitive.ObjectIDFromHex(adminID)
@@ -344,4 +362,91 @@ func (r *ReportRepository) GetContentReports(ctx context.Context, page int) ([]a
 		return nil, fmt.Errorf("failed to decode content reports: %v", err)
 	}
 	return reports, nil
+}
+func (r *ReportRepository) GetUserByNameUserIndex(NameUser string) ([]*userdomain.GetUser, error) {
+	GoMongoDBCollUsers := r.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	indexModel := mongo.IndexModel{
+		Keys: bson.D{{Key: "NameUser", Value: 1}},
+	}
+	_, err := GoMongoDBCollUsers.Indexes().CreateOne(context.Background(), indexModel)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.D{{Key: "NameUser", Value: primitive.Regex{Pattern: NameUser, Options: "i"}}}
+
+	findOptions := options.Find().SetLimit(10)
+
+	cursor, err := GoMongoDBCollUsers.Find(context.Background(), filter, findOptions)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var users []*userdomain.GetUser
+	for cursor.Next(context.Background()) {
+		var user userdomain.GetUser
+		if err := cursor.Decode(&user); err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+
+	return users, nil
+}
+
+func (r *ReportRepository) EnableUserForWork(ctx context.Context, userId primitive.ObjectID) error {
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Filtro para encontrar al usuario por su ID
+	filter := bson.M{"_id": userId}
+
+	// Actualización para establecer availableToWork en true
+	update := bson.M{
+		"$set": bson.M{
+			"availableToWork": true,
+			"updatedAt":       time.Now(),
+		},
+	}
+
+	// Ejecutar la actualización
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to enable user for work: %v", err)
+	}
+
+	// Verificar si se encontró y actualizó algún documento
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("user with ID %v not found", userId)
+	}
+
+	return nil
+}
+func (r *ReportRepository) DisableUserForWork(ctx context.Context, userId primitive.ObjectID) error {
+	collection := r.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Filtro para encontrar al usuario por su ID
+	filter := bson.M{"_id": userId}
+
+	// Actualización para establecer availableToWork en false
+	update := bson.M{
+		"$set": bson.M{
+			"availableToWork": false,
+			"updatedAt":       time.Now(),
+		},
+	}
+
+	// Ejecutar la actualización
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to enable user for work: %v", err)
+	}
+
+	// Verificar si se encontró y actualizó algún documento
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("user with ID %v not found", userId)
+	}
+
+	return nil
 }

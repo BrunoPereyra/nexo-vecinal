@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
-type AdminTab = 'reports' | 'courses' | 'support' | 'jobs';
+type AdminTab = 'reports' | 'courses' | 'support' | 'jobs' | "Users";
 
 type ToggleTabsProps = {
     activeTab: AdminTab;
@@ -10,7 +10,7 @@ type ToggleTabsProps = {
 
 const ToggleTabs: React.FC<ToggleTabsProps> = ({ activeTab, onTabChange }) => {
     return (
-        <View style={styles.container}>
+        <ScrollView horizontal contentContainerStyle={styles.scrollContainer}>
             <TouchableOpacity
                 style={[styles.button, activeTab === 'reports' && styles.activeButton]}
                 onPress={() => onTabChange('reports')}
@@ -38,7 +38,6 @@ const ToggleTabs: React.FC<ToggleTabsProps> = ({ activeTab, onTabChange }) => {
                 </Text>
             </TouchableOpacity>
 
-            {/* Corregir este botón para que llame 'jobs' en lugar de 'support' */}
             <TouchableOpacity
                 style={[styles.button, activeTab === 'jobs' && styles.activeButton]}
                 onPress={() => onTabChange('jobs')}
@@ -47,14 +46,22 @@ const ToggleTabs: React.FC<ToggleTabsProps> = ({ activeTab, onTabChange }) => {
                     Jobs
                 </Text>
             </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+                style={[styles.button, activeTab === 'jobs' && styles.activeButton]}
+                onPress={() => onTabChange('Users')}
+            >
+                <Text style={[styles.text, activeTab === 'Users' && styles.activeText]}>
+                    Usuarios
+                </Text>
+            </TouchableOpacity>
+        </ScrollView>
     );
 };
 
 export default ToggleTabs;
 
 const styles = StyleSheet.create({
-    container: {
+    scrollContainer: {
         flexDirection: 'row',
         justifyContent: 'space-evenly',
         marginVertical: 12,
@@ -66,6 +73,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1E1E1E',
         borderWidth: 1,
         borderColor: '#444',
+        marginHorizontal: 5, // Espaciado entre botones
     },
     activeButton: {
         backgroundColor: '#03DAC5',

@@ -1,4 +1,3 @@
-// components/ReportsList.tsx
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -8,6 +7,8 @@ import {
     FlatList,
     Alert,
     ActivityIndicator,
+    Modal,
+    TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '@/context/AuthContext';
@@ -36,6 +37,11 @@ export default function ReportsList() {
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Modal state
+    const [modalVisible, setModalVisible] = useState(false);
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+    const [code, setCode] = useState('');
+
     useEffect(() => {
         setLoading(true);
         getGlobalReports(token as string)
@@ -47,20 +53,38 @@ export default function ReportsList() {
     const handleMarkAsRead = async (reportId: string) => {
         try {
             await markReportAsRead(reportId, token as string);
-            setUserReports(prev =>
-                prev.map(r => (r.id === reportId ? { ...r, read: true } : r))
+            setUserReports((prev) =>
+                prev.map((r) => (r.id === reportId ? { ...r, read: true } : r))
             );
         } catch {
             Alert.alert('Error', 'No se pudo marcar como visto.');
         }
     };
 
-    const handleBlockUser = async (userId: string) => {
+    const handleBlockUser = (userId: string) => {
+        setCurrentUserId(userId);
+        setModalVisible(true); // Abre el modal para ingresar el código
+    };
+
+    const submitCode = async () => {
+        if (!code) {
+            Alert.alert('Error', 'El código no puede estar vacío.');
+            return;
+        }
+
         try {
-            await blockUser(userId, token as string);
-            Alert.alert('Usuario bloqueado');
+            if (currentUserId) {
+                await blockUser(currentUserId, code, token as string);
+                Alert.alert('Usuario bloqueado');
+                setUserReports((prev) =>
+                    prev.filter((report) => report.reportedUser.id !== currentUserId)
+                );
+            }
         } catch {
             Alert.alert('Error', 'No se pudo bloquear usuario.');
+        } finally {
+            setCode('');
+            setModalVisible(false); // Cierra el modal
         }
     };
 
@@ -119,7 +143,7 @@ export default function ReportsList() {
             {tab === 'users' ? (
                 <FlatList
                     data={userReports}
-                    keyExtractor={item => item.id}
+                    keyExtractor={(item) => item.id}
                     renderItem={renderUserReport}
                     contentContainerStyle={styles.listContainer}
                     ListEmptyComponent={<Text style={styles.noData}>Sin reportes de usuarios.</Text>}
@@ -127,6 +151,31 @@ export default function ReportsList() {
             ) : (
                 <ContentReportsList />
             )}
+
+            {/* Modal para ingresar el código */}
+            <Modal visible={modalVisible} animationType="slide" transparent>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Bloquear Usuario</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Introduce el código"
+                            placeholderTextColor="#B0B0B0"
+                            value={code}
+                            onChangeText={setCode}
+                        />
+                        <TouchableOpacity style={styles.submitButton} onPress={submitCode}>
+                            <Text style={styles.buttonText}>Aceptar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={() => setModalVisible(false)}
+                        >
+                            <Text style={styles.buttonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -149,4 +198,42 @@ const styles = StyleSheet.create({
     buttonText: { color: '#121212', fontWeight: 'bold' },
     noData: { textAlign: 'center', marginTop: 20, color: '#888' },
     loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#1E1E1E',
+        padding: 20,
+        borderRadius: 10,
+        width: '90%',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#E0E0E0',
+        marginBottom: 10,
+    },
+    input: {
+        backgroundColor: '#2C2C2C',
+        color: '#E0E0E0',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    submitButton: {
+        backgroundColor: '#03DAC5',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    closeButton: {
+        backgroundColor: '#CF6679',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+    },
 });

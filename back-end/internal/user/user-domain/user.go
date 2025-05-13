@@ -70,6 +70,7 @@ type User struct {
 	Tags            []string           `json:"tags" bson:"tags"`
 	Location        GeoPoint           `json:"location" bson:"location"`
 	Ratio           float64            `json:"Ratio" bson:"ratio"`
+	AvailableToWork bool               `json:"availableToWork" bson:"availableToWork"`
 }
 
 type Premium struct {
@@ -225,15 +226,11 @@ type GetRecommended struct {
 	ExcludeIDs []primitive.ObjectID `json:"ExcludeIDs" validate:"required"`
 }
 type GetUser struct {
-	ID       primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Avatar   string             `json:"Avatar" default:"https://res.cloudinary.com/pinkker/image/upload/v1680478837/foto_default_obyind.png" bson:"Avatar"`
-	FullName string             `json:"FullName" bson:"FullName"`
-	NameUser string             `json:"NameUser" bson:"NameUser"`
-	Pais     string             `json:"Pais" bson:"Pais"`
-	// Subscriptions   []primitive.ObjectID   `bson:"Subscriptions"`
-	// Subscribers     []primitive.ObjectID   `bson:"Subscribers"`
-	// Clips           []primitive.ObjectID   `bson:"Clips,omitempty"`
-	// ClipsLikes      []primitive.ObjectID   `bson:"ClipsLikes,omitempty"`
+	ID              primitive.ObjectID     `json:"id" bson:"_id,omitempty"`
+	Avatar          string                 `json:"Avatar" default:"https://res.cloudinary.com/pinkker/image/upload/v1680478837/foto_default_obyind.png" bson:"Avatar"`
+	FullName        string                 `json:"FullName" bson:"FullName"`
+	NameUser        string                 `json:"NameUser" bson:"NameUser"`
+	Pais            string                 `json:"Pais" bson:"Pais"`
 	Ciudad          string                 `json:"Ciudad" bson:"Ciudad"`
 	Email           string                 `json:"Email" bson:"Email"`
 	Role            int                    `json:"role" bson:"Role,default:0"`
@@ -276,10 +273,13 @@ type GetUser struct {
 	// Likes                    []primitive.ObjectID              `json:"Likes" bson:"Likes"`
 	Wallet string `json:"Wallet" bson:"Wallet"`
 	// ClipsComment             []primitive.ObjectID              `json:"ClipsComment" bson:"ClipsComment"`
-	CategoryPreferences map[string]float64   `json:"categoryPreferences" bson:"categoryPreferences"`
-	Banned              bool                 `json:"Banned" bson:"Banned"`
-	IsFollowedByUser    bool                 `json:"isFollowedByUser" bson:"isFollowedByUser"`
-	InCommunities       []primitive.ObjectID `json:"InCommunities" bson:"InCommunities"`
+	CategoryPreferences map[string]float64 `json:"categoryPreferences" bson:"categoryPreferences"`
+	Banned              bool               `json:"Banned" bson:"Banned"`
+	IsFollowedByUser    bool               `json:"isFollowedByUser" bson:"isFollowedByUser"`
+	Tags                []string           `json:"tags" bson:"tags"`
+	Location            GeoPoint           `json:"location" bson:"location"`
+	Ratio               float64            `json:"Ratio" bson:"ratio"`
+	AvailableToWork     bool               `json:"availableToWork" bson:"availableToWork"`
 }
 type UserInfoOAuth2 struct {
 	ID      string `json:"id"`

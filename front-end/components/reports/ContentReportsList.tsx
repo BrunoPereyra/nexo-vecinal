@@ -1,4 +1,3 @@
-// components/ContentReportsList.tsx
 import React, { useEffect, useState } from 'react';
 import {
     View,
@@ -8,24 +7,26 @@ import {
     TouchableOpacity,
     Alert,
     ActivityIndicator,
+    Modal,
+    TextInput,
 } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { getContentReports } from '@/services/reports';
 import { ContentReport, DeleteJob, DeletePost, deleteContentReport } from '@/services/admin';
 
-
-
 export default function ContentReportsList() {
     const { token } = useAuth();
     const [contentReports, setContentReports] = useState<ContentReport[]>([]);
     const [loading, setLoading] = useState(true);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [currentAction, setCurrentAction] = useState<'delete' | 'markAsRead' | null>(null);
+    const [currentReport, setCurrentReport] = useState<ContentReport | null>(null);
+    const [code, setCode] = useState('');
 
     useEffect(() => {
         getContentReports(1, 50, token as string)
             .then((d) => {
                 if (d.data?.length > 0) {
-                    console.log('d.data', d.data);
-
                     setContentReports(d.data);
                 } else {
                     setContentReports([]);
@@ -35,24 +36,43 @@ export default function ContentReportsList() {
             .finally(() => setLoading(false));
     }, [token]);
 
-    const handleDelete = async (item: ContentReport) => {
-        try {
-            const method = item.contentType === 'post' ? DeletePost : DeleteJob;
-            await method(item.reportedContentId, 'bruno', token as string);
-            Alert.alert('Contenido eliminado');
-        } catch (err) {
-            Alert.alert('Error al eliminar contenido');
-        }
+    const openModal = (action: 'delete' | 'markAsRead', report: ContentReport) => {
+        setCurrentAction(action);
+        setCurrentReport(report);
+        setModalVisible(true);
     };
 
-    const handleMarkAsRead = async (id: string) => {
-        try {
-            const res = await deleteContentReport(id, 'bruno', token as string);
-            console.log(res);
+    const closeModal = () => {
+        setModalVisible(false);
+        setCode('');
+        setCurrentAction(null);
+        setCurrentReport(null);
+    };
 
-            Alert.alert('Marcado como visto');
+    const submitCode = async () => {
+        if (!code) {
+            Alert.alert('Error', 'El código no puede estar vacío.');
+            return;
+        }
+
+        try {
+            if (currentAction === 'delete' && currentReport) {
+                const method = currentReport.contentType === 'post' ? DeletePost : DeleteJob;
+                await method(currentReport.reportedContentId, code, token as string);
+                Alert.alert('Contenido eliminado');
+            } else if (currentAction === 'markAsRead' && currentReport) {
+                await deleteContentReport(currentReport.id, code, token as string);
+                Alert.alert('Marcado como visto');
+            }
+
+            // Refrescar la lista después de la acción
+            setContentReports((prev) =>
+                prev.filter((report) => report.id !== currentReport?.id)
+            );
         } catch (err) {
-            Alert.alert('Error al marcar como visto');
+            Alert.alert('Error', 'No se pudo completar la acción.');
+        } finally {
+            closeModal();
         }
     };
 
@@ -60,18 +80,24 @@ export default function ContentReportsList() {
         <View style={styles.card}>
             <Text style={styles.text}>Tipo: {item.contentType}</Text>
             <Text style={styles.text}>ID Contenido: {item.reportedContentId}</Text>
-            {Array.isArray(item.reports) && item.reports.map((report, idx) => (
-                <View key={idx}>
-                    <Text style={styles.text}>Motivo: {report.description}</Text>
-                </View>
-            ))}
-
+            {Array.isArray(item.reports) &&
+                item.reports.map((report, idx) => (
+                    <View key={idx}>
+                        <Text style={styles.text}>Motivo: {report.description}</Text>
+                    </View>
+                ))}
 
             <View style={styles.actions}>
-                <TouchableOpacity style={[styles.button, styles.danger]} onPress={() => handleDelete(item)}>
+                <TouchableOpacity
+                    style={[styles.button, styles.danger]}
+                    onPress={() => openModal('delete', item)}
+                >
                     <Text style={styles.buttonText}>Eliminar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.button} onPress={() => handleMarkAsRead(item.id)}>
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => openModal('markAsRead', item)}
+                >
                     <Text style={styles.buttonText}>Marcar como visto</Text>
                 </TouchableOpacity>
             </View>
@@ -87,16 +113,46 @@ export default function ContentReportsList() {
     }
 
     return (
-        <FlatList
-            data={contentReports}
-            keyExtractor={item => item.id}
-            renderItem={renderContentReport}
-            contentContainerStyle={styles.listContainer}
-        />
+        <View style={styles.container}>
+            <FlatList
+                data={contentReports}
+                keyExtractor={(item) => item.id}
+                renderItem={renderContentReport}
+                contentContainerStyle={styles.listContainer}
+            />
+            <Modal visible={modalVisible} animationType="slide" transparent>
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>
+                            {currentAction === 'delete'
+                                ? 'Eliminar Contenido'
+                                : 'Marcar como Visto'}
+                        </Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Introduce el código"
+                            placeholderTextColor="#B0B0B0"
+                            value={code}
+                            onChangeText={setCode}
+                        />
+                        <TouchableOpacity style={styles.submitButton} onPress={submitCode}>
+                            <Text style={styles.buttonText}>Aceptar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.closeButton} onPress={closeModal}>
+                            <Text style={styles.buttonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#121212',
+    },
     listContainer: {
         paddingBottom: 16,
     },
@@ -110,10 +166,6 @@ const styles = StyleSheet.create({
     text: {
         color: '#E0E0E0',
         marginBottom: 6,
-    },
-    subtitle: {
-        color: '#B0B0B0',
-        fontSize: 12,
     },
     loadingContainer: {
         padding: 20,
@@ -136,5 +188,43 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 8,
+    },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: '#1E1E1E',
+        padding: 20,
+        borderRadius: 10,
+        width: '90%',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#E0E0E0',
+        marginBottom: 10,
+    },
+    input: {
+        backgroundColor: '#2C2C2C',
+        color: '#E0E0E0',
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+    },
+    submitButton: {
+        backgroundColor: '#03DAC5',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    closeButton: {
+        backgroundColor: '#CF6679',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
     },
 });

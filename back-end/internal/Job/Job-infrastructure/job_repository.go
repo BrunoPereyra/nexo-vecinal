@@ -97,7 +97,7 @@ func (j *JobRepository) ApplyToJob(jobID, applicantID primitive.ObjectID, propos
 
 func (j *JobRepository) canUserApply(userID primitive.ObjectID) (bool, error) {
 	userColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
-	var user userdomain.User
+	var user userdomain.GetUser
 
 	err := userColl.FindOne(context.Background(), bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
@@ -109,6 +109,9 @@ func (j *JobRepository) canUserApply(userID primitive.ObjectID) (bool, error) {
 
 	if user.Banned {
 		return false, errors.New("estas baneado")
+	}
+	if !user.AvailableToWork {
+		return false, errors.New("no estas calificado para trabajar")
 	}
 
 	return true, nil

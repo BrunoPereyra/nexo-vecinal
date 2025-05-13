@@ -111,19 +111,18 @@ func (h *ReportHandler) MarkReportAsRead(c *fiber.Ctx) error {
 }
 
 // BlockUser endpoint para bloquear a un usuario.
-// Se espera en el body JSON: { "userId": "<id_del_usuario>" }.
-// Además, se deben enviar en headers los datos de admin (por ejemplo, adminId y adminCode) para la autorización.
+
 func (h *ReportHandler) BlockUser(c *fiber.Ctx) error {
 	type BlockRequest struct {
-		UserID string `json:"userId"`
+		UserID    string `json:"userId"`
+		AdminCode string `json:"code"`
 	}
 	var req BlockRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
 	}
-	adminID := c.Get("adminId")
-	code := c.Get("adminCode")
-	if err := h.ReportService.CheckAdminAuthorization(context.Background(), adminID, code); err != nil {
+	idValue := c.Context().UserValue("_id").(string)
+	if err := h.ReportService.CheckAdminAuthorization(context.Background(), idValue, req.AdminCode); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No autorizado: " + err.Error()})
 	}
 	if err := h.ReportService.BlockUser(context.Background(), req.UserID); err != nil {
@@ -131,6 +130,25 @@ func (h *ReportHandler) BlockUser(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "usuario bloqueado"})
 }
+func (h *ReportHandler) UnblockUser(c *fiber.Ctx) error {
+	type BlockRequest struct {
+		UserID    string `json:"userId"`
+		AdminCode string `json:"code"`
+	}
+	var req BlockRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	idValue := c.Context().UserValue("_id").(string)
+	if err := h.ReportService.CheckAdminAuthorization(context.Background(), idValue, req.AdminCode); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No autorizado: " + err.Error()})
+	}
+	if err := h.ReportService.UnblockUser(context.Background(), req.UserID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "usuario desbloqueado"})
+}
+
 func (h *ReportHandler) GetAllTagsHandler(c *fiber.Ctx) error {
 	ctx := context.Background()
 	tags, err := h.ReportService.GetAllTags(ctx)
@@ -233,4 +251,57 @@ func (h *ReportHandler) GetContentReports(c *fiber.Ctx) error {
 		"message": "StatusOK",
 		"data":    reports,
 	})
+}
+func (h *ReportHandler) GetUsers(c *fiber.Ctx) error {
+	nameUser := c.Query("nameUser", "")
+
+	reports, err := h.ReportService.GetUsersNameUser(nameUser)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "StatusOK",
+		"data":    reports,
+	})
+}
+func (h *ReportHandler) DisableUserForWork(c *fiber.Ctx) error {
+	type request struct {
+		IdUser    primitive.ObjectID `json:"user"`
+		AdminCode string             `json:"code"`
+	}
+	var req request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	idValue := c.Context().UserValue("_id").(string)
+	if err := h.ReportService.CheckAdminAuthorization(context.Background(), idValue, req.AdminCode); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No autorizado: " + err.Error()})
+	}
+	ctx := context.Background()
+
+	if err := h.ReportService.DisableUserForWork(ctx, req.IdUser); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ContentReport delete"})
+}
+func (h *ReportHandler) EnableUserForWork(c *fiber.Ctx) error {
+	type request struct {
+		IdUser    primitive.ObjectID `json:"user"`
+		AdminCode string             `json:"code"`
+	}
+	var req request
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "input inválido"})
+	}
+	idValue := c.Context().UserValue("_id").(string)
+	if err := h.ReportService.CheckAdminAuthorization(context.Background(), idValue, req.AdminCode); err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "No autorizado: " + err.Error()})
+	}
+	ctx := context.Background()
+
+	if err := h.ReportService.EnableUserForWork(ctx, req.IdUser); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "ContentReport delete"})
 }

@@ -5,6 +5,7 @@ import (
 
 	"back-end/internal/admin/admindomain"
 	"back-end/internal/admin/admininfrastructure"
+	userdomain "back-end/internal/user/user-domain"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -51,6 +52,11 @@ func (s *ReportService) BlockUser(ctx context.Context, userID string) error {
 	return s.ReportRepository.BlockUser(ctx, userID)
 }
 
+// UnblockUser bloquea a un usuario.
+func (s *ReportService) UnblockUser(ctx context.Context, userID string) error {
+	return s.ReportRepository.UnblockUser(ctx, userID)
+}
+
 // CheckAdminAuthorization valida que el solicitante sea administrador.
 func (s *ReportService) CheckAdminAuthorization(ctx context.Context, adminID string, code string) error {
 	return s.ReportRepository.CheckAdminAuthorization(ctx, adminID, code)
@@ -89,4 +95,14 @@ func (s *ReportService) GetContentReports(ctx context.Context, page int) ([]admi
 
 func (s *ReportService) DeleteContentReport(ctx context.Context, report primitive.ObjectID) error {
 	return s.ReportRepository.DeleteContentReport(ctx, report)
+}
+
+func (s *ReportService) GetUsersNameUser(nameUser string) ([]*userdomain.GetUser, error) {
+	return s.ReportRepository.GetUserByNameUserIndex(nameUser)
+}
+func (s *ReportService) DisableUserForWork(ctx context.Context, report primitive.ObjectID) error {
+	return s.ReportRepository.DisableUserForWork(ctx, report)
+}
+func (s *ReportService) EnableUserForWork(ctx context.Context, report primitive.ObjectID) error {
+	return s.ReportRepository.EnableUserForWork(ctx, report)
 }

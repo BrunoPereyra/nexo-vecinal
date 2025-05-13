@@ -1,6 +1,5 @@
 import Constants from "expo-constants";
-const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:90000";
-
+const API = Constants.expoConfig?.extra?.EXPO_URL_API ?? "http://192.168.0.28:9000";
 
 
 /**
@@ -45,7 +44,50 @@ export const createReports = async (reportData: any, token: string) => {
         throw error;
     }
 };
+export const enableUserForWork = async (user: any, token: string, code: string) => {
+    try {
+        const res = await fetch(`${API}/admin/enableUserForWork`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user, code })
+        });
 
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en enableUserForWork:", error);
+        throw error;
+    }
+};
+export const disableUserForWork = async (user: any, token: string, code: string) => {
+    try {
+        const res = await fetch(`${API}/admin/disableUserForWork`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ user, code })
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en enableUserForWork:", error);
+        throw error;
+    }
+};
 /**
  * Realiza una petición GET para obtener un reporte por ID.
  * @param reportId - ID del reporte a obtener.
@@ -157,7 +199,7 @@ export const markReportAsRead = async (reportId: string, token: string) => {
  * @param token - Token del usuario para autorización.
  * @returns La respuesta de la API en formato JSON.
  */
-export const blockUser = async (userId: string, token: string) => {
+export const blockUser = async (userId: string, code: string, token: string) => {
     try {
         const res = await fetch(`${API}/admin/block`, {
             method: 'POST',
@@ -165,7 +207,7 @@ export const blockUser = async (userId: string, token: string) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ userId })
+            body: JSON.stringify({ userId, code })
         });
 
         if (!res.ok) {
@@ -176,6 +218,28 @@ export const blockUser = async (userId: string, token: string) => {
         return await processResponse(res);
     } catch (error) {
         console.error("Error en blockUser:", error);
+        throw error;
+    }
+};
+export const unblockUser = async (userId: string, code: string, token: string) => {
+    try {
+        const res = await fetch(`${API}/admin/unblock`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userId, code }),
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+
+        return await processResponse(res);
+    } catch (error) {
+        console.error('Error en unblockUser:', error);
         throw error;
     }
 };
@@ -336,6 +400,30 @@ export const deleteContentReport = async (IdReport: string, code: string, token:
         throw error;
     }
 };
+// crea a  getUsers por nameUser
+export const getUsers = async (token: string, nameUser: string) => {
+    try {
+        const res = await fetch(`${API}/admin/GetUsers?nameUser=${nameUser}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`Error HTTP: ${res.status} - ${errorText}`);
+        }
+        return await processResponse(res);
+    } catch (error) {
+        console.error("Error en getUsers:", error);
+        throw error;
+    }
+}
+
+
+
 // Extender ContentReport con los campos necesarios para manejar los botones
 export type ContentReport = {
     id: string;

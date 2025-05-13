@@ -34,8 +34,6 @@ export const JobCardProfiles: React.FC<JobCardProfilesProps> = ({
                 router.push(`/jobsStatus/JobDetailWorker?id=${item?.id}`);
             }
         } else {
-            console.log("AAA");
-
             router.push(`/profile/EmployerJobDetail?id=${item?.id}`);
         }
     };
