@@ -29,7 +29,6 @@ export const savePushToken = async (token: string, pushToken: string) => {
         });
         return await res.json();
     } catch (error) {
-        console.log(pushToken);
         console.error("Error saving push token:", error);
         throw error;
     }
