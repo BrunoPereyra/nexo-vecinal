@@ -48,7 +48,7 @@ export default function ProfileScreen() {
     const [editBioVisible, setEditBioVisible] = useState(false);
     const [biografia, setBiografia] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
-
+    const [workSupportVisible, setWorkSupportVisible] = useState(false);
     // ---------------------- Chat de Soporte ----------------------
     const [supportChatVisible, setSupportChatVisible] = useState<boolean>(false);
     // Estado para mostrar el modal del SubscriptionSection
@@ -80,6 +80,13 @@ export default function ProfileScreen() {
                             await AsyncStorage.setItem('userPremiumData', JSON.stringify(Premium));
                         }
                     }
+                    if (
+                        (data.data.availableToWork === false || data.data.availableToWork === undefined) &&
+                        (data.data.Intentions === "work" || data.data.Intentions === undefined)
+                    ) {
+                        setWorkSupportVisible(true); // Mostrar mensaje de soporte
+                    }
+
                 } else {
                     router.push('/login');
                 }
@@ -413,7 +420,19 @@ export default function ProfileScreen() {
                     </View>
                 </View>
             </Modal>
-
+            {workSupportVisible && (
+                <View style={styles.supportMessage}>
+                    <Text style={styles.supportText}>
+                        Para habilitar la posibilidad de trabajo, por favor contacta con soporte.
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.supportButton}
+                        onPress={() => setSupportChatVisible(true)}
+                    >
+                        <Text style={styles.supportButtonText}>Hablar con soporte</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
             {/* Modal de Chat de Soporte */}
             {userProfile && (
                 <SupportChat
@@ -703,6 +722,29 @@ const styles = StyleSheet.create({
     copyButtonText: {
         color: colors.textDark,
         fontSize: 16,
+        fontWeight: "bold",
+    },
+    supportMessage: {
+        backgroundColor: "#FFF3CD",
+        padding: 16,
+        margin: 16,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#FFEEBA",
+    },
+    supportText: {
+        color: "#856404",
+        fontSize: 16,
+        marginBottom: 8,
+    },
+    supportButton: {
+        backgroundColor: "#856404",
+        padding: 10,
+        borderRadius: 5,
+        alignItems: "center",
+    },
+    supportButtonText: {
+        color: "#FFFFFF",
         fontWeight: "bold",
     },
 });
