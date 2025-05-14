@@ -49,6 +49,7 @@ export default function ProfileScreen() {
     const [biografia, setBiografia] = useState("");
     const [modalVisible, setModalVisible] = useState(false);
     const [workSupportVisible, setWorkSupportVisible] = useState(false);
+    const [showWelcomeModal, setShowWelcomeModal] = useState(false);
     // ---------------------- Chat de Soporte ----------------------
     const [supportChatVisible, setSupportChatVisible] = useState<boolean>(false);
     // Estado para mostrar el modal del SubscriptionSection
@@ -85,6 +86,12 @@ export default function ProfileScreen() {
                         (data.data.Intentions === "work" || data.data.Intentions === undefined)
                     ) {
                         setWorkSupportVisible(true); // Mostrar mensaje de soporte
+                    } else {
+                        const alreadyShown = await AsyncStorage.getItem('welcomeWorkModalShown');
+                        if (!alreadyShown) {
+                            setShowWelcomeModal(true);
+                            await AsyncStorage.setItem('welcomeWorkModalShown', 'true');
+                        }
                     }
 
                 } else {
@@ -433,6 +440,26 @@ export default function ProfileScreen() {
                     </TouchableOpacity>
                 </View>
             )}
+            <Modal
+                visible={showWelcomeModal}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setShowWelcomeModal(false)}
+            >
+                <View style={styles.modalOverlayWelcomeModal}>
+                    <View style={styles.modalContentWelcomeModal}>
+                        <Text style={styles.modalTitle}>¡Bienvenido!</Text>
+                        <Text style={styles.modalText}>
+                            Todos los trabajadores de la app pasaron por un proceso de prueba antes de poder disponer de la habilidad de trabajar.
+                        </Text>
+                        <Button
+                            title="Entendido"
+                            onPress={() => setShowWelcomeModal(false)}
+                            color="#03DAC5"
+                        />
+                    </View>
+                </View>
+            </Modal>
             {/* Modal de Chat de Soporte */}
             {userProfile && (
                 <SupportChat
@@ -630,7 +657,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         bottom: 90,
         right: 12,
-        backgroundColor: colors.cream,
+        backgroundColor: colors.borderLight,
         width: 60,
         height: 60,
         borderRadius: 30,
@@ -653,6 +680,21 @@ const styles = StyleSheet.create({
         color: colors.textDark,
         fontSize: 16,
         fontWeight: "bold",
+    },
+    modalOverlayWelcomeModal: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.6)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContentWelcomeModal: {
+        width: "85%",
+        backgroundColor: colors.background,
+        borderRadius: 12,
+        padding: 20,
+        elevation: 6,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
     },
     modalOverlay: {
         flex: 1,
@@ -725,7 +767,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     supportMessage: {
-        backgroundColor: "#FFF3CD",
+        backgroundColor: colors.darkContainer,
         padding: 16,
         margin: 16,
         borderRadius: 8,
@@ -733,12 +775,12 @@ const styles = StyleSheet.create({
         borderColor: "#FFEEBA",
     },
     supportText: {
-        color: "#856404",
+        color: colors.background,
         fontSize: 16,
         marginBottom: 8,
     },
     supportButton: {
-        backgroundColor: "#856404",
+        backgroundColor: colors.ColorPrice,
         padding: 10,
         borderRadius: 5,
         alignItems: "center",
