@@ -81,6 +81,7 @@ export default function ProfileScreen() {
                             await AsyncStorage.setItem('userPremiumData', JSON.stringify(Premium));
                         }
                     }
+
                     if (
                         (data.data.availableToWork === false || data.data.availableToWork === undefined) &&
                         (data.data.Intentions === "work" || data.data.Intentions === undefined)
@@ -767,7 +768,7 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
     },
     supportMessage: {
-        backgroundColor: colors.darkContainer,
+        backgroundColor: colors.borderLight,
         padding: 16,
         margin: 16,
         borderRadius: 8,
@@ -775,7 +776,7 @@ const styles = StyleSheet.create({
         borderColor: "#FFEEBA",
     },
     supportText: {
-        color: colors.background,
+        color: colors.textDark,
         fontSize: 16,
         marginBottom: 8,
     },
