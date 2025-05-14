@@ -56,7 +56,7 @@ export default function ProfileScreen() {
     const [subscriptionVisible, setSubscriptionVisible] = useState(false);
     const handleSubscribe = () => {
         setSubscriptionVisible(!subscriptionVisible);
-        setShowDropdown(false); // Oculta el menú si está abierto
+        setShowDropdown(false);
     };
 
     useEffect(() => {

@@ -282,6 +282,7 @@ type GetUser struct {
 	Ratio               float64            `json:"Ratio" bson:"ratio"`
 	AvailableToWork     bool               `json:"availableToWork" bson:"availableToWork"`
 	Intentions          string             `json:"Intentions" bson:"Intentions"`
+	CompletedJobs       int                `json:"completedJobs" bson:"completedJobs"`
 }
 type UserInfoOAuth2 struct {
 	ID      string `json:"id"`

@@ -64,7 +64,7 @@ func (j *JobRepository) ApplyToJob(jobID, applicantID primitive.ObjectID, propos
 		return err
 	}
 	if !canApply {
-		return errors.New("el usuario necesita Premium para aplicar a más de dos trabajos")
+		return errors.New("el usuario necesita Premium para aplicar a más de 4 trabajos")
 	}
 
 	jobColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Job")
@@ -107,6 +107,9 @@ func (j *JobRepository) canUserApply(userID primitive.ObjectID) (bool, error) {
 		return false, err
 	}
 
+	if user.CompletedJobs > 4 {
+		return false, errors.New("el usuario necesita Premium para aplicar a más de 4 trabajos")
+	}
 	if user.Banned {
 		return false, errors.New("estas baneado")
 	}
@@ -1491,40 +1494,57 @@ func (u *JobRepository) RegisterJobCompletionMetrics(Gender string, birthDate ti
 }
 
 // FindUsersByTagsAndLocation busca usuarios por tags y ubicación pero devolve solo el array de pushtoken
-func (j *JobRepository) FindUsersByTagsAndLocationPushToken(tags []string, location jobdomain.GeoPoint) ([]jobdomain.UserPushTokenId, error) {
-	userColl := j.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+func (j *JobRepository) FindUsersByTagsAndLocationPushToken(
+	tags []string,
+	location jobdomain.GeoPoint, // espera Type="Point", Coordinates []float64{lng, lat}
+) ([]jobdomain.UserPushTokenId, error) {
+	userColl := j.mongoClient.
+		Database("NEXO-VECINAL").
+		Collection("Users")
 
-	// Convertir el radio de metros a radianes
-	radiusInRadians := 5000 / 6378100.0 // Radio terrestre ≈ 6,378,100 metros
-
-	// Crear el filtro para la búsqueda
-	filter := bson.M{
-		"tags": bson.M{"$in": tags},
-		"location": bson.M{
-			"$geoWithin": bson.M{
-				"$centerSphere": []interface{}{
-					location.Coordinates, // [longitude, latitude]
-					radiusInRadians,      // Radio en radianes
-				},
+	// Pipeline de agregación:
+	pipeline := mongo.Pipeline{
+		// 1) GeoNear: calcula dist.calculated desde el punto dado,
+		//    sin maxDistance, para que nos entregue la distancia real
+		//    a cada usuario en la colección.
+		{{Key: "$geoNear", Value: bson.M{
+			"near": bson.M{
+				"type":        "Point",
+				"coordinates": location.Coordinates, // []float64{lng, lat}
 			},
-		},
+
+			"distanceField": "dist.calculated",
+			"spherical":     true,
+		}}},
+		// 2) Filtrar por tags, pushToken existente y
+		//    solo aquellos donde dist.calculated <= ratio (su propio campo)
+		{{Key: "$match", Value: bson.M{
+			"tags":      bson.M{"$in": tags},
+			"pushToken": bson.M{"$exists": true, "$ne": ""},
+			"$expr": bson.M{
+				"$lte": []interface{}{"$dist.calculated", "$ratio"},
+			},
+		}}},
+		// 3) Proyección mínima
+		{{Key: "$project", Value: bson.M{
+			"_id":       1,
+			"pushToken": 1,
+		}}},
+		// 4) Límite por si acaso
+		{{Key: "$limit", Value: 100}},
 	}
 
-	// Proyección para obtener solo los campos "_id" y "pushToken"
-	projection := bson.M{"_id": 1, "pushToken": 1}
-
-	cursor, err := userColl.Find(context.Background(), filter, options.Find().SetProjection(projection))
+	cur, err := userColl.Aggregate(context.Background(), pipeline)
 	if err != nil {
-		return []jobdomain.UserPushTokenId{}, err
+		return nil, err
 	}
-	defer cursor.Close(context.Background())
+	defer cur.Close(context.Background())
 
-	var users []jobdomain.UserPushTokenId
-	if err := cursor.All(context.Background(), &users); err != nil {
-		return []jobdomain.UserPushTokenId{}, err
+	var results []jobdomain.UserPushTokenId
+	if err := cur.All(context.Background(), &results); err != nil {
+		return nil, err
 	}
-
-	return users, nil
+	return results, nil
 }
 
 // SendBatchNotification

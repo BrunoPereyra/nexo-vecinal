@@ -80,7 +80,10 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	fifteenDaysAgo := time.Now().AddDate(0, 0, -15)
 	modelNewUser.EditProfiile.Biography = fifteenDaysAgo
 	modelNewUser.EditProfiile.NameUser = time.Now()
-	modelNewUser.Location = domain.GeoPoint{}
+	modelNewUser.Location = domain.GeoPoint{
+		Type:        "Point",
+		Coordinates: []float64{-64.183333, -31.416667},
+	}
 	modelNewUser.AvailableToWork = false
 	genderMap := map[string]string{
 		"Masculino": "male",
