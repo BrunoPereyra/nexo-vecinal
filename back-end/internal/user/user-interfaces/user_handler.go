@@ -311,6 +311,7 @@ func (h *UserHandler) SaveUserCodeConfirm(c *fiber.Ctx) error {
 			"data":     "not found code or not exist",
 		})
 	}
+	user.Intentions = newUser.Intentions
 	streamID, err := h.userService.SaveUser(user)
 	user.ID = streamID
 	if err != nil {

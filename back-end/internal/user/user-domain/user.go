@@ -71,6 +71,7 @@ type User struct {
 	Location        GeoPoint           `json:"location" bson:"location"`
 	Ratio           float64            `json:"Ratio" bson:"ratio"`
 	AvailableToWork bool               `json:"availableToWork" bson:"availableToWork"`
+	Intentions      string             `json:"Intentions" bson:"Intentions"` // hire work
 }
 
 type Premium struct {
@@ -280,6 +281,7 @@ type GetUser struct {
 	Location            GeoPoint           `json:"location" bson:"location"`
 	Ratio               float64            `json:"Ratio" bson:"ratio"`
 	AvailableToWork     bool               `json:"availableToWork" bson:"availableToWork"`
+	Intentions          string             `json:"Intentions" bson:"Intentions"`
 }
 type UserInfoOAuth2 struct {
 	ID      string `json:"id"`
