@@ -15,9 +15,10 @@ import PostsFeed from "@/components/Posts/PostsFeed";
 import colors from "@/style/colors";
 import SubscriptionSection from "@/components/Subscription/SubscriptionSection";
 import RecommendedJobsFeed from "@/components/recommendedJobs/RecommendedJobsFeed";
+import UsersFeed from "@/components/userCards/UsersFeed";
 
 const Home: React.FC = () => {
-  const [activeFeed, setActiveFeed] = useState<"jobs" | "posts" | "para ti">("jobs");
+  const [activeFeed, setActiveFeed] = useState<"jobs" | "Trabajadores" | "para ti">("jobs");
 
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loadingAvatar, setLoadingAvatar] = useState(true);
@@ -148,9 +149,9 @@ const Home: React.FC = () => {
 
         <TouchableOpacity
           style={styles.tabButton}
-          onPress={() => setActiveFeed("posts")}
+          onPress={() => setActiveFeed("Trabajadores")}
         >
-          <Text style={[styles.tabButtonText, activeFeed === "posts" && styles.activeTabText]}>
+          <Text style={[styles.tabButtonText, activeFeed === "Trabajadores" && styles.activeTabText]}>
             Publicaciones
           </Text>
         </TouchableOpacity>
@@ -188,7 +189,7 @@ const Home: React.FC = () => {
       </Modal>
       <View style={styles.feedContainer}>
         {activeFeed === "jobs" && <JobsFeed />}
-        {activeFeed === "posts" && <PostsFeed />}
+        {activeFeed === "Trabajadores" && <UsersFeed />}
         {activeFeed === "para ti" && <RecommendedJobsFeed />}
       </View>
 

@@ -691,3 +691,29 @@ func (h *UserHandler) GetFilteredUsers(c *fiber.Ctx) error {
 		"users":   users,
 	})
 }
+func (h *UserHandler) SearchUsersByNameTagOrLocation(c *fiber.Ctx) error {
+	var req struct {
+		NameUser       string           `json:"nameUser"`
+		Tags           []string         `json:"tags"`
+		Location       *domain.GeoPoint `json:"location"`
+		RadiusInMeters float64          `json:"radiusInMeters"`
+		Page           int              `json:"page"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Bad Request", "error": err.Error()})
+	}
+	users, err := h.userService.FindUsersByNameTagOrLocation(
+		req.NameUser,
+		req.Tags,
+		req.Location,
+		req.RadiusInMeters,
+		req.Page,
+	)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"message": "Error searching users", "error": err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "ok",
+		"users":   users,
+	})
+}

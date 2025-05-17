@@ -223,3 +223,34 @@ export const getRecommendedWorkers = async (
     }
 };
 
+/**
+ * Busca usuarios por nombre, tags o ubicación.
+ * @param params - Objeto con los filtros: nameUser, tags, location, radiusInMeters, page.
+ * @param token - Token del usuario para autorización.
+ * @returns La respuesta de la API en formato JSON.
+ */
+export const searchUsersByNameTagOrLocation = async (
+    params: {
+        nameUser?: string;
+        tags?: string[];
+        location?: GeoPoint;
+        radiusInMeters?: number;
+        page?: number;
+    },
+    token: string
+) => {
+    try {
+        const res = await fetch(`${API}/user/search`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(params),
+        });
+        return await res.json();
+    } catch (error) {
+        console.error("Error in searchUsersByNameTagOrLocation:", error);
+        throw error;
+    }
+};

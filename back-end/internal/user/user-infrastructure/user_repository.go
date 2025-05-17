@@ -1584,3 +1584,86 @@ func (ur *UserRepository) GetFilteredUsers(ReqLocationTags userdomain.ReqLocatio
 	}
 	return users, nil
 }
+
+// FindUsersByNameTagOrLocation busca usuarios por NameUser (regex), tags o ubicación (radio en metros).
+func (u *UserRepository) FindUsersByNameTagOrLocation(
+	nameUser string,
+	tags []string,
+	location *userdomain.GeoPoint, // puede ser nil si no se busca por ubicación
+	radiusInMeters float64, // ignorado si location es nil
+	page int,
+) ([]userdomain.GetUser, error) {
+	usersCollection := u.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+	filter := bson.M{
+		"Banned":          false,
+		"availableToWork": true,
+		"Intentions":      "work",
+	}
+	andFilters := []bson.M{}
+
+	// Buscar por NameUser (regex, case-insensitive)
+	if nameUser != "" {
+		andFilters = append(andFilters, bson.M{
+			"NameUser": bson.M{
+				"$regex":   nameUser,
+				"$options": "i",
+			},
+		})
+	}
+
+	// Buscar por tags
+	if len(tags) > 0 {
+		andFilters = append(andFilters, bson.M{
+			"tags": bson.M{
+				"$in": tags,
+			},
+		})
+	}
+
+	// Buscar por ubicación (dentro de un radio)
+	if location != nil && len(location.Coordinates) == 2 && radiusInMeters > 0 {
+		radiusInRadians := radiusInMeters / 6378100.0 // Radio terrestre ≈ 6,378,100 metros
+		andFilters = append(andFilters, bson.M{
+			"location": bson.M{
+				"$geoWithin": bson.M{
+					"$centerSphere": []interface{}{
+						location.Coordinates,
+						radiusInRadians,
+					},
+				},
+			},
+		})
+	}
+
+	if len(andFilters) > 0 {
+		filter["$and"] = andFilters
+	}
+
+	// Paginación
+	limit := int64(10)
+	skip := int64((page - 1) * 10)
+
+	opts := options.Find().
+		SetLimit(limit).
+		SetSkip(skip).
+		SetSort(bson.D{{Key: "createdAt", Value: -1}}).
+		SetProjection(bson.M{
+			"_id":      1,
+			"NameUser": 1,
+			"Avatar":   1,
+			"tags":     1,
+			"location": 1,
+		})
+
+	cursor, err := usersCollection.Find(context.Background(), filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var users []userdomain.GetUser
+	if err := cursor.All(context.Background(), &users); err != nil {
+		return nil, err
+	}
+	return users, nil
+}

@@ -191,3 +191,12 @@ func (u *UserService) SaveLocationTags(id primitive.ObjectID, location userdomai
 func (u *UserService) GetFilteredUsers(location userdomain.ReqLocationTags) ([]userdomain.User, error) {
 	return u.roomRepository.GetFilteredUsers(location)
 }
+func (u *UserService) FindUsersByNameTagOrLocation(
+	nameUser string,
+	tags []string,
+	location *domain.GeoPoint,
+	radiusInMeters float64,
+	page int,
+) ([]domain.GetUser, error) {
+	return u.roomRepository.FindUsersByNameTagOrLocation(nameUser, tags, location, radiusInMeters, page)
+}

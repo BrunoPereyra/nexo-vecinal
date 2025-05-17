@@ -269,11 +269,8 @@ type GetUser struct {
 	FollowersCount int `json:"FollowersCount" bson:"FollowersCount"`
 	FollowingCount int `json:"FollowingCount" bson:"FollowingCount"`
 
-	SubscribersCount int       `json:"SubscribersCount" bson:"SubscribersCount"`
-	Timestamp        time.Time `json:"Timestamp" bson:"Timestamp"`
-	// Likes                    []primitive.ObjectID              `json:"Likes" bson:"Likes"`
-	Wallet string `json:"Wallet" bson:"Wallet"`
-	// ClipsComment             []primitive.ObjectID              `json:"ClipsComment" bson:"ClipsComment"`
+	SubscribersCount    int                `json:"SubscribersCount" bson:"SubscribersCount"`
+	Timestamp           time.Time          `json:"Timestamp" bson:"Timestamp"`
 	CategoryPreferences map[string]float64 `json:"categoryPreferences" bson:"categoryPreferences"`
 	Banned              bool               `json:"Banned" bson:"Banned"`
 	IsFollowedByUser    bool               `json:"isFollowedByUser" bson:"isFollowedByUser"`
