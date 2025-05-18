@@ -6,6 +6,7 @@ import MapView, { Marker, Circle } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import colors from '@/style/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface UserFilterParams {
     nameUser: string;
@@ -27,19 +28,31 @@ const UserSearchFilters: React.FC<UserSearchFiltersProps> = ({ onSearch, availab
     const [radius, setRadius] = useState<number>(5000);
 
     useEffect(() => {
-        (async () => {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status === 'granted') {
-                const currentLocation = await Location.getCurrentPositionAsync({});
-                setLocation({
-                    latitude: currentLocation.coords.latitude,
-                    longitude: currentLocation.coords.longitude,
-                });
+        const loadCachedFilters = async () => {
+            try {
+                const cachedTags = await AsyncStorage.getItem('WorksSelectedTags');
+                const cachedLocation = await AsyncStorage.getItem('WorksLocation');
+                const cachedRadius = await AsyncStorage.getItem('WorksRadius');
+
+                setSelectedTags(cachedTags ? JSON.parse(cachedTags) : []);
+                setLocation(cachedLocation ? JSON.parse(cachedLocation) : null);
+                setRadius(cachedRadius ? Number(cachedRadius) : 5000);
+            } catch (error) {
+                console.error('Error loading cached filters:', error);
             }
-        })();
+        };
+
+        loadCachedFilters();
     }, []);
 
-    const applyFilters = () => {
+    const applyFilters = async () => {
+        try {
+            await AsyncStorage.setItem('WorksSelectedTags', JSON.stringify(selectedTags));
+            await AsyncStorage.setItem('WorksLocation', JSON.stringify(location));
+            await AsyncStorage.setItem('WorksRadius', radius.toString());
+        } catch (error) {
+            console.error('Error saving filters in cache:', error);
+        }
         setModalVisible(false);
         onSearch({ nameUser: searchName, selectedTags, location, radius });
     };

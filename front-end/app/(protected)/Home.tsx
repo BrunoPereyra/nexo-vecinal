@@ -152,7 +152,7 @@ const Home: React.FC = () => {
           onPress={() => setActiveFeed("Trabajadores")}
         >
           <Text style={[styles.tabButtonText, activeFeed === "Trabajadores" && styles.activeTabText]}>
-            Publicaciones
+            Trabajadores
           </Text>
         </TouchableOpacity>
 

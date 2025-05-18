@@ -82,8 +82,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
     }, []);
 
     const applyFilters = async () => {
-        console.log(searchTitle);
-
         try {
             await AsyncStorage.setItem('searchTitle', searchTitle);
             await AsyncStorage.setItem('selectedTags', JSON.stringify(selectedTags));

@@ -135,7 +135,7 @@ const AdminUsersPanel: React.FC = () => {
                 <Text style={styles.detail}>
                     Preferencias: {item.categoryPreferences ? JSON.stringify(item.categoryPreferences) : 'N/A'}
                 </Text>
-                <Text style={styles.detail}>Tags: {item.tags.join(', ') || 'Sin tags'}</Text>
+                <Text style={styles.detail}>Tags: {item.tags?.join(', ') || 'Sin tags'}</Text>
                 <Text style={styles.detail}>Ratio: {item.Ratio}</Text>
             </View>
             <View style={styles.actions}>

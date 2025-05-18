@@ -48,6 +48,7 @@ const UsersFeed: React.FC = () => {
         };
         try {
             const data = await searchUsersByNameTagOrLocation(apiFilters, token);
+            console.log(data);
 
             const usersData = data.users || [];
             if (usersData.length < 1) setHasMore(false);
