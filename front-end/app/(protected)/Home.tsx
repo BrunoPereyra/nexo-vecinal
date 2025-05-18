@@ -1,28 +1,28 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   Text,
   Image,
-  Animated,
   Modal,
   Button
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import JobsFeed from "@/components/jobs/JobsFeed";
-import PostsFeed from "@/components/Posts/PostsFeed";
 import colors from "@/style/colors";
 import SubscriptionSection from "@/components/Subscription/SubscriptionSection";
 import RecommendedJobsFeed from "@/components/recommendedJobs/RecommendedJobsFeed";
 import UsersFeed from "@/components/userCards/UsersFeed";
+import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const Home: React.FC = () => {
-  const [activeFeed, setActiveFeed] = useState<"jobs" | "Trabajadores" | "para ti">("jobs");
-
+  const [activeSection, setActiveSection] = useState<"trabajos" | "trabajadores">("trabajos");
+  const [activeJobTab, setActiveJobTab] = useState<"para ti" | "jobs">("para ti");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loadingAvatar, setLoadingAvatar] = useState(true);
-  const indicatorAnim = useRef(new Animated.Value(0)).current;
+  const [showPromoBanner, setShowPromoBanner] = useState(false);
+  const [subscriptionVisible, setSubscriptionVisible] = useState(false);
 
   useEffect(() => {
     const loadAvatar = async () => {
@@ -38,29 +38,9 @@ const Home: React.FC = () => {
     loadAvatar();
   }, []);
 
-  // Cuando se cambie la pestaña, animar el indicador
-  useEffect(() => {
-    const tabIndex = activeFeed === "para ti" ? 0 : activeFeed === "jobs" ? 1 : 2;
-    Animated.timing(indicatorAnim, {
-      toValue: tabIndex,
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
-  }, [activeFeed, indicatorAnim]);
-
-  // La interpolación del indicador: asumiendo 2 pestañas de ancho igual (50% cada una)
-  const indicatorLeft = indicatorAnim.interpolate({
-    inputRange: [0, 1, 2], // Índices de las pestañas
-    outputRange: ["0%", "33.33%", "66.66%"], // Posiciones de las pestañas
-  });
-  // promo banner
-  const [showPromoBanner, setShowPromoBanner] = useState(false);
-  const [subscriptionVisible, setSubscriptionVisible] = useState(false);
-
   useEffect(() => {
     const checkBannerStatus = async () => {
       try {
-
         const lastDismissed = await AsyncStorage.getItem('promoBannerDismissedAt');
         if (!lastDismissed) {
           setShowPromoBanner(true);
@@ -71,14 +51,12 @@ const Home: React.FC = () => {
           const premiumData = JSON.parse(premiumDataJson);
           if (new Date(premiumData.SubscriptionEnd).getTime() > Date.now()) {
             setShowPromoBanner(false);
-            return
+            return;
           }
         }
-
         const lastDismissedTimestamp = parseInt(lastDismissed, 10);
         const now = Date.now();
         const threeDaysLater = lastDismissedTimestamp + 3 * 24 * 60 * 60 * 1000;
-
         if (now >= threeDaysLater) {
           setShowPromoBanner(true);
         } else {
@@ -90,12 +68,7 @@ const Home: React.FC = () => {
     };
 
     checkBannerStatus();
-
-    const intervalId = setInterval(checkBannerStatus, 10 * 1000); // Revisar cada 10 segundos
-
-    return () => clearInterval(intervalId); // Limpiar cuando se destruya el componente
   }, []);
-
 
   const dismissPromoBanner = async () => {
     try {
@@ -111,53 +84,80 @@ const Home: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.avatarContainer}>
-          {/* {loadingAvatar ? (
-            <ActivityIndicator size="small" color={colors.primary} />
-          ) : (
-            avatar ? (
-              <Image source={{ uri: avatar }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>U</Text>
-              </View>
-            )
-          )} */}
+          {/* Aquí podrías mostrar el avatar */}
         </View>
         <Image source={require('@/assets/images/logo-nexovecinal-transparente.png')} style={styles.logo} />
-        <View style={{ width: 40, height: 40 }}>
-
-        </View>
+        <View style={{ width: 40, height: 40 }} />
       </View>
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={styles.tabButton}
-          onPress={() => setActiveFeed("para ti")}
-        >
-          <Text style={[styles.tabButtonText, activeFeed === "para ti" && styles.activeTabText]}>
-            Para ti
-          </Text>
-        </TouchableOpacity>
 
+      {/* Tabs principales: Trabajos / Trabajadores */}
+      <View style={styles.mainTabsContainer}>
         <TouchableOpacity
-          style={styles.tabButton}
-          onPress={() => setActiveFeed("jobs")}
+          style={styles.mainTabButton}
+          onPress={() => setActiveSection("trabajos")}
         >
-          <Text style={[styles.tabButtonText, activeFeed === "jobs" && styles.activeTabText]}>
+          <MaterialIcons name="work" size={19} color={activeSection === "trabajos" ? colors.textDark : colors.textMuted} />
+          <Text style={[
+            styles.mainTabText,
+            activeSection === "trabajos" && styles.activeMainTabText
+          ]}>
             Trabajos
           </Text>
+          {activeSection === "trabajos" && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
-
         <TouchableOpacity
-          style={styles.tabButton}
-          onPress={() => setActiveFeed("Trabajadores")}
+          style={styles.mainTabButton}
+          onPress={() => setActiveSection("trabajadores")}
         >
-          <Text style={[styles.tabButtonText, activeFeed === "Trabajadores" && styles.activeTabText]}>
+          <FontAwesome5 name="users" size={17} color={activeSection === "trabajadores" ? colors.textDark : colors.textMuted} />
+          <Text style={[
+            styles.mainTabText,
+            activeSection === "trabajadores" && styles.activeMainTabText
+          ]}>
             Trabajadores
           </Text>
+          {activeSection === "trabajadores" && <View style={styles.tabUnderline} />}
         </TouchableOpacity>
-
-        <Animated.View style={[styles.indicator, { left: indicatorLeft }]} />
       </View>
+
+      {/* Sub-tabs SOLO para la sección Trabajos */}
+      {activeSection === "trabajos" && (
+        <View style={styles.subTabsContainer}>
+          <TouchableOpacity
+            style={[
+              styles.subTabButton,
+              activeJobTab === "para ti" && styles.activeSubTab,
+            ]}
+            onPress={() => setActiveJobTab("para ti")}
+          >
+            <Ionicons name="star" size={15} style={styles.tabIcon} color={activeJobTab === "para ti" ? colors.textDark : colors.textMuted} />
+            <Text style={[
+              styles.subTabText,
+              activeJobTab === "para ti" && styles.activeSubTabText
+            ]}>
+              Para ti
+            </Text>
+            {/* {activeJobTab === "para ti" && <View style={styles.subTabUnderline} />} */}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.subTabButton,
+              activeJobTab === "jobs" && styles.activeSubTab,
+            ]}
+            onPress={() => setActiveJobTab("jobs")}
+          >
+            <MaterialIcons name="work-outline" size={15} style={styles.tabIcon} color={activeJobTab === "jobs" ? colors.textDark : colors.textMuted} />
+            <Text style={[
+              styles.subTabText,
+              activeJobTab === "jobs" && styles.activeSubTabText
+            ]}>
+              Trabajos
+            </Text>
+            {/* {activeJobTab === "jobs" && <View style={styles.subTabUnderline} />} */}
+          </TouchableOpacity>
+        </View>
+      )}
+
       {showPromoBanner && (
         <TouchableOpacity style={styles.promoBanner} onPress={() => setSubscriptionVisible(true)}>
           <Text style={styles.promoText}>
@@ -173,7 +173,7 @@ const Home: React.FC = () => {
         visible={subscriptionVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setSubscriptionVisible(false)} // Cierra el modal al presionar atrás
+        onRequestClose={() => setSubscriptionVisible(false)}
       >
         <Button
           title="Cerrar"
@@ -183,17 +183,15 @@ const Home: React.FC = () => {
         <View style={styles.modalOverlaySubscription}>
           <View style={styles.modalContentSubscription}>
             <SubscriptionSection isSubscribed={false} averageRating={4} jobsCompleted={24} />
-
           </View>
         </View>
       </Modal>
+
       <View style={styles.feedContainer}>
-        {activeFeed === "jobs" && <JobsFeed />}
-        {activeFeed === "Trabajadores" && <UsersFeed />}
-        {activeFeed === "para ti" && <RecommendedJobsFeed />}
+        {activeSection === "trabajos" && activeJobTab === "para ti" && <RecommendedJobsFeed />}
+        {activeSection === "trabajos" && activeJobTab === "jobs" && <JobsFeed />}
+        {activeSection === "trabajadores" && <UsersFeed />}
       </View>
-
-
     </View>
   );
 };
@@ -239,36 +237,101 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: "hidden",
   },
-  tabsContainer: {
+
+  // Main Tabs (Trabajos / Trabajadores)
+  mainTabsContainer: {
     flexDirection: "row",
-    position: "relative",
-    zIndex: 100,
+    marginBottom: 10,
+    // borderRadius: 8,
+    backgroundColor: colors.warmWhite,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
   },
-  tabButton: {
+  mainTabButton: {
     flex: 1,
+    flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
+    justifyContent: "center",
+    height: 28,
+    backgroundColor: "transparent",
+    position: "relative",
   },
-  tabButtonText: {
-    fontSize: 16,
+  mainTabText: {
+    fontSize: 15,
+    color: colors.textMuted,
+    fontWeight: "600",
+    marginLeft: 7,
+  },
+  activeMainTabText: {
     color: colors.textDark,
-  },
-  activeTabText: {
     fontWeight: "bold",
   },
-  indicator: {
+  tabUnderline: {
     position: "absolute",
-    bottom: 0,
-    width: "33.33%", // Cada pestaña ocupa un tercio del ancho
-    height: 2,
+    bottom: -1,
+    left: 18,
+    right: 18,
+    height: 3,
+    backgroundColor: colors.primary,
+    borderRadius: 10,
+  },
+  tabIcon: {
+    marginRight: 6,
+  },
+  // Sub Tabs (Para ti / Trabajos)
+  subTabsContainer: {
+    flexDirection: "row",
+    // borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.borderLight,
+    overflow: "hidden",
+    height: 26,
+  },
+  subTabButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 0,
+    backgroundColor: "transparent",
+    position: "relative",
+    height: "100%",
+  },
+  activeSubTab: {
     backgroundColor: colors.cream,
   },
+  subTabText: {
+    fontSize: 13,
+    color: colors.textMuted,
+    fontWeight: "500",
+    marginLeft: 4,
+  },
+  activeSubTabText: {
+    color: colors.textDark,
+    fontWeight: "bold",
+  },
+  subTabUnderline: {
+    position: "absolute",
+    bottom: 0,
+    left: 8,
+    right: 8,
+    height: 2,
+    backgroundColor: colors.gold,
+    borderRadius: 2,
+  },
+
   feedContainer: {
     flex: 1,
+    backgroundColor: colors.background,
+    paddingHorizontal: 0,
+    paddingTop: 4,
   },
-  // Promo Banner Styles
+
   promoBanner: {
-    backgroundColor: colors.cream, // O el color que prefieras
+    backgroundColor: colors.gold,
     padding: 10,
     marginHorizontal: 16,
     marginVertical: 8,
@@ -276,6 +339,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   promoText: {
     color: colors.textDark,
@@ -284,7 +349,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   closeButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.errorRed,
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -308,7 +373,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     margin: 20
   },
-
 });
 
 export default Home;

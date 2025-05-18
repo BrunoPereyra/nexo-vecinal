@@ -7,15 +7,61 @@ const UserCard = ({ user, onPress }: { user: any, onPress: () => void }) => (
         <Image source={{ uri: user.Avatar }} style={styles.avatar} />
         <View>
             <Text style={styles.name}>{user.NameUser}</Text>
-            <Text style={styles.tags}>{user.tags?.join(", ")}</Text>
+            <View style={styles.tagsContainer}>
+                {user.tags?.map((tag: string, idx: number) => (
+                    <View key={idx} style={styles.tagChip}>
+                        <Text style={styles.tagText}>{tag}</Text>
+                    </View>
+                ))}
+            </View>
         </View>
     </TouchableOpacity>
 );
 
 const styles = StyleSheet.create({
-    card: { flexDirection: "row", alignItems: "center", padding: 12, backgroundColor: colors.cream, borderRadius: 8, marginBottom: 8 },
-    avatar: { width: 50, height: 50, borderRadius: 25, marginRight: 12 },
-    name: { fontWeight: "bold", fontSize: 16, color: colors.textDark },
-    tags: { color: colors.textMuted, fontSize: 12 },
+    card: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 14,
+        backgroundColor: "#fff",
+        borderRadius: 12,
+        marginBottom: 12,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 4,
+        elevation: 2,
+    },
+    avatar: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        marginRight: 14,
+        backgroundColor: colors.cream,
+    },
+    name: {
+        fontWeight: "bold",
+        fontSize: 17,
+        color: colors.textDark,
+        marginBottom: 6,
+    },
+    tagsContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 6,
+    },
+    tagChip: {
+        backgroundColor: colors.cream,
+        borderRadius: 14,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        marginRight: 6,
+        marginBottom: 4,
+    },
+    tagText: {
+        color: colors.textDark,
+        fontSize: 12,
+        fontWeight: "500",
+    },
 });
 export default UserCard;

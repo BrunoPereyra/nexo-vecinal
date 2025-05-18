@@ -79,12 +79,14 @@ const UserSearchFilters: React.FC<UserSearchFiltersProps> = ({ onSearch, availab
                     placeholderTextColor="#888"
                     value={searchName}
                     onChangeText={setSearchName}
+                    onSubmitEditing={() => onSearch({ nameUser: searchName, selectedTags, location, radius })}
+
                 />
                 <TouchableOpacity
                     style={styles.filterIconButton}
                     onPress={() => setModalVisible(true)}
                 >
-                    <Ionicons name="options-outline" size={24} color="#03DAC5" />
+                    <Ionicons name="filter-outline" size={24} color="#03DAC5" />
                 </TouchableOpacity>
             </View>
             <Modal visible={modalVisible} animationType="slide" transparent>
@@ -172,20 +174,37 @@ const styles = StyleSheet.create({
     searchRow: {
         flexDirection: "row",
         alignItems: "center",
+        marginHorizontal: 0,
+        marginBottom: 10,
     },
     input: {
-        borderRadius: 8,
-        padding: 10,
-        backgroundColor: colors.cream, // "#FFFFFF"
-        color: colors.textDark, // "#333"
+        borderRadius: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        backgroundColor: "#fff",
+        color: colors.textDark,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+        fontSize: 15,
+        marginRight: 0,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 2,
+        elevation: 1,
     },
     filterIconButton: {
         marginLeft: 8,
         padding: 8,
-        backgroundColor: colors.cream, // "#FFFFFF"
-        borderRadius: 8,
+        backgroundColor: "#fff",
+        borderRadius: 10,
         borderWidth: 1,
-        borderColor: colors.borderLight, // "#EAE6DA"
+        borderColor: colors.borderLight,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.04,
+        shadowRadius: 2,
+        elevation: 1,
     },
     modalOverlay: {
         flex: 1,
