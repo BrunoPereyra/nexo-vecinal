@@ -130,7 +130,6 @@ const Home: React.FC = () => {
             ]}
             onPress={() => setActiveJobTab("para ti")}
           >
-            <Ionicons name="star" size={15} style={styles.tabIcon} color={activeJobTab === "para ti" ? colors.textDark : colors.textMuted} />
             <Text style={[
               styles.subTabText,
               activeJobTab === "para ti" && styles.activeSubTabText
@@ -146,7 +145,6 @@ const Home: React.FC = () => {
             ]}
             onPress={() => setActiveJobTab("jobs")}
           >
-            <MaterialIcons name="work-outline" size={15} style={styles.tabIcon} color={activeJobTab === "jobs" ? colors.textDark : colors.textMuted} />
             <Text style={[
               styles.subTabText,
               activeJobTab === "jobs" && styles.activeSubTabText
