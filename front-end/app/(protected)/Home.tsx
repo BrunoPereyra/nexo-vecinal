@@ -56,7 +56,7 @@ const Home: React.FC = () => {
         }
         const lastDismissedTimestamp = parseInt(lastDismissed, 10);
         const now = Date.now();
-        const threeDaysLater = lastDismissedTimestamp + 3 * 24 * 60 * 60 * 1000;
+        const threeDaysLater = lastDismissedTimestamp + 1 * 24 * 60 * 60 * 1000;
         if (now >= threeDaysLater) {
           setShowPromoBanner(true);
         } else {
@@ -64,6 +64,7 @@ const Home: React.FC = () => {
         }
       } catch (err) {
         console.error("Error comprobando estado del banner:", err);
+        setShowPromoBanner(true);
       }
     };
 
@@ -176,11 +177,11 @@ const Home: React.FC = () => {
         <Button
           title="Cerrar"
           onPress={() => setSubscriptionVisible(false)}
-          color={colors.gold}
+          color={colors.errorRed}
         />
         <View style={styles.modalOverlaySubscription}>
           <View style={styles.modalContentSubscription}>
-            <SubscriptionSection isSubscribed={false} averageRating={4} jobsCompleted={24} />
+            <SubscriptionSection averageRating={4} jobsCompleted={24} />
           </View>
         </View>
       </Modal>

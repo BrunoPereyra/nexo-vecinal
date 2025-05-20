@@ -17,7 +17,7 @@ import JobCard from "@/components/JobCardHome";
 import JobDetailView from "@/components/jobCards/JobDetailView";
 import JobRecommendationsLocation from "../preference/JobRecommendationsLocation";
 import colors from "@/style/colors";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const HEADER_HEIGHT = 50;
 
@@ -129,15 +129,15 @@ const RecommendedJobsFeed: React.FC = () => {
     return (
         <View style={styles.RecommendedJobsFeed}>
             {/* Botón para modificar preferencias */}
-            <View style={styles.header}>
+            {/* <View style={styles.header}>
                 <TouchableOpacity
                     style={styles.preferencesButton}
                     onPress={() => setShowPreferencesModal(true)}
-                    activeOpacity={0.6} // Efecto de opacidad al presionar
+                    activeOpacity={0.7}
                 >
-                    <MaterialIcons name="settings" size={20} color={colors.textMuted} />
+                    <Ionicons name="options-outline" size={22} color={colors.primary} />
                 </TouchableOpacity>
-            </View>
+            </View> */}
             {locationConfigured ? (
                 jobs.length > 0 ? (
                     <Animated.FlatList
@@ -214,10 +214,15 @@ const styles = StyleSheet.create({
         height: 36,
         borderRadius: 18,
         borderWidth: 1,
-        borderColor: colors.borderLight, // Borde sutil
+        borderColor: colors.borderLight,
         alignItems: "center",
         justifyContent: "center",
-        backgroundColor: "transparent", // Fondo transparente
+        backgroundColor: colors.cream,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.06,
+        shadowRadius: 2,
+        elevation: 2,
     },
     preferencesButtonText: {
         color: colors.textLight,

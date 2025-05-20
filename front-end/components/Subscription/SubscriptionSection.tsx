@@ -21,11 +21,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 interface SubscriptionSectionProps {
     jobsCompleted: number;
     averageRating: number;
-    isSubscribed: boolean;
 }
 
 const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
-    isSubscribed,
 }) => {
     const { token, tags: availableTags } = useAuth();
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -35,7 +33,26 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
     const [subscribing, setSubscribing] = useState(false);
     const [subscriptionConfirmVisible, setSubscriptionConfirmVisible] = useState(false);
     const [UserId, setUserId] = useState<string>("");
+    const [isSubscribed, setIsSubscribed] = useState(false);
 
+    useEffect(() => {
+        const checkSubscription = async () => {
+            try {
+                const premiumDataJson = await AsyncStorage.getItem('userPremiumData');
+                if (premiumDataJson) {
+                    const premiumData = JSON.parse(premiumDataJson);
+                    if (new Date(premiumData.SubscriptionEnd).getTime() > Date.now()) {
+                        setIsSubscribed(true);
+                        return;
+                    }
+                }
+                setIsSubscribed(false);
+            } catch (err) {
+                setIsSubscribed(false);
+            }
+        };
+        checkSubscription();
+    }, []);
     useEffect(() => {
         const id = async () => {
             const userid = await AsyncStorage.getItem('id');
@@ -109,17 +126,11 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
         <View style={styles.subscriptionContainer}>
 
             <Text style={styles.subscriptionTitle}>
-                {isSubscribed ? "Modificar Preferencias de Suscripción" : "Suscríbete para ser recomendado"}
-            </Text>
-            <Text style={styles.subscriptionDescription}>
-                Al suscribirte, tu perfil aparecerá en la sección de "Usuarios Recomendados" en la pantalla de inicio
-                y serás sugerido a los empleadores cuando publiquen trabajos que coincidan con tus especializaciones.
+                Preferencia de Trabajo
             </Text>
             <Text style={styles.subscriptionDescription}>
                 Selecciona tus áreas de especialización y tu zona de disponibilidad.
             </Text>
-
-
             <ScrollView style={styles.tagsScroll} contentContainerStyle={styles.tagsContainer}>
 
                 {availableTags.map((tag, index) => (
@@ -166,15 +177,20 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
                     <Text style={styles.radiusButtonText}>+</Text>
                 </TouchableOpacity>
             </View>
-            <TouchableOpacity style={styles.subscribeButton} onPress={() => setModalVisible(true)}>
+            <TouchableOpacity
+                style={styles.subscribeButton}
+                onPress={isSubscribed ? handleSubmit : () => setModalVisible(true)}
+            >
                 <MaterialIcons name="subscriptions" size={24} color={colors.textLight} />
-                <Text style={styles.subscribeButtonText}>{isSubscribed ? "Guardar Cambios" : "Suscribirse"}</Text>
+                <Text style={styles.subscribeButtonText}>
+                    {isSubscribed ? "Guardar Cambios" : "Suscribirse"}
+                </Text>
             </TouchableOpacity>
             {/* Modal para confirmar o modificar la suscripción */}
             <Modal visible={modalVisible} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>{isSubscribed ? "Modificar Suscripción" : "Confirmar Suscripción"}</Text>
+                        <Text style={styles.modalTitle}>{isSubscribed ? "Modificar Suscripción" : "Guardar cambios"}</Text>
                         <Text style={styles.modalInfo}>Especializaciones: {selectedTags.join(", ") || "No seleccionadas"}</Text>
                         <Text style={styles.modalInfo}>Zona: {location ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : "No seleccionada"}</Text>
                         <Text style={styles.modalInfo}>Alcance: {(radius / 1000).toFixed(1)} km</Text>
@@ -193,12 +209,12 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
                     </View>
                 </View>
             </Modal>
-            <Modal visible={subscriptionConfirmVisible} animationType="slide" transparent>
+            <Modal visible={subscriptionConfirmVisible && !isSubscribed} animationType="slide" transparent>
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Beneficios de la Suscripción</Text>
                         <Text style={styles.modalInfo}>
-                            ¿Deseas recibir los beneficios de la suscripción (recomendaciones y ventajas exclusivas) a través de Google Play?
+                            ¿Deseas recibir los beneficios de la suscripción como recomendaciones, avisos y ventajas exclusivas?
                         </Text>
                         <View style={styles.modalButtons}>
                             <TouchableOpacity

@@ -1597,7 +1597,7 @@ func (u *UserRepository) FindUsersByNameTagOrLocation(
 	filter := bson.M{
 		"Banned":          false,
 		"availableToWork": true,
-		"Intentions":      "work",
+		// "Intentions":      "work",
 	}
 	andFilters := []bson.M{}
 

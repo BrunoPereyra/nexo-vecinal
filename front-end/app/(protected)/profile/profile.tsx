@@ -337,7 +337,7 @@ export default function ProfileScreen() {
                         onPress={handleSubscribe}
                         style={styles.dropdownButton}
                     >
-                        <Text style={styles.dropdownButtonText}>Subscribirse</Text>
+                        <Text style={styles.dropdownButtonText}>Preferencias</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => {
@@ -480,7 +480,7 @@ export default function ProfileScreen() {
                 <Button
                     title="Cerrar"
                     onPress={() => setSubscriptionVisible(false)}
-                    color={colors.gold}
+                    color={colors.errorRed}
                 />
                 <View style={styles.modalOverlaySubscription}>
                     <View style={styles.modalContentSubscription}>
