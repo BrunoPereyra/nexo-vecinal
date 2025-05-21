@@ -14,7 +14,7 @@ import colors from "@/style/colors";
 import SubscriptionSection from "@/components/Subscription/SubscriptionSection";
 import RecommendedJobsFeed from "@/components/recommendedJobs/RecommendedJobsFeed";
 import UsersFeed from "@/components/userCards/UsersFeed";
-import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 
 const Home: React.FC = () => {
   const [activeSection, setActiveSection] = useState<"trabajos" | "trabajadores">("trabajos");

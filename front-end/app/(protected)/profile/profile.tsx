@@ -69,6 +69,7 @@ export default function ProfileScreen() {
             }
             try {
                 const data = await getUserToken(token);
+                console.log(data);
 
                 if (data?.data) {
                     setUserProfile(data.data);
@@ -484,7 +485,7 @@ export default function ProfileScreen() {
                 />
                 <View style={styles.modalOverlaySubscription}>
                     <View style={styles.modalContentSubscription}>
-                        <SubscriptionSection isSubscribed={false} averageRating={4} jobsCompleted={24} />
+                        <SubscriptionSection averageRating={4} jobsCompleted={24} />
 
                     </View>
                 </View>

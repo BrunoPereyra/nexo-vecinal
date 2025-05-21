@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-const API = "http://192.168.0.28:9000";
+const API = "https://deploy.pinkker.tv/9000"
 
 export interface Job {
     id: string;
@@ -302,6 +302,8 @@ export const getJobsByFilters = async (
         });
         return await res.json();
     } catch (error) {
+        console.log("filters", filters);
+
         console.error("Error en getJobsByFilters:", error);
         throw error;
     }

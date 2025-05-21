@@ -45,7 +45,7 @@
     const now = new Date();
     const plus30 = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
     const baseUser = {
-        Avatar: "https://www.pinkker.tv/uploads/imgs/default/avatar_default/Fotoperfil1.png",
+        Avatar: "https://deploy.pinkker.tv/nexo-vecinal-media/imgs/default/avatar_default/Fotoperfil1.png",
         Pais: "", Ciudad: "", Biography: "", Look: "", LookImage: "", Banner: "", headImage: "",
         CountryInfo: null, Partner: {},
         EditProfiile: { NameUser: now, Biography: now },

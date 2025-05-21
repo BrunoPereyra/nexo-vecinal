@@ -128,7 +128,7 @@ func ProcessImage(fileHeader *multipart.FileHeader, PostImageChanel chan string,
 	}
 
 	// Enviar la URL generada al canal
-	PostImageChanel <- fmt.Sprintf("%s/images/%s", config.MediaBaseURL(), outputFileName)
+	PostImageChanel <- fmt.Sprintf("%s/images/%s/%s", config.MediaBaseURL(), dir, outputFileName)
 }
 func ProcessImageEmotes(fileHeader *multipart.FileHeader, PostImageChanel chan string, errChanel chan error, nameUser, typeEmote string) {
 	if fileHeader == nil {
