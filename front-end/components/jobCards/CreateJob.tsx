@@ -241,9 +241,9 @@ export const CreateJob: React.FC<CreateJobProps> = ({
                 keyboardType="numeric"
                 placeholderTextColor="#888"
               />
-              <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+              {/* <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
                 <Text style={styles.buttonText}>Seleccionar imagen</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
               {image && (
                 <Image source={{ uri: image }} style={styles.previewImage} />
               )}
