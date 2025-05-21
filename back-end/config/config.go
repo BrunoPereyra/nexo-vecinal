@@ -147,6 +147,15 @@ func FotoPerfilAleatoria() string {
 	// Retornar la URL correspondiente al ID seleccionado
 	return os.Getenv("FOTO_PERFIL_" + randomID)
 }
+func FotoPerfil() string {
+	// Cargar las variables de entorno
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Error cargando el archivo .env")
+	}
+
+	// Retornar la URL correspondiente al ID seleccionado
+	return os.Getenv("FOTO_PERFIL")
+}
 func BANNER() string {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("godotenv.Load error")
