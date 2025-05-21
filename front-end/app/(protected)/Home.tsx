@@ -17,8 +17,8 @@ import UsersFeed from "@/components/userCards/UsersFeed";
 import { FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 
 const Home: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<"trabajos" | "trabajadores">("trabajos");
-  const [activeJobTab, setActiveJobTab] = useState<"para ti" | "jobs">("para ti");
+  const [activeSection, setActiveSection] = useState<"trabajos" | "trabajadores">("trabajadores");
+  const [activeJobTab, setActiveJobTab] = useState<"para ti" | "jobs">("jobs");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [loadingAvatar, setLoadingAvatar] = useState(true);
   const [showPromoBanner, setShowPromoBanner] = useState(false);
@@ -37,6 +37,34 @@ const Home: React.FC = () => {
     };
     loadAvatar();
   }, []);
+  useEffect(() => {
+    const loadTabsFromCache = async () => {
+      try {
+        const cachedSection = await AsyncStorage.getItem("lastActiveSection");
+        const cachedJobTab = await AsyncStorage.getItem("lastActiveJobTab");
+        if (cachedSection === "trabajos" || cachedSection === "trabajadores") {
+          setActiveSection(cachedSection);
+        }
+        if (cachedJobTab === "para ti" || cachedJobTab === "jobs") {
+          setActiveJobTab(cachedJobTab);
+        }
+      } catch (err) {
+        // Ignorar errores de cache
+      }
+    };
+    loadTabsFromCache();
+  }, []);
+
+  // Guardar en cache cada vez que cambian
+  useEffect(() => {
+    AsyncStorage.setItem("lastActiveSection", activeSection);
+  }, [activeSection]);
+
+  useEffect(() => {
+    console.log("activeJobTab", activeJobTab);
+
+    AsyncStorage.setItem("lastActiveJobTab", activeJobTab);
+  }, [activeJobTab]);
 
   useEffect(() => {
     const checkBannerStatus = async () => {
