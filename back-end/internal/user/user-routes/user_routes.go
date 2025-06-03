@@ -43,6 +43,6 @@ func UserRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Cli
 
 	App.Post("/user/premium", UserHandler.UserPremiumAmonth)
 
-	App.Post("/user/search", middleware.UseExtractor(), UserHandler.SearchUsersByNameTagOrLocation)
+	App.Post("/user/search", UserHandler.SearchUsersByNameTagOrLocation)
 
 }

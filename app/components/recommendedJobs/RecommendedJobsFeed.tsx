@@ -8,7 +8,6 @@ import {
     Animated,
     Easing,
     Modal,
-    TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Job, recommendedJobs } from "@/services/JobsService";
@@ -17,7 +16,6 @@ import JobCard from "@/components/JobCardHome";
 import JobDetailView from "@/components/jobCards/JobDetailView";
 import JobRecommendationsLocation from "../preference/JobRecommendationsLocation";
 import colors from "@/style/colors";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 
 const HEADER_HEIGHT = 50;
 

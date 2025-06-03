@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nexo Vecinal - Trabajos de Oficio en Argentina, Córdoba y Buenos Aires</title>
+  <meta name="description" content="Encontrá trabajadores de confianza para oficios en Argentina. Plomeros, electricistas, gasistas, albañiles y más. Especialistas en Córdoba y Buenos Aires.">
+  <meta name="keywords" content="trabajos, oficios, Argentina, Córdoba, Buenos Aires, plomero, electricista, gasista, albañil, profesionales, servicios, nexo vecinal, app, confianza, recomendados">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://nexovecinal.com/" />
+  <meta property="og:title" content="Nexo Vecinal - Trabajos de Oficio en Argentina, Córdoba y Buenos Aires">
+  <meta property="og:description" content="Encontrá trabajadores de confianza para oficios en Argentina. Plomeros, electricistas, gasistas, albañiles y más. Especialistas en Córdoba y Buenos Aires.">
+  <meta property="og:image" content="logo.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_AR">
+  <meta property="og:url" content="https://nexovecinal.com/">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <!-- Datos estructurados para Google -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Nexo Vecinal",
+    "url": "https://nexovecinal.com/",
+    "description": "Encontrá trabajadores de confianza para oficios en Argentina. Plomeros, electricistas, gasistas, albañiles y más. Especialistas en Córdoba y Buenos Aires.",
+    "inLanguage": "es-AR"
+  }
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+  <div class="container">
+    <header class="hero">
+      <img src="logo.svg" alt="Nexo Vecinal - Trabajos de Oficio" class="logo-nexo" width="110" height="110" style="margin-bottom:18px;"/>
+      <h1>Encuentra Trabajadores de Confianza en Argentina</h1>
+      <p>Conectá con profesionales verificados en todas las áreas: plomería, electricidad, albañilería y más. Especialistas en Córdoba y Buenos Aires.</p>
+      <a href="#search-section" class="main-btn cta-btn">Buscar trabajadores</a>
+    </header>
+
+    <section>
+      <h2 class="section-title">Trabajadores Destacados</h2>
+      <div id="featured-workers" class="cards"></div>
+    </section>
+
+    <section id="search-section" class="search-section">
+      <h2 class="section-title">Buscá por nombre, tags o ubicación</h2>
+      <div id="tags-container" class="tags"></div>
+      <input
+        id="search-name"
+        class="search-input"
+        type="text"
+        placeholder="Buscar por nombre..."
+        autocomplete="off"
+      />
+      <div class="location-row">
+        <div id="map" class="map"></div>
+        <div class="radius-control">
+          <button id="radius-minus" class="radius-btn">-</button>
+          <input
+            id="radius-input"
+            class="search-input"
+            type="number"
+            placeholder="Radio en metros"
+            min="0"
+            step="5000"
+            value="5000"
+            readonly
+          />
+          <button id="radius-plus" class="radius-btn">+</button>
+        </div>
+      </div>
+      <button id="search-btn" class="main-btn search-btn">Buscar</button>
+      <div id="results-container" class="results"></div>
+    </section>
+
+    <section class="app-download">
+      <h2>Descargá la App</h2>
+      <p>Mejor control y protección de tus contrataciones.</p>
+      <button class="main-btn" id="download-app-btn">Descargar App</button>
+    </section>
+    <footer>
+      ©2025 Nexo Vecinal, Todos los derechos reservados.
+    </footer>
+  </div>
+
+  <!-- Modal de advertencia y contacto -->
+  <div id="contact-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span id="close-modal" class="close">&times;</span>
+      <h3>¡Te recomendamos usar la app!</h3>
+      <p>
+        Si contactás por fuera de la app, <b>Nexo Vecinal</b> no podrá brindarte soporte ni protección ante inconvenientes.<br>
+        <br>
+        <b>En la app podés:</b>
+        <ul style="text-align:left; margin: 12px 0 12px 18px; font-size:1rem;">
+          <li>Chatear con el trabajador</li>
+          <li>Recibir soporte y protección</li>
+          <li>Dejar y recibir feedback</li>
+        </ul>
+        ¿Cómo querés continuar?
+      </p>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
+        <button id="go-to-app" class="main-btn" style="background:var(--primary);">Ir a la App</button>
+        <button id="accept-contact" class="main-btn" style="background:#e0e0e0; color:var(--textDark);">Seguir por web</button>
+      </div>
+      <div id="contact-info" style="display:none; margin-top:18px;">
+        <p><b>Email:</b> <span id="contact-email"></span></p>
+        <button id="copy-email" class="main-btn" style="padding:7px 16px; font-size:0.97rem;">Copiar email</button>
+        <span id="copy-msg" style="margin-left:10px; color:var(--primary); font-size:0.97rem; display:none;">¡Copiado!</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
