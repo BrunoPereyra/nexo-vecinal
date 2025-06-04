@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Nexo Vecinal - Trabajos de Oficio en Argentina</title>
+  
   <meta name="robots" content="index, follow" />
-<meta property="og:title" content="Nexo Vecinal - Oficios de confianza en Argentina" />
-<meta property="og:description" content="Conectá con trabajadores verificados y recomendados en plomería, electricidad, albañilería y más." />
-<meta property="og:image" content="https://tusitio.com/assets/preview-nexo.png" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="https://tusitio.com" />
-<meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:title" content="Nexo Vecinal - Oficios de confianza en Argentina" />
+  <meta property="og:description" content="Conectá con trabajadores verificados y recomendados en plomería, electricidad, albañilería y más." />
+  <meta property="og:image" content="https://tusitio.com/assets/preview-nexo.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://tusitio.com" />
+  <meta name="twitter:card" content="summary_large_image" />
   
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -18,19 +19,26 @@
 </head>
 <body>
   <div class="main-bg">
-    <div class="container">
     <section class="hero-section">
-      <div class="container hero-container"> <header class="hero-content"> <img src="assets/logo-nexovecinal-transparente.png" alt="Nexo Vecinal" class="logo-nexo"/>
-          <h1 class="hero-title">Nexo Vecinal</h1>
-          <div class="hero-sub">Tu nexo con trabajadores de confianza en Argentina</div>
-          <p class="hero-desc">
-            Encontrá profesionales verificados en plomería, electricidad, albañilería y más.
-          </p>
-          <span class="hero-chip">Verificados, con reseñas y experiencia real</span>
-          <a href="#search-section" class="main-btn cta-btn">Buscar trabajadores</a>
-        </header>
-      </div>
+        <!-- <div class="hero-illustration-wrapper">
+            <img src="assets/ilustracion-trabajador.png" alt="Trabajador de oficios con mapa y herramientas" class="hero-illustration">
+        </div> -->
+        <div class="container hero-content-container"> 
+            <img src="assets/logo-nexovecinal-transparente.png" alt="Nexo Vecinal" class="logo-nexo"/>
+            <h1 class="hero-title">Nexo Vecinal</h1>
+            <div class="hero-sub">Conectá con trabajadores de oficios cerca tuyo</div>
+            
+            <ul class="hero-benefits-list">
+                <li><svg class="check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Plomeros, Electricistas, Gasistas y más</li>
+                <li><svg class="check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Verificados por la comunidad</li>
+                <li><svg class="check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>¡Contactá gratis y sin intermediarios!</li>
+            </ul>
+            
+            <a href="#search-section" class="main-btn cta-btn">Empezá tu búsqueda</a>
+        </div>
     </section>
+
+    <div class="container content-wrapper"> 
       <section id="search-section" class="search-card">
         <h2 class="section-title">Buscá trabajadores cerca tuyo</h2>
 
@@ -39,7 +47,6 @@
                 </div>
             <button id="toggle-tags-btn" class="toggle-tags-btn main-btn secondary">Ver más categorías</button>
         </div>
-
 
         <input
           id="search-name"
@@ -107,6 +114,32 @@
         </div>
       </section>
 
+      <section id="sobre-nexo" class="sobre-nexo">
+        <h2 class="section-title">¿Qué es Nexo Vecinal?</h2>
+        <p>
+          <strong>Nexo Vecinal</strong> es una plataforma argentina que conecta personas con trabajadores de oficios verificados y recomendados por la comunidad. Nuestro objetivo es que encuentres plomeros, electricistas, gasistas, albañiles y otros profesionales de confianza cerca tuyo, de manera rápida, segura y sin intermediarios.
+        </p>
+        <h3>¿Por qué usar nuestra app?</h3>
+        <ul>
+          <li>Contactá gratis y directamente con trabajadores verificados.</li>
+          <li>Chateá de forma segura y recibí soporte exclusivo.</li>
+          <li>Dejá y consultá valoraciones reales de otros usuarios.</li>
+          <li>Protección ante inconvenientes y atención personalizada.</li>
+        </ul>
+        <h3>¿Cómo funciona?</h3>
+        <ol>
+          <li>Buscá el oficio o profesional que necesitás según tu ubicación.</li>
+          <li>Filtrá por especialidad, zona y radio de búsqueda.</li>
+          <li>Contactá al trabajador directamente o a través de nuestra app para mayor seguridad.</li>
+        </ol>
+        <h3>¿Quiénes somos?</h3>
+        <p>
+          Somos un equipo de desarrolladores, diseñadores y vecinos comprometidos con mejorar la experiencia de encontrar y ofrecer trabajos de oficio en Argentina. Creemos en el valor de la confianza, la transparencia y la ayuda mutua en la comunidad.
+        </p>
+        <!-- <p>
+          <strong>¿Querés sumarte o tenés sugerencias?</strong> Escribinos a <a href="mailto:hola@nexovecinal.com">hola@nexovecinal.com</a>
+        </p> -->
+      </section>
 
       <footer>
         <div class="footer-logo">
@@ -123,32 +156,37 @@
     </div>
   </div>
 
-  <div id="contact-modal" class="modal" style="display:none;">
+<div id="contact-modal" class="modal" style="display:none;">
     <div class="modal-content">
-      <span id="close-modal" class="close">&times;</span>
-      <h3>¡Te recomendamos usar la app!</h3>
-      <p>
-        Si contactás por fuera de la app, <b>Nexo Vecinal</b> no podrá brindarte soporte ni protección ante inconvenientes.<br>
-        <br>
-        <b>En la app podés:</b>
-        <ul>
-          <li>Chatear con el trabajador</li>
-          <li>Recibir soporte y protección</li>
-          <li>Dejar y recibir feedback</li>
-        </ul>
-        ¿Cómo querés continuar?
-      </p>
-      <div class="modal-actions">
-        <button id="go-to-app" class="main-btn">Ir a la App</button>
-        <button id="accept-contact" class="main-btn secondary">Seguir por web</button>
-      </div>
-      <div id="contact-info" class="contact-info" style="display:none;">
-        <p><b>Email:</b> <span id="contact-email"></span></p>
-        <button id="copy-email" class="main-btn small">Copiar email</button>
-        <span id="copy-msg" class="copy-msg" style="display:none;">¡Copiado!</span>
-      </div>
+        <span id="close-modal" class="close">&times;</span>
+        <h3 class="modal-title">¡Recomendamos usar nuestra App!</h3>
+        <p class="modal-message">
+            Al contactar fuera de la app, **Nexo Vecinal** no puede asegurar soporte ni protección ante inconvenientes.
+        </p>
+        
+        <div class="modal-benefits">
+            <h4 class="modal-benefits-title">En la App podrás:</h4>
+            <ul class="modal-benefits-list">
+                <li><svg class="modal-check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Chatear de forma segura con el trabajador</li>
+                <li><svg class="modal-check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Recibir soporte y protección exclusiva</li>
+                <li><svg class="modal-check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Dejar y recibir valoraciones (feedback)</li>
+            </ul>
+        </div>
+
+        <p class="modal-question">¿Cómo quieres continuar?</p>
+        
+        <div class="modal-actions">
+            <button id="go-to-app" class="main-btn primary-modal-btn">Ir a la App</button>
+            <button id="accept-contact" class="main-btn secondary-modal-btn">Seguir por web (bajo tu responsabilidad)</button>
+        </div>
+        
+        <div id="contact-info" class="contact-info" style="display:none;">
+            <p class="contact-info-text"><b>Email:</b> <span id="contact-email"></span></p>
+            <button id="copy-email" class="main-btn small-btn">Copiar email</button>
+            <span id="copy-msg" class="copy-msg" style="display:none;">¡Email copiado!</span>
+        </div>
     </div>
-  </div>
+</div>
 
   <script src="main.js"></script>
 </body>

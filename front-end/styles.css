@@ -57,34 +57,59 @@ html {
 /* --- HERO SECTION STYLES --- */
 .hero-section {
     background: linear-gradient(135deg, var(--hero-bg-start) 0%, var(--hero-bg-end) 100%);
-    padding: 60px 20px 40px 20px;
-    /* Más padding vertical para mayor impacto */
+    /* Ajusta el padding para que el contenido tenga espacio y la ilustración se vea bien */
+    padding: 30px 20px 0 20px;
+    /* Padding vertical más ajustado al contenido */
     text-align: center;
     width: 100%;
-    /* Ocupa todo el ancho */
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-    /* Sombra sutil en la parte inferior */
     position: relative;
-    /* Para posibles elementos decorativos */
     z-index: 1;
-}
-
-.hero-container {
-    padding: 0;
-    /* Remove padding from the specific hero container */
-    max-width: 500px;
-    /* Slightly narrower for focus */
-    margin-top: 0;
-    margin-bottom: 0;
-}
-
-.hero-content {
-    /* No box-shadow or background here, handled by hero-section */
-    padding: 0;
-    /* No padding here, handled by hero-section or hero-container */
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    /* Nuevos estilos para la "caja" del hero */
+    border-bottom-left-radius: var(--section-border-radius);
+    border-bottom-right-radius: var(--section-border-radius);
+    box-shadow: var(--section-shadow);
+    /* Aplica la sombra definida */
+    margin-bottom: 0;
+    /* No margin-bottom aquí, el espacio lo da .content-wrapper padding-top */
+}
+
+/* Ajusta el wrapper de la ilustración para controlar su posición dentro del hero */
+.hero-illustration-wrapper {
+    width: 100%;
+    max-width: 400px;
+    /* Controla el tamaño máximo de la ilustración */
+    margin: 0 auto;
+    padding-top: 0;
+    /* No padding-top aquí, ya está en .hero-section */
+    position: relative;
+    z-index: 1;
+    /* Asegura que la ilustración esté sobre el fondo del hero */
+}
+
+.hero-illustration {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: contain;
+    /* Ajusta este margen negativo si la ilustración se superpone mucho o muy poco */
+    margin-bottom: -50px;
+    /* Ajusta para que la ilustración se solape un poco con el contenido o el borde de la sección */
+}
+
+.hero-content-container {
+    padding-top: 0;
+    padding-bottom: 40px;
+    /* Espacio inferior para el contenido del hero */
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    z-index: 2;
+    /* Asegura que el contenido esté por encima de la ilustración si se superpone */
 }
 
 
@@ -103,67 +128,129 @@ html {
 }
 
 .hero-title {
-    font-size: 2.8rem;
-    /* Much larger and impactful title */
+    font-size: 2.2rem;
+    /* Título principal */
     font-weight: 800;
-    /* Extra bold */
     color: var(--primary-dark);
-    margin: 0 0 8px 0;
-    /* Adjusted spacing */
+    margin: 0 0 10px 0;
     letter-spacing: -0.8px;
-    line-height: 1.1;
+    line-height: 1.2;
 }
 
 .hero-sub {
-    font-size: 1.3rem;
-    /* Larger subtitle */
+    font-size: 1.1rem;
+    /* Subtítulo ajustado a "Conectá con trabajadores verificados cerca tuyo" */
     font-weight: 600;
-    /* More prominent */
     color: var(--textDark);
-    /* Darker for better contrast */
-    margin-bottom: 15px;
-}
-
-.hero-desc {
-    font-size: 1.05rem;
-    /* Slightly larger description */
-    color: var(--textMuted);
     margin-bottom: 25px;
-    font-weight: 500;
-    /* Medium weight */
-    max-width: 450px;
-    /* Limit width for readability */
-    line-height: 1.5;
+    /* Espacio antes de la lista de beneficios */
 }
 
-.hero-chip {
-    display: inline-block;
-    background: var(--accent);
-    color: var(--textDark);
+.hero-benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 30px 0;
+    /* Espacio antes del botón */
+    text-align: left;
+    max-width: 320px;
+    /* Ancho máximo para los bullet points */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-benefits-list li {
     font-size: 1rem;
-    /* Slightly larger chip text */
-    border-radius: 20px;
-    /* More rounded */
-    padding: 10px 25px;
-    /* More padding */
-    margin-bottom: 30px;
-    /* More space before button */
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    box-shadow: 0 2px 10px rgba(25, 198, 194, 0.1);
+    color: var(--textDark);
+    margin-bottom: 12px;
+    position: relative;
+    padding-left: 30px;
+    /* Espacio para el icono de check */
+    line-height: 1.4;
+    font-weight: 500;
 }
 
-.search-card,
-.beneficio-card {
-    background: var(--background-card);
-    border-radius: 25px;
-    box-shadow: 0 5px 25px rgba(25, 198, 194, 0.08);
-    padding: 40px 30px;
+.hero-benefits-list li:last-child {
+    margin-bottom: 0;
+}
+
+.check-icon {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: var(--primary);
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
+    /* Más grueso para que resalte */
+}
+
+/* El hero-chip y hero-desc ya no se usan en este nuevo hero */
+.hero-desc,
+.hero-chip {
+    display: none;
+    /* O puedes removerlos del HTML */
+}
+
+.main-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    font-size: 1.15rem;
+    padding: 16px 0;
+    font-weight: 700;
+    width: 90%;
+    max-width: 320px;
+    box-shadow: 0 6px 20px rgba(25, 198, 194, 0.25);
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s;
+    display: block;
+    text-decoration: none;
     text-align: center;
+}
+
+.main-btn:hover,
+.main-btn:focus {
+    background: var(--primary-dark);
+    box-shadow: 0 8px 28px rgba(25, 198, 194, 0.3);
+}
+
+.main-btn.secondary {
+    background: #e0e0e0;
+    color: var(--textDark);
+    box-shadow: none;
+}
+
+.main-btn.secondary {
+    background: #e0e0e0;
+    color: var(--textDark);
+    box-shadow: none;
+}
+
+/* Search Card (restante del diseño) */
+.search-card {
+    background: var(--background-card);
+    border-radius: var(--section-border-radius);
+    /* Aplica el mismo radio para consistencia */
+    box-shadow: var(--section-shadow);
+    /* Aplica la misma sombra */
+    padding: var(--section-padding);
+    /* Padding consistente */
+    text-align: left;
     margin-bottom: 30px;
+    /* Mantener espacio inferior para la siguiente sección */
     width: 100%;
-    min-width: 0;
-    transition: box-shadow 0.2s;
+    position: relative;
+    z-index: 2;
+    /* Asegura que esté por encima de otras cosas si es necesario */
+    /* Elimina el margin-top negativo si no quieres que se superponga */
+    margin-top: 0;
+    /* Eliminado el margen negativo para una separación clara */
+}
+
+.search-card:hover {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    /* Sombra más fuerte al hover */
 }
 
 .hero-card {
@@ -171,9 +258,7 @@ html {
     padding-bottom: 25px;
 }
 
-.hero-card:hover,
-.search-card:hover,
-.beneficio-card:hover {
+.hero-card:hover {
     box-shadow: 0 10px 35px rgba(25, 198, 194, 0.12);
 }
 
@@ -601,9 +686,11 @@ html {
 }
 
 .beneficio-card {
-    background: #fff;
+    background: var(--background-card);
     border-radius: 20px;
+    /* Un poco menos redondeado que las secciones principales */
     box-shadow: 0 3px 18px rgba(25, 198, 194, 0.08);
+    /* Sombra más sutil que las secciones grandes */
     padding: 30px 15px;
     width: 200px;
     text-align: center;
@@ -611,6 +698,10 @@ html {
     flex-direction: column;
     align-items: center;
     margin-bottom: 0;
+}
+
+.beneficio-card:hover {
+    box-shadow: 0 5px 25px rgba(25, 198, 194, 0.12);
 }
 
 .beneficio-icon {
@@ -667,104 +758,257 @@ footer {
     margin-top: 5px;
 }
 
-/* Modal */
+/* --- MODAL STYLES (Rehecho) --- */
+/* El overlay del modal */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(23, 37, 42, 0.65);
-    display: flex;
+    background: rgba(255, 255, 255, 0.90);
+    /* Color de fondo oscuro y semitransparente */
+    display: flex !important;
+    /* Usamos flexbox para centrar el contenido */
     align-items: center;
+    /* Centra verticalmente el modal-content */
     justify-content: center;
+    /* Centra horizontalmente el modal-content */
     z-index: 9999;
+    /* Asegura que el modal esté por encima de todo */
+    padding: 15px;
+    /* Pequeño padding alrededor del modal para que no se pegue a los bordes en móviles */
+    box-sizing: border-box;
+    /* Incluye padding en el cálculo del ancho/alto total */
+    opacity: 0;
+    /* Oculto por defecto */
+    visibility: hidden;
+    /* Para accesibilidad y no interactividad */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    /* Transición suave al mostrar/ocultar */
+    overflow-y: auto;
+    /* Permite scroll en el *overlay* si el modal es muy alto */
+    -webkit-overflow-scrolling: touch;
+    /* Mejora el scroll en iOS */
 }
 
+/* Cuando el modal está activo (visible) */
+.modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* El contenido principal del modal (la "tarjeta" blanca) */
 .modal-content {
     background: #fff;
     border-radius: 20px;
     padding: 25px 20px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    max-width: 380px;
-    width: 90%;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    max-width: 420px;
+    width: 100%;
     text-align: center;
+    color: #333;
     position: relative;
-    color: var(--textDark);
+    transform: translateY(0);
+    opacity: 1;
+    transition: all 0.3s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+    align-items: center;
+    -webkit-overflow-scrolling: touch;
 }
 
-.modal-content h3 {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--primary-dark);
-    margin-bottom: 15px;
-}
 
-.modal-content p {
-    font-size: 0.95rem;
-    color: var(--textMuted);
-    margin-bottom: 20px;
-}
-
-.modal-content ul {
-    list-style: none;
-    padding: 0;
-    margin: 15px 0 25px 0;
-    text-align: left;
-}
-
-.modal-content ul li {
-    font-size: 0.95rem;
-    color: var(--textDark);
-    margin-bottom: 8px;
-    position: relative;
-    padding-left: 25px;
-}
-
-.modal-content ul li::before {
-    content: '•';
-    color: var(--primary);
-    font-weight: bold;
-    display: inline-block;
-    width: 1em;
-    margin-left: -1em;
-    position: absolute;
-    left: 0;
-    top: 0;
-}
 
 .close {
     position: absolute;
-    top: 15px;
+    /* <-- Cambia de fixed a absolute */
+    top: 20px;
     right: 20px;
-    font-size: 24px;
+    font-size: 30px;
+    color: #666;
+    background: #f1f1f1;
+    border-radius: 50%;
+    padding: 0px 15px;
+    z-index: 10000;
     cursor: pointer;
-    color: #888;
-    transition: color 0.2s;
 }
 
 .close:hover {
     color: var(--textDark);
 }
 
-.modal-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.modal-title {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+}
+
+.modal-message {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+
+/* Sección de beneficios */
+
+.modal-benefits {
+    background: #f7f9fa;
+    border-radius: 15px;
+    padding: 20px;
     margin-bottom: 20px;
 }
 
+.modal-benefits-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: #111;
+}
+
+.modal-benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    max-width: 280px;
+    /* Limita el ancho de la lista de beneficios */
+    margin-left: auto;
+    margin-right: auto;
+    /* Centra la lista */
+}
+
+.modal-benefits-list li {
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+    padding-left: 28px;
+    position: relative;
+    color: #222;
+}
+
+.modal-check-icon {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    stroke: #00b8b5;
+}
+
+.modal-benefits-list li {
+    font-size: 0.9rem;
+    color: var(--textDark);
+    margin-bottom: 10px;
+    position: relative;
+    padding-left: 30px;
+    line-height: 1.4;
+}
+
+.modal-benefits-list li:last-child {
+    margin-bottom: 0;
+}
+
+.modal-check-icon {
+    position: absolute;
+    left: 0;
+    top: 2px;
+    color: var(--primary);
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
+}
+
+/* Pregunta al usuario */
+.modal-question {
+    font-size: 1rem;
+    color: var(--textMuted);
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+/* Contenedor de botones de acción */
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+    /* Espacio debajo de los botones de acción */
+}
+
+.modal-actions button {
+    padding: 14px 0;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 100%;
+}
+
+/* Botones dentro del modal */
+.primary-modal-btn {
+    background: #00b8b5;
+    color: #fff;
+}
+
+
+.primary-modal-btn:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 7px 20px rgba(25, 198, 194, 0.25);
+}
+
+.secondary-modal-btn {
+    background: #e5e5e5;
+    color: #333;
+    color: var(--textDark);
+    padding: 14px 0;
+    border-radius: 22px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    box-shadow: none;
+    width: 100%;
+}
+
+.secondary-modal-btn:hover {
+    background: #d0d0d0;
+    box-shadow: none;
+}
+
+/* Sección de información de contacto (email) */
 .contact-info {
-    margin-top: 15px;
+    margin-top: 25px;
     padding-top: 15px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #ddd;
+    text-align: left;
+    font-size: 0.95rem;
+    color: #444;
 }
 
 .copy-msg {
-    margin-left: 10px;
-    color: var(--primary);
-    font-size: 0.9rem;
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+    color: #00b8b5;
+    font-weight: 500;
 }
+
+.contact-info-text {
+    margin-bottom: 15px;
+    /* Espacio debajo del email */
+    font-size: 0.95rem;
+    color: var(--textDark);
+}
+
+.small-btn {
+    width: auto;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+    border-radius: 18px;
+    margin-left: auto;
+    margin-right: auto;
+    /* Centra el botón pequeño */
+}
+
+
 
 /* Featured Workers - Added for consistency */
 .featured-workers {
@@ -859,61 +1103,97 @@ footer {
     }
 
     .hero-card,
-    .search-card,
     .beneficio-card {
         border-radius: 18px;
         padding: 25px 15px;
         margin-bottom: 25px;
     }
 
+    .search-card {
+        padding: 30px 20px;
+        /* Padding ajustado */
+        border-radius: 20px;
+        /* Menos redondeado */
+    }
+
     .hero-section {
-        padding: 50px 15px 30px 15px;
-        /* Adjusted padding for mobile */
+        padding: 20px 15px 0 15px;
+        /* Padding ajustado */
+        border-bottom-left-radius: 25px;
+        /* Menos redondeado en móvil */
+        border-bottom-right-radius: 25px;
+    }
+
+    .hero-illustration-wrapper {
+        max-width: 280px;
+        /* Ilustración más pequeña */
+        margin-bottom: -30px;
+        /* Ajuste para móvil */
+    }
+
+    .hero-content-container {
+        padding-bottom: 30px;
+        /* Padding inferior ajustado */
+    }
+
+    .hero-illustration {
+        margin-bottom: -20px;
+        /* Ajuste para móvil */
     }
 
     .logo-nexo {
-        width: 70px;
-        height: 70px;
-        border-radius: 18px;
+        width: 60px;
+        /* Logo más pequeño */
+        height: 60px;
+        margin-bottom: 10px;
     }
 
     .hero-title {
-        font-size: 2.2rem;
-        /* Smaller title on mobile */
-        letter-spacing: -0.6px;
+        font-size: 1.6rem;
+        /* Título más pequeño */
     }
+
 
     .hero-sub {
-        font-size: 1.1rem;
+        font-size: 0.95rem;
+        /* Subtítulo más pequeño */
+        margin-bottom: 15px;
     }
 
-    .hero-desc {
-        font-size: 0.95rem;
+    .hero-benefits-list {
+        max-width: 250px;
         margin-bottom: 20px;
     }
 
-    .hero-chip {
-        font-size: 0.9rem;
-        padding: 8px 20px;
-        margin-bottom: 25px;
+
+    .hero-benefits-list li {
+        font-size: 0.85rem;
+        padding-left: 20px;
+        margin-bottom: 8px;
     }
+
 
     .main-btn {
-        font-size: 1.05rem;
-        padding: 14px 0;
-        width: 95%;
-        max-width: none;
-        /* Allow full width on mobile */
+        font-size: 1rem;
+        padding: 12px 0;
     }
 
+
     .search-card {
-        margin-top: -60px;
-        /* Adjust pull-up for mobile */
+        padding: 30px 20px;
+        /* Padding ajustado */
+        border-radius: 20px;
+        /* Menos redondeado */
     }
 
     .section-title {
         font-size: 1.2rem;
         margin-bottom: 20px;
+    }
+
+    .content-wrapper {
+        padding-top: 30px;
+        /* Menos espacio entre secciones en móvil */
     }
 
     .tags-grid {
@@ -1021,8 +1301,10 @@ footer {
     }
 
     .modal-content {
-        padding: 20px 15px;
-        width: 95%;
+        max-height: calc(100vh - 30px);
+        /* Ajusta si el padding del .modal es diferente en móvil */
+        padding: 25px 18px;
+        /* Mantén el padding que definimos antes */
     }
 
     .modal-content h3 {
@@ -1045,4 +1327,40 @@ footer {
         /* Slightly smaller on mobile */
         padding: 15px 10px;
     }
+}
+
+/* Sobre Nexo Section */
+.sobre-nexo {
+    background: #f7f9fa;
+    border-radius: 18px;
+    padding: 32px 20px;
+    margin-bottom: 40px;
+    text-align: left;
+    color: var(--textDark);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sobre-nexo h2,
+.sobre-nexo h3 {
+    color: var(--primary-dark);
+    margin-top: 18px;
+}
+
+.sobre-nexo ul,
+.sobre-nexo ol {
+    margin-left: 22px;
+    margin-bottom: 18px;
+}
+
+.sobre-nexo ul li,
+.sobre-nexo ol li {
+    font-size: 1rem;
+    margin-bottom: 7px;
+}
+
+.sobre-nexo a {
+    color: var(--primary-dark);
+    text-decoration: underline;
 }

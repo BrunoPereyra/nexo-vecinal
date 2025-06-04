@@ -1,9 +1,9 @@
 const API_URL = "https://deploy.pinkker.tv/9000";
-const TOKEN = 'Bearer TU_TOKEN_DE_PRUEBA';
+const TOKEN = 'Bearer TU_TOKEN_DE_PRUEBA'; // Asegúrate de reemplazar 'TU_TOKEN_DE_PRUEBA' con tu token real si lo tienes.
 
 const tagsContainer = document.getElementById('tags-container');
-const toggleTagsBtn = document.getElementById('toggle-tags-btn'); // New element
-const tagsGrid = document.querySelector('.tags-grid'); // New element to control height
+const toggleTagsBtn = document.getElementById('toggle-tags-btn');
+const tagsGrid = document.querySelector('.tags-grid');
 const searchBtn = document.getElementById('search-btn');
 const resultsContainer = document.getElementById('results-container');
 const featuredContainer = document.getElementById('featured-workers');
@@ -47,7 +47,7 @@ function setMarkerDragHandler() {
 // Inicializar mapa con Leaflet y geolocalización
 function initMap() {
     if (!navigator.geolocation) {
-        currentCoords = [-31.4167, -64.1833]; // Córdoba Capital
+        currentCoords = [-31.4167, -64.1833]; // Córdoba Capital (Fallback)
         map = L.map('map').setView(currentCoords, 11); // Initial zoom for bigger map
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap',
@@ -73,7 +73,7 @@ function initMap() {
         setMarkerDragHandler();
         updateRadiusCircle();
     }, () => {
-        // Fallback if user denies permission
+        // Fallback if user denies permission or geo-location fails
         currentCoords = [-31.4167, -64.1833]; // Córdoba Capital
         map = L.map('map').setView(currentCoords, 8); // Slightly zoomed out for a broader view
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -93,7 +93,7 @@ radiusMinus.addEventListener('click', () => {
     if (val > 5000) {
         radiusInput.value = val - 5000;
         updateRadiusCircle();
-    } else if (val > 0 && val <= 5000) {
+    } else if (val > 0 && val <= 5000) { // Goes to 0 if 5000 or less
         radiusInput.value = 0;
         updateRadiusCircle();
     }
@@ -105,7 +105,10 @@ radiusPlus.addEventListener('click', () => {
 });
 radiusInput.addEventListener('input', updateRadiusCircle); // Keep this for direct input changes if allowed
 
-// Obtener tags de la API
+// Cambia el valor por defecto del radio a 15000
+radiusInput.value = 15000;
+
+// Modifica fetchTags para seleccionar los primeros 4 tags y buscar automáticamente
 async function fetchTags() {
     tagsContainer.innerHTML = '<div class="loading-spinner"></div><p>Cargando categorías...</p>';
     toggleTagsBtn.style.display = 'none'; // Hide toggle button during loading
@@ -121,6 +124,16 @@ async function fetchTags() {
         if (!res.ok) throw new Error('No se pudo obtener tags');
         allTags = await res.json(); // Store all tags
         renderTags(allTags);
+
+        // Selecciona los primeros 4 tags automáticamente
+        setTimeout(() => {
+            const tagElements = tagsContainer.querySelectorAll('.tag');
+            for (let i = 0; i < Math.min(4, tagElements.length); i++) {
+                tagElements[i].classList.add('selected');
+            }
+            // Llama a la búsqueda automáticamente
+            searchUsers();
+        }, 0);
     } catch (err) {
         console.error('Error al obtener tags:', err);
         tagsContainer.innerHTML = '<p>Error al cargar categorías. Inténtalo de nuevo más tarde.</p>';
@@ -188,7 +201,7 @@ async function searchUsers() {
     if (currentCoords) {
         location = {
             type: "Point",
-            coordinates: [currentCoords[1], currentCoords[0]],
+            coordinates: [currentCoords[1], currentCoords[0]], // Leaflet gives [lat, lng], API expects [lng, lat]
         };
     }
 
@@ -214,7 +227,7 @@ async function searchUsers() {
         }
 
         const data = await res.json();
-        const users = data.users || data;
+        const users = data.users || data; // Assuming users might be directly in data if no pagination wrapper
         renderUsers(users);
     } catch (err) {
         console.error('Error buscando usuarios:', err);
@@ -281,7 +294,7 @@ function renderUsers(users) {
     });
 }
 
-// Modal contacto
+// --- MODAL DE CONTACTO JS ---
 const contactModal = document.getElementById('contact-modal');
 const closeModal = document.getElementById('close-modal');
 const acceptContact = document.getElementById('accept-contact');
@@ -291,42 +304,76 @@ const contactEmail = document.getElementById('contact-email');
 const copyEmailBtn = document.getElementById('copy-email');
 const copyMsg = document.getElementById('copy-msg');
 
-let currentEmail = "";
+let currentEmail = ""; // Variable para almacenar el email del trabajador actual
 
+// Event Listener para los botones 'Contactar' (usa delegación de eventos)
 resultsContainer.addEventListener('click', function (e) {
+    // Verifica si el clic fue en un botón con la clase 'contactar-btn'
     if (e.target.classList.contains('contactar-btn')) {
-        currentEmail = e.target.getAttribute('data-email') || '';
-        contactModal.style.display = 'flex';
-        contactInfo.style.display = 'none';
-        copyMsg.style.display = 'none';
-        copyEmailBtn.textContent = 'Copiar Email';
+        currentEmail = e.target.getAttribute('data-email') || ''; // Obtiene el email del atributo data
+        contactModal.classList.add('active'); // Muestra el modal añadiendo la clase 'active'
+
+        // Reinicia el estado del modal cada vez que se abre
+        contactInfo.style.display = 'none'; // Oculta la información de contacto
+        copyMsg.style.display = 'none';     // Oculta el mensaje de "Copiado"
+        copyEmailBtn.textContent = 'Copiar Email'; // Restaura el texto del botón
+    }
+});
+document.addEventListener('click', (event) => {
+    if (event.target.classList.contains('contactar-btn')) {
+        const email = event.target.getAttribute('data-email');
+
+        // Opcional: Rellenar campos del modal con info del usuario
+        const emailField = document.getElementById('modal-email');
+        if (emailField) emailField.value = email;
+
+        // Mostrar el modal
+        const modal = document.getElementById('contact-modal');
+        if (modal) modal.style.display = 'block';
     }
 });
 
-closeModal.onclick = () => { contactModal.style.display = 'none'; };
-window.onclick = (e) => { if (e.target === contactModal) contactModal.style.display = 'none'; };
-
-acceptContact.onclick = () => {
-    contactInfo.style.display = 'block';
-    contactEmail.textContent = currentEmail || "Email no disponible";
+// Event Listener para cerrar el modal (botón 'x')
+closeModal.onclick = () => {
+    contactModal.classList.remove('active'); // Oculta el modal quitando la clase 'active'
 };
 
+// Event Listener para cerrar el modal al hacer clic fuera del contenido
+window.onclick = (e) => {
+    if (e.target === contactModal) { // Si el clic fue directamente en el overlay del modal
+        contactModal.classList.remove('active'); // Oculta el modal
+    }
+};
+
+if (acceptContact && contactInfo && contactEmail) {
+    acceptContact.onclick = () => {
+        contactInfo.style.display = 'block';
+        contactEmail.textContent = currentEmail || "Email no disponible";
+    };
+}
+
+
+// Event Listener para el botón 'Copiar Email'
 copyEmailBtn.onclick = () => {
     if (currentEmail) {
-        navigator.clipboard.writeText(currentEmail);
-        copyMsg.style.display = 'inline';
-        copyEmailBtn.textContent = '¡Copiado!';
-        setTimeout(() => {
+        navigator.clipboard.writeText(currentEmail); // Copia el email al portapapeles
+        copyMsg.style.display = 'inline'; // Muestra el mensaje de "¡Copiado!"
+        copyEmailBtn.textContent = '¡Copiado!'; // Cambia el texto del botón
+
+        setTimeout(() => { // Oculta el mensaje y restaura el botón después de 1.5 segundos
             copyMsg.style.display = 'none';
             copyEmailBtn.textContent = 'Copiar Email';
         }, 1500);
     }
 };
 
+// Event Listener para el botón 'Ir a la App'
 goToApp.onclick = () => {
+    // Abre el enlace de la app en una nueva pestaña
     window.open('https://play.google.com/store/apps/details?id=com.nexovecinal.app&pcampaignid=web_share', '_blank');
-    contactModal.style.display = 'none';
+    contactModal.classList.remove('active'); // Oculta el modal
 };
+// --- FIN MODAL DE CONTACTO JS ---
 
 // Mostrar trabajadores destacados (primeros 4 usuarios)
 async function fetchFeaturedUsers() {
@@ -338,14 +385,14 @@ async function fetchFeaturedUsers() {
                 Authorization: TOKEN,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ tags: [], page: 1 }),
+            body: JSON.stringify({ tags: [], page: 1 }), // Puedes ajustar esto si quieres filtrar por algo específico para destacados
         });
 
         if (!res.ok) throw new Error('No se pudo obtener trabajadores destacados');
 
         const data = await res.json();
-        const users = data.users || data;
-        renderFeaturedUsers(users.slice(0, 4));
+        const users = data.users || data; // Asegúrate de que 'users' sea el array correcto
+        renderFeaturedUsers(users.slice(0, 4)); // Limita a los primeros 4 destacados
     } catch (err) {
         console.error('Error cargando destacados:', err);
         featuredContainer.innerHTML = '<p>No se pudieron cargar los trabajadores destacados.</p>';
@@ -360,7 +407,7 @@ function renderFeaturedUsers(users) {
     }
     users.forEach(user => {
         const card = document.createElement('div');
-        card.className = 'card'; // Use a generic "card" class, not "user-card" if visually different
+        card.className = 'card'; // Asumiendo que 'card' es la clase de tus tarjetas destacadas
         card.innerHTML = `
             <img src="${user.Avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.NameUser || 'U')}" alt="Avatar de ${user.NameUser || 'trabajador'}" />
             <div style="font-weight:700; font-size:1.09rem; margin-bottom:2px;">${user.NameUser || "Nombre de trabajador"}</div>
@@ -371,10 +418,35 @@ function renderFeaturedUsers(users) {
     });
 }
 
-// Al cargar
+// Ejecutar funciones al cargar el script
 fetchTags();
 fetchFeaturedUsers();
-searchBtn.addEventListener('click', searchUsers);
-document.getElementById('download-app-btn').addEventListener('click', function () {
-    window.open('https://play.google.com/store/apps/details?id=com.nexovecinal.app&pcampaignid=web_share', '_blank');
+searchBtn.addEventListener('click', searchUsers); // Asigna el listener al botón de búsqueda
+
+// Listener para el botón de descarga de la app, si existe
+const downloadAppBtn = document.getElementById('download-app-btn');
+if (downloadAppBtn) { // Verifica si el elemento existe antes de añadir el listener
+    downloadAppBtn.addEventListener('click', function () {
+        window.open('https://play.google.com/store/apps/details?id=com.nexovecinal.app&pcampaignid=web_share', '_blank');
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const acceptBtn = document.getElementById("accept-contact");
+    const contactInfo = document.getElementById("contact-info");
+
+    if (acceptBtn && contactInfo) {
+        acceptBtn.addEventListener("click", () => {
+            // Mostrar la sección de contacto si estaba oculta
+            contactInfo.style.display = "block";
+
+            // Pequeño timeout por si hay animaciones o cambio de display
+            setTimeout(() => {
+                contactInfo.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            }, 100); // Delay de 100ms para asegurar que ya se mostró
+        });
+    }
 });
