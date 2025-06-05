@@ -1,0 +1,34 @@
+footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 30px 12px 20px 12px;
+    font-size: 0.95rem;
+    color: var(--textMuted);
+    background: transparent;
+}
+
+.footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--textDark);
+}
+
+.footer-logo img {
+    vertical-align: middle;
+    opacity: 0.8;
+    width: 32px;
+    height: 32px;
+}
+
+.footer-copy,
+.footer-desc {
+    font-size: 0.95rem;
+    color: var(--textMuted);
+    text-align: center;
+    margin-top: 5px;
+}

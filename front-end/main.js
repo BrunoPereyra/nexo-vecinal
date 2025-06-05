@@ -46,9 +46,12 @@ function setMarkerDragHandler() {
 
 // Inicializar mapa con Leaflet y geolocalización
 function initMap() {
+    const defaultCoords = [-31.4167, -64.1833]; // Córdoba Capital
+    const defaultZoom = 11;
+
     if (!navigator.geolocation) {
-        currentCoords = [-31.4167, -64.1833]; // Córdoba Capital (Fallback)
-        map = L.map('map').setView(currentCoords, 11); // Initial zoom for bigger map
+        currentCoords = defaultCoords;
+        map = L.map('map').setView(currentCoords, defaultZoom);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap',
         }).addTo(map);
@@ -63,7 +66,7 @@ function initMap() {
         const lng = pos.coords.longitude;
         currentCoords = [lat, lng];
 
-        map = L.map('map').setView(currentCoords, 11); // Initial zoom for bigger map
+        map = L.map('map').setView(currentCoords, defaultZoom);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap',
@@ -74,8 +77,8 @@ function initMap() {
         updateRadiusCircle();
     }, () => {
         // Fallback if user denies permission or geo-location fails
-        currentCoords = [-31.4167, -64.1833]; // Córdoba Capital
-        map = L.map('map').setView(currentCoords, 8); // Slightly zoomed out for a broader view
+        currentCoords = defaultCoords;
+        map = L.map('map').setView(currentCoords, defaultZoom);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap',
         }).addTo(map);
@@ -84,9 +87,7 @@ function initMap() {
         updateRadiusCircle();
     });
 }
-
-window.addEventListener('DOMContentLoaded', initMap);
-
+document.addEventListener('DOMContentLoaded', initMap);
 // Control de radio con botones
 radiusMinus.addEventListener('click', () => {
     let val = parseInt(radiusInput.value, 10) || 0;
@@ -373,31 +374,6 @@ goToApp.onclick = () => {
     window.open('https://play.google.com/store/apps/details?id=com.nexovecinal.app&pcampaignid=web_share', '_blank');
     contactModal.classList.remove('active'); // Oculta el modal
 };
-// --- FIN MODAL DE CONTACTO JS ---
-
-// Mostrar trabajadores destacados (primeros 4 usuarios)
-async function fetchFeaturedUsers() {
-    featuredContainer.innerHTML = '<div class="loading-spinner"></div><p>Cargando destacados...</p>';
-    try {
-        const res = await fetch(`${API_URL}/user/search`, {
-            method: 'POST',
-            headers: {
-                Authorization: TOKEN,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ tags: [], page: 1 }), // Puedes ajustar esto si quieres filtrar por algo específico para destacados
-        });
-
-        if (!res.ok) throw new Error('No se pudo obtener trabajadores destacados');
-
-        const data = await res.json();
-        const users = data.users || data; // Asegúrate de que 'users' sea el array correcto
-        renderFeaturedUsers(users.slice(0, 4)); // Limita a los primeros 4 destacados
-    } catch (err) {
-        console.error('Error cargando destacados:', err);
-        featuredContainer.innerHTML = '<p>No se pudieron cargar los trabajadores destacados.</p>';
-    }
-}
 
 function renderFeaturedUsers(users) {
     featuredContainer.innerHTML = '';
@@ -405,6 +381,7 @@ function renderFeaturedUsers(users) {
         featuredContainer.innerHTML = '<p>No hay trabajadores destacados disponibles en este momento.</p>';
         return;
     }
+
     users.forEach(user => {
         const card = document.createElement('div');
         card.className = 'card'; // Asumiendo que 'card' es la clase de tus tarjetas destacadas
@@ -420,7 +397,6 @@ function renderFeaturedUsers(users) {
 
 // Ejecutar funciones al cargar el script
 fetchTags();
-fetchFeaturedUsers();
 searchBtn.addEventListener('click', searchUsers); // Asigna el listener al botón de búsqueda
 
 // Listener para el botón de descarga de la app, si existe
@@ -449,4 +425,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }, 100); // Delay de 100ms para asegurar que ya se mostró
         });
     }
+});
+
+// Corrige la ruta de los íconos de Leaflet para evitar el error 404
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
