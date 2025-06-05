@@ -108,8 +108,6 @@ const PostDetailView: React.FC<PostDetailViewProps> = ({ post, onClose }) => {
         if (!token || !commentText.trim()) return;
         try {
             const res = await addComment(post.id, { text: commentText.trim() }, token);
-            console.log(res);
-
             if (res && res.message === 'Comment added') {
                 setComments([res.comment, ...comments]);
                 post.commentCount += 1;

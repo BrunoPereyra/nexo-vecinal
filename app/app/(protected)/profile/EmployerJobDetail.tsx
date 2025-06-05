@@ -142,10 +142,6 @@ export default function EmployerJobDetail() {
         <View style={styles.jobCard}>
           <Text style={styles.jobTitle}>{jobDetail.title}</Text>
           <Text style={styles.jobDescription}>{jobDetail.description}</Text>
-          {
-            console.log(jobDetail.Images)
-
-          }
           {Array.isArray(jobDetail.Images) && jobDetail.Images?.[0] && (
             <View style={styles.imageContainer}>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>

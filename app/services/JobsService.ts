@@ -290,7 +290,6 @@ export const getJobsByFilters = async (
     page: number = 1
 ) => {
     try {
-        console.log("service", filters.title);
 
         const res = await fetch(`${API}/job/get-jobsBy-filters?page=${page}`, {
             method: 'POST',
@@ -302,7 +301,6 @@ export const getJobsByFilters = async (
         });
         return await res.json();
     } catch (error) {
-        console.log("filters", filters);
 
         console.error("Error en getJobsByFilters:", error);
         throw error;
@@ -546,7 +544,6 @@ export const formatDate = (dateString: string) => {
     });
 };
 export const recommendedJobs = async (token: string, page: string) => {
-    console.log(page);
 
     try {
         const res = await fetch(`${API}/job/get-recommended-jobs?page=${page}`, {

@@ -20,7 +20,7 @@ export default {
         // Notifications (global)
         notification: {
             icon: "./assets/images/logo-nexovecinal-transparente.png",
-            color: "#bcc6d4",
+            color: "#eaf6f5",
             iosDisplayInForeground: true
         },
 
@@ -44,7 +44,7 @@ export default {
             ],
             adaptiveIcon: {
                 foregroundImage: "./assets/images/logo-nexovecinal-transparente.png",
-                backgroundColor: "#bcc6d4"
+                backgroundColor: "#eaf6f5"
             },
             config: {
                 googleMaps: {
@@ -65,7 +65,7 @@ export default {
                 "expo-splash-screen",
                 {
                     image: "./assets/images/logo-nexovecinal-transparente.png",
-                    backgroundColor: "#d2d4bc",
+                    backgroundColor: "#eaf6f5",
                     imageWidth: 200,
                     resizeMode: "cover"
                 }
@@ -122,7 +122,7 @@ export default {
         ],
 
         androidStatusBar: {
-            backgroundColor: "#d2d4bc"
+            backgroundColor: "#eaf6f5"
         },
 
         // No es oficial, pero puedes documentar tu política aquí:

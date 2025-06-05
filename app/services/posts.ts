@@ -200,7 +200,6 @@ export const getCommentsForPost = async (postId: string, token: string, page: nu
         }
 
         const data = await res.json(); // Procesar la respuesta correctamente
-        console.log("Comentarios recibidos:", JSON.stringify(data, null, 2)); // Imprimir JSON
 
         return data;
     } catch (error) {

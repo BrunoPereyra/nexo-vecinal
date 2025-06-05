@@ -378,7 +378,6 @@ export const DeletePost = async (PostId: string, code: string, token: string) =>
 
 export const deleteContentReport = async (IdReport: string, code: string, token: string) => {
     try {
-        console.log("IdReport", IdReport);
 
         const res = await fetch(`${API}/admin/deleteContentReport`, {
             method: 'DELETE',

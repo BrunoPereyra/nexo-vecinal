@@ -269,6 +269,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.04,
         shadowRadius: 2,
         elevation: 1,
+        boxShadow: "5px 5px 5px rgba(0,0,0,0.04)",
     },
     filterIconButton: {
         marginLeft: 8,
@@ -282,6 +283,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.04,
         shadowRadius: 2,
         elevation: 1,
+        boxShadow: "5px 5px 5px rgba(0,0,0,0.04)",
     },
     modalOverlay: {
         flex: 1,

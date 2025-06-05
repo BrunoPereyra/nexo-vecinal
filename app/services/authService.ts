@@ -11,7 +11,6 @@ export const loginNameUser = async (NameUser: string, password: string) => {
         });
 
         const data = await res.json();
-        console.log(data);
         if (data.token) {
             return data;
         }

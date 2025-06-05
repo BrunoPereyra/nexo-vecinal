@@ -66,7 +66,6 @@ const CreatePost: React.FC<CreatePostProps> = ({ visible, onClose, onPostCreated
 
         try {
             const res = await createPost(postData, token as string);
-            console.log(res);
             if (res?.message === "Post created successfully") {
                 Alert.alert("Éxito", "Post creado correctamente");
                 onClose();

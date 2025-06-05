@@ -85,7 +85,6 @@ const JobsFeed: React.FC = () => {
 
     // Función para solicitar los trabajos
     const fetchJobs = async (pageNumber: number, append: boolean = false) => {
-        console.log("AQUI", filterParams.searchTitle);
         if (!token || !filterParams.location) return;
         const apiFilters = {
             tags: filterParams.selectedTags,

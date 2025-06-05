@@ -1,8 +1,14 @@
 // app.tsx
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Button, Platform, StatusBar } from 'react-native';
+import { View, Button, Platform, StatusBar, Text } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import { useFonts, Poppins_400Regular } from '@expo-google-fonts/poppins';
+// Componente de texto global con Poppins
+import { Text as RNText, TextProps } from 'react-native';
+function AppText(props: TextProps) {
+    return <RNText {...props} style={[{ fontFamily: 'Poppins_400Regular' }, props.style]} />;
+}
 
 // Configuramos el handler para notificaciones en primer plano
 Notifications.setNotificationHandler({
@@ -19,6 +25,9 @@ Notifications.setNotificationHandler({
 export default function App() {
     const notificationListener = useRef<any>(null);
     const responseListener = useRef<any>(null);
+
+    // Carga la fuente Poppins
+    let [fontsLoaded] = useFonts({ Poppins_400Regular });
 
     useEffect(() => {
         registerForNotificationsAsync();
@@ -50,6 +59,9 @@ export default function App() {
             trigger: null, // null = se envía inmediatamente
         });
     };
+
+    // Espera a que la fuente esté cargada
+    if (!fontsLoaded) return null;
 
     return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>

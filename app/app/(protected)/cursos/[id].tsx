@@ -42,8 +42,6 @@ const SocialLinks = ({ socials }: { socials: Course['socials'] }) => {
         }
     };
 
-    console.log("Socials:", socials);
-
     return (
         <View style={styles.socialContainer}>
             {socials?.instagram && (

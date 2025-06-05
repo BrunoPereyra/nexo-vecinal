@@ -39,7 +39,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const registerForPushNotificationsAsync = async () => {
         if (!Device.isDevice) {
             Alert.alert('Advertencia', 'Debe usar un dispositivo físico para recibir notificaciones push.');
-            console.log('No se está ejecutando en un dispositivo físico.');
             return;
         }
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
@@ -82,10 +81,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     sound: 'default',
                     lightColor: '#FF231F7C',
                 });
-                console.log("YES 1111111");
 
             } catch (error) {
-                console.log("BBB", error);
             }
 
         }

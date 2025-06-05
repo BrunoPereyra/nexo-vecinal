@@ -18,7 +18,6 @@ export default function LoginScreen() {
       setErrorMessage(''); // Limpiar el mensaje de error antes de intentar iniciar sesión
 
       const data = await loginNameUser(nameUser, password);
-      console.log(data);
 
       await login(data.token, data._id, data.avatar, data.nameUser);
       await savePushToken(data.token, pushToken ? pushToken : "");
