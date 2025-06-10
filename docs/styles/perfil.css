@@ -1,0 +1,50 @@
+.user-tag {
+    background: #19c6c2;
+    color: #fff;
+    border-radius: 10px;
+    padding: 2px 10px;
+    font-size: 13px;
+    margin: 0 3px 3px 0;
+    display: inline-block;
+}
+
+.trabajos-list {
+    padding-left: 18px;
+    margin: 0;
+}
+
+.trabajos-list li {
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+.perfil-modal {
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.perfil-modal-content {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    max-width: 420px;
+    width: 100%;
+    position: relative;
+}
+
+.perfil-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 2rem;
+    color: #19c6c2;
+    cursor: pointer;
+}

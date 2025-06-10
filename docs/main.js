@@ -251,50 +251,31 @@ searchNameInput.addEventListener('keydown', function (e) {
         searchUsers();
     }
 });
-
+window.users = [];
 function renderUsers(users) {
-    resultsContainer.innerHTML = '';
-    if (!users || users.length === 0) {
-        resultsContainer.innerHTML = `
-            <div class="empty-state">
-                <img src="https://via.placeholder.com/80?text=🔍" alt="No hay resultados" class="empty-state-icon"/>
-                <h3>¡Vaya! No encontramos trabajadores.</h3>
-                <p>Intenta:</p>
-                <ul>
-                    <li>Revisar el nombre o los tags seleccionados.</li>
-                    <li>Ampliar el radio de búsqueda.</li>
-                    <li>Arrastrar el marcador en el mapa a otra ubicación.</li>
-                </ul>
-            </div>
-        `;
-        return;
-    }
-
+    window.users = users;
+    resultsContainer.innerHTML = "";
     users.forEach(user => {
-        const userCard = document.createElement('div');
-        userCard.className = 'user-card';
-        userCard.innerHTML = `
-            <img src="${user.Avatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.NameUser || 'U')}" alt="Avatar de ${user.NameUser || 'usuario'}" />
-            <div class="user-card-content">
-                <h3>${user.NameUser || "Sin nombre"}</h3>
-                <div class="user-tags">
-                    ${user.tags && user.tags.length
-                ? user.tags.map(tag =>
-                    `<span class="user-tag${tag.toLowerCase() === 'prime' ? ' prime' : ''}">${tag}</span>`
-                ).join('')
-                : '<span class="user-tag no-tags">Sin tags</span>'
-            }
-                </div>
-                <div class="user-location">
-                    <strong>Ubicación:</strong> ${user.Ciudad || "No especificada"}
-                </div>
-                <button class="main-btn contactar-btn" data-email="${user.Email || ''}">Contactar</button>
-            </div>
-        `;
-        resultsContainer.appendChild(userCard);
+        const tagsHtml = (user.tags || [])
+            .map(tag => `<span class="user-tag${tag.prime ? ' prime' : ''}">${tag.name || tag}</span>`)
+            .join(" ");
+
+        resultsContainer.innerHTML += `
+      <div class="user-card">
+        <div class="user-card-avatar">
+          <img src="${user.Avatar || 'assets/avatar-default.png'}" alt="${user.NameUser}" class="user-avatar">
+        </div>
+        <div class="user-card-content">
+          <div class="user-card-header">
+            <h3 class="user-card-name">${user.NameUser || user.FullName || "Sin nombre"}</h3>
+          </div>
+          <div class="user-tags">${tagsHtml}</div>
+          <button class="ver-perfil-btn" data-user-id="${user.id}">Ver perfil</button>
+        </div>
+      </div>
+    `;
     });
 }
-
 // --- MODAL DE CONTACTO JS ---
 const contactModal = document.getElementById('contact-modal');
 const closeModal = document.getElementById('close-modal');
@@ -434,3 +415,77 @@ L.Icon.Default.mergeOptions({
     iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
     shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
+document.addEventListener('click', async function (e) {
+    if (e.target.classList.contains('ver-perfil-btn')) {
+        const userId = e.target.getAttribute('data-user-id');
+        // Busca el usuario en tu array
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+
+        // Llama a tu endpoint para trabajos completados
+        let trabajosHtml = '<p>Cargando trabajos completados...</p>';
+        try {
+            const res = await fetch(`https://deploy.pinkker.tv/9000/job/get-jobs-user-completedvisited?id=${userId}&page=1`);
+            const data = await res.json();
+            if (data && data.data && data.data.length > 0) {
+                trabajosHtml = '<ul class="trabajos-list">' + data.data.map(job => `
+          <li style="margin-bottom:16px;">
+            <strong>${job.title || 'Sin título'}</strong>
+            <div style="font-size: 0.97em; color: #555; margin: 2px 0 4px 0;">
+              ${job.description || ''}
+            </div>
+            <div style="margin-bottom: 2px;">
+              ${(job.tags || []).map(tag => `<span class="user-tag">${tag}</span>`).join(' ')}
+            </div>
+            ${job.employerFeedback && job.employerFeedback.comment ? `
+              <div class="job-feedback" style="color:#119b97; font-style:italic; margin-top:2px;">
+                <svg width="14" height="14" fill="#FFD166" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:2px;"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                ${job.employerFeedback.rating ? job.employerFeedback.rating + '★ - ' : ''}
+                "${job.employerFeedback.comment}"
+              </div>
+            ` : ''}
+          </li>
+        `).join('') + '</ul>';
+            } else {
+                trabajosHtml = '<p>Este usuario no tiene trabajos completados.</p>';
+            }
+        } catch (err) {
+            trabajosHtml = '<p>Error al cargar trabajos.</p>';
+        }
+
+        // Renderiza el modal
+        document.getElementById('perfil-modal-body').innerHTML = `
+  <div style="text-align:center;">
+    <img src="${user.Avatar || 'assets/avatar-default.png'}" alt="${user.NameUser}" style="width:80px;height:80px;border-radius:50%;margin-bottom:10px;">
+    <h2 style="margin:0 0 8px 0;">${user.NameUser || user.FullName || "Sin nombre"}</h2>
+    <div style="margin-bottom:8px;">
+      ${(user.tags || []).map(tag => `<span class="user-tag">${tag}</span>`).join(' ')}
+    </div>
+    <div style="margin-bottom:8px;">
+      <strong>Ciudad:</strong> ${user.Ciudad || "-"}
+    </div>
+    <div style="margin-bottom:8px;">
+      <strong>Email:</strong> <a href="mailto:${user.Email || ""}">${user.Email || "-"}</a>
+    </div>
+    <div style="margin-bottom:8px;">
+      <strong>Biografía:</strong> ${user.biography && user.biography.trim() !== "" ? user.biography : "-"}
+    </div>
+    <div style="margin-bottom:8px;">
+      <strong>Trabajos completados:</strong>
+      ${trabajosHtml}
+    </div>
+  </div>
+`;
+        document.getElementById('perfil-modal').style.display = 'flex';
+    }
+});
+
+// Cerrar modal
+document.getElementById('perfil-modal-close').onclick = function () {
+    document.getElementById('perfil-modal').style.display = 'none';
+};
+window.onclick = function (event) {
+    if (event.target === document.getElementById('perfil-modal')) {
+        document.getElementById('perfil-modal').style.display = 'none';
+    }
+};

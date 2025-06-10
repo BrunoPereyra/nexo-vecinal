@@ -1597,7 +1597,7 @@ func (u *UserRepository) FindUsersByNameTagOrLocation(
 	filter := bson.M{
 		"Banned":          false,
 		"availableToWork": true,
-		"Intentions":      "work",
+		// "Intentions":      "work",
 	}
 	andFilters := []bson.M{}
 
@@ -1648,11 +1648,13 @@ func (u *UserRepository) FindUsersByNameTagOrLocation(
 		SetSkip(skip).
 		SetSort(bson.D{{Key: "createdAt", Value: -1}}).
 		SetProjection(bson.M{
-			"_id":      1,
-			"NameUser": 1,
-			"Avatar":   1,
-			"tags":     1,
-			"location": 1,
+			"_id":       1,
+			"NameUser":  1,
+			"Avatar":    1,
+			"tags":      1,
+			"location":  1,
+			"Biography": 1,
+			"Email":     1,
 		})
 
 	cursor, err := usersCollection.Find(context.Background(), filter, opts)

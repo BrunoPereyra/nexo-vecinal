@@ -24,6 +24,8 @@
 <link rel="stylesheet" href="styles/sobre-nexo.css">
 <link rel="stylesheet" href="styles/footer.css">
 <link rel="stylesheet" href="styles/responsive.css">
+<link rel="stylesheet" href="styles/perfil.css">
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
@@ -89,7 +91,7 @@
         <button id="search-btn" class="main-btn search-btn">Buscar</button>
         <div id="results-container" class="results"></div>
       </section>
-<!-- <div id="featured-workers"></div> -->
+<!-- <div id="featured-workers"></div> -->  
 
       <section id="beneficios" class="beneficios-cards">
         <h2 class="section-title">¿Por qué elegir Nexo Vecinal?</h2>
@@ -197,7 +199,12 @@
         </div>
     </div>
 </div>
-
+<div id="perfil-modal" class="perfil-modal" style="display:none;">
+  <div class="perfil-modal-content">
+    <span class="perfil-modal-close" id="perfil-modal-close">&times;</span>
+    <div id="perfil-modal-body"></div>
+  </div>
+</div>
   <script src="main.js"></script>
 </body>
 </html>
