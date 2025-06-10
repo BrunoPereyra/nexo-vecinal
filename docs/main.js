@@ -330,7 +330,24 @@ window.onclick = (e) => {
 if (acceptContact && contactInfo && contactEmail) {
     acceptContact.onclick = () => {
         contactInfo.style.display = 'block';
-        contactEmail.textContent = currentEmail || "Email no disponible";
+        contactEmail.textContent = window.emailToCopy || currentEmail || "Email no disponible";
+
+        // Copia el email al portapapeles solo si viene del perfil
+        if (window.emailToCopy) {
+            navigator.clipboard.writeText(window.emailToCopy);
+            copyMsg.style.display = 'inline';
+            copyEmailBtn.textContent = '¡Copiado!';
+            setTimeout(() => {
+                copyMsg.style.display = 'none';
+                copyEmailBtn.textContent = 'Copiar Email';
+            }, 1500);
+            // Limpia la variable temporal
+            window.emailToCopy = null;
+            // Cierra el modal de contacto después de mostrar el mensaje
+            setTimeout(() => {
+                contactModal.classList.remove('active');
+            }, 1200);
+        }
     };
 }
 
@@ -338,14 +355,33 @@ if (acceptContact && contactInfo && contactEmail) {
 // Event Listener para el botón 'Copiar Email'
 copyEmailBtn.onclick = () => {
     if (currentEmail) {
-        navigator.clipboard.writeText(currentEmail); // Copia el email al portapapeles
-        copyMsg.style.display = 'inline'; // Muestra el mensaje de "¡Copiado!"
-        copyEmailBtn.textContent = '¡Copiado!'; // Cambia el texto del botón
-
-        setTimeout(() => { // Oculta el mensaje y restaura el botón después de 1.5 segundos
-            copyMsg.style.display = 'none';
-            copyEmailBtn.textContent = 'Copiar Email';
-        }, 1500);
+        // Intenta el método moderno
+        navigator.clipboard.writeText(currentEmail).then(() => {
+            copyMsg.style.display = 'inline';
+            copyEmailBtn.textContent = '¡Copiado!';
+            setTimeout(() => {
+                copyMsg.style.display = 'none';
+                copyEmailBtn.textContent = 'Copiar Email';
+            }, 1500);
+        }).catch(() => {
+            // Fallback para móviles
+            const tempInput = document.createElement('input');
+            tempInput.value = currentEmail;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                copyMsg.style.display = 'inline';
+                copyEmailBtn.textContent = '¡Copiado!';
+                setTimeout(() => {
+                    copyMsg.style.display = 'none';
+                    copyEmailBtn.textContent = 'Copiar Email';
+                }, 1500);
+            } catch (err) {
+                alert('No se pudo copiar el email. Copialo manualmente.');
+            }
+            document.body.removeChild(tempInput);
+        });
     }
 };
 
@@ -455,31 +491,42 @@ document.addEventListener('click', async function (e) {
 
         // Renderiza el modal
         document.getElementById('perfil-modal-body').innerHTML = `
-  <div style="text-align:center;">
-    <img src="${user.Avatar || 'assets/avatar-default.png'}" alt="${user.NameUser}" style="width:80px;height:80px;border-radius:50%;margin-bottom:10px;">
-    <h2 style="margin:0 0 8px 0;">${user.NameUser || user.FullName || "Sin nombre"}</h2>
-    <div style="margin-bottom:8px;">
-      ${(user.tags || []).map(tag => `<span class="user-tag">${tag}</span>`).join(' ')}
+  <div class="perfil-modal-web">
+    <div class="perfil-header">
+      <div class="perfil-avatar-border">
+        <img src="${user.Avatar || 'assets/avatar-default.png'}" alt="${user.NameUser}" class="perfil-avatar">
+      </div>
+      <div>
+        <div class="perfil-nombre">${user.FullName || user.NameUser || "Sin nombre"}</div>
+        <div class="perfil-usuario">@${user.NameUser || "-"}</div>
+      </div>
     </div>
-    <div style="margin-bottom:8px;">
-      <strong>Ciudad:</strong> ${user.Ciudad || "-"}
+    <div class="perfil-bio">${user.biography && user.biography.trim() !== "" ? user.biography : "Biografía no configurada"}</div>
+    <div class="perfil-tabs">
+      <button class="perfil-tab perfil-tab-activo">Trabajos realizados</button>
+      <button class="perfil-tab" disabled>Trabajos creados</button>
     </div>
-    <div style="margin-bottom:8px;">
-      <strong>Email:</strong> <a href="mailto:${user.Email || ""}">${user.Email || "-"}</a>
-    </div>
-    <div style="margin-bottom:8px;">
-      <strong>Biografía:</strong> ${user.biography && user.biography.trim() !== "" ? user.biography : "-"}
-    </div>
-    <div style="margin-bottom:8px;">
-      <strong>Trabajos completados:</strong>
+    <div class="perfil-trabajos">
       ${trabajosHtml}
     </div>
+    <button id="contactar-desde-perfil" class="main-btn perfil-contactar-btn">Contactar</button>
   </div>
 `;
         document.getElementById('perfil-modal').style.display = 'flex';
+
+        // Event listener para el botón "Contactar" en el modal de perfil
+        const btnContactarPerfil = document.getElementById('contactar-desde-perfil');
+        if (btnContactarPerfil) {
+            btnContactarPerfil.onclick = () => {
+                currentEmail = user.Email || "";
+                contactInfo.style.display = 'none';
+                copyMsg.style.display = 'none';
+                copyEmailBtn.textContent = 'Copiar Email';
+                contactModal.classList.add('active');
+            };
+        }
     }
 });
-
 // Cerrar modal
 document.getElementById('perfil-modal-close').onclick = function () {
     document.getElementById('perfil-modal').style.display = 'none';
