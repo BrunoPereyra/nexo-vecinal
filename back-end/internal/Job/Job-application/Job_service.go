@@ -42,10 +42,18 @@ func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID pri
 		UpdatedAt:           time.Now(),
 		Images:              []string{createReq.Image},
 		Available:           true,
+		WorkerID:            createReq.WorkerID,
+		JobType:             createReq.JobType,
 	}
 
 	jobID, err := js.JobRepository.CreateJob(newJob)
 	if err != nil {
+		return jobID, err
+	}
+	// notificar a los usuarios interesados
+	// si es una solicitud mandalo al trabajador en cuestion
+	if newJob.WorkerID != primitive.NilObjectID {
+		err = js.JobRepository.SendNotificationToWorker(newJob.WorkerID, fmt.Sprintf("Nuevo trabajo asignado: %s", newJob.Title), "Se te ha asignado un nuevo trabajo.")
 		return jobID, err
 	}
 	go js.notifyUsersForJob(newJob, jobID)
@@ -193,4 +201,7 @@ func (js *JobService) notifyUsersForJob(job jobdomain.Job, jobID primitive.Objec
 
 func (js *JobService) GetRecommendedJobsForUser(userID primitive.ObjectID, page int) ([]jobdomain.JobDetailsUsers, error) {
 	return js.JobRepository.GetRecommendedJobsForUser(userID, page)
+}
+func (js *JobService) GetJobRequestsReceived(userID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	return js.JobRepository.GetJobRequestsReceived(userID, page)
 }

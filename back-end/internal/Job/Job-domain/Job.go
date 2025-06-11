@@ -60,16 +60,20 @@ type Job struct {
 	PaymentAmount       float64            `json:"paymentAmount" bson:"paymentAmount"`
 	PaymentIntentID     string             `json:"paymentIntentId" bson:"paymentIntentId"`
 	Available           bool               `json:"Available" bson:"available"`
+	WorkerID            primitive.ObjectID `json:"workerId,omitempty" bson:"workerId,omitempty"`
+	JobType             string             `json:"jobType" bson:"jobType"` // "publicacion" o "solicitud"
 }
 
 // CreateJobRequest representa la información necesaria para crear un job.
 type CreateJobRequest struct {
-	Title       string   `json:"title" validate:"required,min=3,max=100"`         // Título del trabajo (requerido, entre 3 y 100 caracteres)
-	Description string   `json:"description" validate:"required,min=10,max=1000"` // Descripción detallada (requerido, entre 10 y 1000 caracteres)
-	Location    GeoPoint `json:"location,omitempty"`                              // Ubicación o zona del trabajo (requerido)
-	Tags        []string `json:"tags" validate:"required,dive,required"`          // Etiquetas para clasificar el trabajo (al menos una requerida)
-	Budget      float64  `json:"budget" validate:"required,gt=0"`                 // Presupuesto estimado (debe ser mayor a 2000)
-	Image       string   `json:"Image"`
+	Title       string             `json:"title" validate:"required,min=3,max=100"`         // Título del trabajo (requerido, entre 3 y 100 caracteres)
+	Description string             `json:"description" validate:"required,min=10,max=1000"` // Descripción detallada (requerido, entre 10 y 1000 caracteres)
+	Location    GeoPoint           `json:"location,omitempty"`                              // Ubicación o zona del trabajo (requerido)
+	Tags        []string           `json:"tags" validate:"required,dive,required"`          // Etiquetas para clasificar el trabajo (al menos una requerida)
+	Budget      float64            `json:"budget" validate:"required,gt=0"`                 // Presupuesto estimado (debe ser mayor a 2000)
+	Image       string             `json:"Image"`
+	WorkerID    primitive.ObjectID `json:"workerId,omitempty"`
+	JobType     string             `json:"jobType"` // Tipo de trabajo: "publicacion" o "solicitud"
 }
 
 func (u *CreateJobRequest) ValidateCreateJobRequest() error {

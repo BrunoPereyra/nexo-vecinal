@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
-const API = "https://deploy.pinkker.tv/9000"
-
+// const API = "https://deploy.pinkker.tv/9000"
+const API = "http://192.168.0.28:9000"
 export interface Job {
     id: string;
     title: string;
@@ -32,7 +32,7 @@ export const createJob = async (jobData: any, token: string) => {
         formData.append("description", jobData.description);
         formData.append("budget", jobData.budget.toString());
         formData.append("locationStr", JSON.stringify(jobData.location));
-
+        formData.append("jobType", jobData.jobType); // El tipo de trabajo
         jobData.tags.forEach((tag: string) => {
             formData.append("tags", tag);
         });
@@ -58,7 +58,48 @@ export const createJob = async (jobData: any, token: string) => {
         console.error("Error en createJob:", error);
     }
 };
+/**
+ * Realiza una petición POST para solicitar un trabajo a un trabajador específico.
+ * @param jobData - Objeto con la información del job a crear.
+ * @param token - Token del usuario para autorización.
+ * @returns La respuesta de la API en formato JSON.
+ */
+export const solicitarTrabajoAUnTrabajador = async (jobData: any, token: string) => {
+    try {
+        const formData = new FormData();
 
+        formData.append("title", jobData.title);
+        formData.append("description", jobData.description);
+        formData.append("budget", jobData.budget.toString());
+        formData.append("locationStr", JSON.stringify(jobData.location));
+        formData.append("workerId", jobData.workerId); // El ID del trabajador solicitado
+        formData.append("jobType", jobData.jobType); // El tipo de trabajo
+
+        jobData.tags.forEach((tag: string) => {
+            formData.append("tags", tag);
+        });
+        if (jobData.image && jobData.image.uri) {
+            const imageFile = {
+                uri: jobData.image.uri,
+                name: `image.${jobData.image.uri.split('.').pop() || "jpg"}`,
+                type: "image/jpeg",
+            };
+            formData.append("image", imageFile as any);
+        }
+
+        const res = await fetch(`${API}/job/create`, { // Cambia la ruta por la de tu backend
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+
+        return await res.json();
+    } catch (error) {
+        console.error("Error en solicitarTrabajoAUnTrabajador:", error);
+    }
+};
 
 
 export const GetJobTokenAdmin = async (JobId: any, token: string) => {
@@ -557,5 +598,23 @@ export const recommendedJobs = async (token: string, page: string) => {
         return await res.json();
     } catch (error) {
         console.error(error);
+    }
+};
+export const GetJobRequestsReceived = async (token: string, page: number = 1) => {
+    try {
+        const url = `${API}/job/get-job-requests-received?page=${page}`;
+        const res = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en GetJobRequestsReceived:", error);
     }
 };

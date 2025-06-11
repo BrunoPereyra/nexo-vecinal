@@ -17,7 +17,8 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	JobService := jobapplication.NewJobService(JobRepository)
 	JobHandler := Jobinterfaces.NewJobHandler(JobService)
 
-	App.Post("/job/create", middleware.UseExtractor(), JobHandler.CreateJob)                                 // Crear un nuevo trabajo
+	App.Post("/job/create", middleware.UseExtractor(), JobHandler.CreateJob)
+	// Crear un nuevo trabajo
 	App.Post("/job/apply", middleware.UseExtractor(), JobHandler.ApplyToJob)                                 // Postularse a un trabajo
 	App.Put("/job/:jobId/assign", middleware.UseExtractor(), JobHandler.AssignJob)                           // Asignar un trabajador a un trabajo
 	App.Put("/job/:jobId/reassign", middleware.UseExtractor(), JobHandler.ReassignJob)                       // Reasignar un trabajador a un trabajo
@@ -52,4 +53,7 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 
 	// para ti GetRecommendedJobsForUser
 	App.Get("/job/get-recommended-jobs", middleware.UseExtractor(), JobHandler.GetRecommendedJobsForUser) // Obtener trabajos recomendados para el usuario
+
+	App.Get("/job/get-job-requests-received", middleware.UseExtractor(), JobHandler.GetJobRequestsReceived) // Obtener solicitudes de trabajo recibidas
+
 }

@@ -427,6 +427,8 @@ func (j *JobRepository) FindJobsByTagsAndLocation(jobFilter jobdomain.FindJobsBy
 		"$nin": []jobdomain.JobStatus{jobdomain.JobStatusCompleted},
 	}
 	filter["available"] = true
+	filter["jobType"] = bson.M{"$ne": "solicitud"}
+
 	// Definir el pipeline de agregación
 	pipeline := mongo.Pipeline{
 		bson.D{{Key: "$match", Value: filter}},
@@ -472,6 +474,7 @@ func (j *JobRepository) FindOldestJobs(limit int) ([]jobdomain.JobDetailsUsers, 
 		"status": bson.M{
 			"$nin": []jobdomain.JobStatus{jobdomain.JobStatusCompleted},
 		},
+		"jobType": bson.M{"$ne": "solicitud"},
 	}
 	filter["available"] = true
 	// Pipeline para traer los trabajos más antiguos
@@ -821,8 +824,11 @@ func (j *JobRepository) GetJobsByUserID(userID primitive.ObjectID, page int) ([]
 	var jobs []jobdomain.Job
 
 	// Filtrar por el userId
-	filter := bson.M{"userId": userID}
-	filter["available"] = true
+	filter := bson.M{
+		"userId":    userID,
+		"available": true,
+		"jobType":   bson.M{"$ne": "solicitud"}, // <-- NO traer solicitudes
+	}
 	// Configurar la paginación: 10 trabajos por página, ordenados de más recientes a más viejos
 	opts := options.Find().
 		SetLimit(10).
@@ -1709,5 +1715,99 @@ func (j *JobRepository) GetRecommendedJobsForUser(userID primitive.ObjectID, pag
 		return nil, err
 	}
 
+	return jobs, nil
+}
+func (repo *JobRepository) SendNotificationToWorker(workerID primitive.ObjectID, title, message string) error {
+	// 1. Buscar el push token del trabajador
+	worker, err := repo.GetUserByID(workerID)
+	if err != nil {
+		return err
+	}
+	if worker.PushToken == "" {
+		return fmt.Errorf("el trabajador no tiene push token registrado")
+	}
+
+	// 2. Enviar la notificación (aquí puedes usar tu servicio de notificaciones)
+	err = repo.SendPushNotification(worker.PushToken, title, message)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// getUserByID obtiene un usuario por su ID y solo devuelve el PushToken
+func (repo *JobRepository) GetUserByID(userID primitive.ObjectID) (*userdomain.User, error) {
+	userColl := repo.mongoClient.Database("NEXO-VECINAL").Collection("Users")
+
+	// Solo decodificamos los campos _id y pushToken
+	var user struct {
+		ID        primitive.ObjectID `bson:"_id"`
+		PushToken string             `bson:"pushToken"`
+	}
+	projection := bson.M{"_id": 1, "pushToken": 1}
+	err := userColl.FindOne(context.Background(), bson.M{"_id": userID}, options.FindOne().SetProjection(projection)).Decode(&user)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("usuario no encontrado con ID: %s", userID.Hex())
+		}
+		return nil, fmt.Errorf("error al buscar usuario: %v", err)
+	}
+
+	return &userdomain.User{
+		ID:        user.ID,
+		PushToken: user.PushToken,
+	}, nil
+}
+
+// SendPushNotification envía una notificación push al token especificado
+func (repo *JobRepository) SendPushNotification(pushToken, title, message string) error {
+	// Construir el payload de la notificación
+	payload := map[string]interface{}{
+		"to":        pushToken,
+		"title":     title,
+		"body":      message,
+		"channelId": "jobs",
+	}
+
+	// Serializar el payload a JSON
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("error serializando el payload: %v", err)
+	}
+
+	// Enviar la solicitud al endpoint de Expo
+	resp, err := http.Post("https://exp.host/--/api/v2/push/send", "application/json", bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("error enviando la notificación: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error enviando la notificación, status: %d", resp.StatusCode)
+	}
+	return nil
+}
+func (repo *JobRepository) GetJobRequestsReceived(userID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
+	jobColl := repo.mongoClient.Database("NEXO-VECINAL").Collection("Job")
+	const pageSize = 10
+	skip := (page - 1) * pageSize
+
+	filter := bson.M{
+		"jobType":  "solicitud",
+		"workerId": userID,
+	}
+
+	opts := options.Find().SetSkip(int64(skip)).SetLimit(pageSize).SetSort(bson.M{"createdAt": -1})
+
+	cursor, err := jobColl.Find(context.Background(), filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.Background())
+
+	var jobs []jobdomain.Job
+	if err := cursor.All(context.Background(), &jobs); err != nil {
+		return nil, err
+	}
 	return jobs, nil
 }

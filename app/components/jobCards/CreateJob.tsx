@@ -19,7 +19,7 @@ import MapView, {
   MarkerDragStartEndEvent,
 } from "react-native-maps";
 import * as ImagePicker from "expo-image-picker";
-import { createJob } from "@/services/JobsService";
+import { createJob, solicitarTrabajoAUnTrabajador } from "@/services/JobsService";
 import { useAuth } from "@/context/AuthContext";
 import ErrorBoundary from "../ErrorBoundary";
 import colors from "@/style/colors";
@@ -28,12 +28,15 @@ type CreateJobProps = {
   visible: boolean;
   onClose: () => void;
   onJobCreated?: (job: any) => void;
+  preselectedUser?: any; // <-- NUEVO
+
 };
 
 export const CreateJob: React.FC<CreateJobProps> = ({
   visible,
   onClose,
   onJobCreated,
+  preselectedUser
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -120,7 +123,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       },
       tags: selectedTags,
       budget: budgetNumber,
+      jobType: preselectedUser ? "solicitud" : "publicacion", // <-- SIEMPRE ENVIAR ESTO
     };
+
+    if (preselectedUser) {
+      jobData.workerId = preselectedUser.id; // O el campo que corresponda en tu backend
+    }
 
     // Si se seleccionó una imagen, la convertimos a un objeto con las propiedades necesarias
     if (image) {
@@ -133,8 +141,12 @@ export const CreateJob: React.FC<CreateJobProps> = ({
     }
 
     try {
-
-      const response = await createJob(jobData, token as string);
+      let response;
+      if (preselectedUser) {
+        response = await solicitarTrabajoAUnTrabajador(jobData, token as string);
+      } else {
+        response = await createJob(jobData, token as string);
+      }
 
       if (response && response.message === "Job created successfully") {
         Alert.alert("Éxito", "Trabajo creado exitosamente.");
@@ -169,7 +181,9 @@ export const CreateJob: React.FC<CreateJobProps> = ({
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
-              {/* <Text style={styles.modalTitle}>Crear nuevo trabajo</Text> */}
+              <Text style={styles.modalTitle}>
+                {preselectedUser ? `Solicitar trabajo a ${preselectedUser.NameUser || preselectedUser.FullName}` : "Crear nuevo trabajo"}
+              </Text>
               <TextInput
                 placeholder="Título"
                 value={title}

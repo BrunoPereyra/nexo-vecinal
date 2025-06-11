@@ -27,7 +27,7 @@ interface VisitedProfileModalProps {
     userId: string;
 }
 
-const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onClose, userId }) => {
+const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onClose, userId, }) => {
     const { token, logout } = useAuth();
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalLoading, setGlobalLoading] = useState<boolean>(true);
@@ -40,7 +40,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     const [descriptionExpanded, setDescriptionExpanded] = useState(false);
     const [reportModalVisible, setReportModalVisible] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
-
+    const [requestJobVisible, setRequestJobVisible] = useState(false);
     useEffect(() => {
         if (!visible) return;
         const fetchProfile = async () => {
@@ -296,6 +296,23 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                             <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
                         </TouchableOpacity>
                     }
+                    {userProfile && (
+                        <TouchableOpacity
+                            style={[styles.fabWork]}
+                            onPress={() => setRequestJobVisible(true)}
+                        >
+                            <Ionicons name="add-circle-outline" size={28} color="#fff" />
+                        </TouchableOpacity>
+                    )}
+                    <CreateJob
+                        visible={requestJobVisible}
+                        onClose={() => setRequestJobVisible(false)}
+                        onJobCreated={(job) => {
+                            setRequestJobVisible(false);
+                            // Opcional: mostrar mensaje de éxito o refrescar trabajos
+                        }}
+                        preselectedUser={userProfile}
+                    />
                 </View>
             </Modal>
         </>
@@ -304,6 +321,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
 import colors from "@/style/colors";
 import { router } from 'expo-router';
 import { createReports } from '@/services/admin';
+import CreateJob from '../jobCards/CreateJob';
 
 const styles = StyleSheet.create({
     fullScreenContainer: {
@@ -387,6 +405,23 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gold, // "#FFD700"
         width: 60,
         height: 60,
+        borderRadius: 30,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1,
+        borderColor: colors.borderLight, // "#EAE6DA"
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    fabWork: {
+        position: "absolute",
+        bottom: 170,
+        right: 35,
+        backgroundColor: colors.gold, // "#FFD700"
+        width: 50,
+        height: 50,
         borderRadius: 30,
         alignItems: "center",
         justifyContent: "center",

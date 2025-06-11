@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '@/context/AuthContext';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { getUserByid } from '@/services/userService';
+import CreateJob from '@/components/jobCards/CreateJob';
 import {
     GetJobsUserIDForEmployeProfilevist,
     GetJobsUserCompleted,
@@ -34,7 +35,7 @@ export default function VisitedProfileScreen() {
     const { token, logout } = useAuth();
     const router = useRouter();
     const { id } = useLocalSearchParams<{ id: string }>();
-
+    const [requestJobVisible, setRequestJobVisible] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalLoading, setGlobalLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
@@ -341,6 +342,20 @@ export default function VisitedProfileScreen() {
                     <Ionicons name="chatbubble-ellipses-outline" size={28} color="#121212" />
                 </TouchableOpacity>
             }
+            {userProfile && (
+                <TouchableOpacity
+                    style={[styles.fabWork,]}
+                    onPress={() => setRequestJobVisible(true)}
+                >
+                    <Ionicons name="add-circle-outline" size={28} color="#fff" />
+                </TouchableOpacity>
+            )}
+            <CreateJob
+                visible={requestJobVisible}
+                onClose={() => setRequestJobVisible(false)}
+                onJobCreated={() => setRequestJobVisible(false)}
+                preselectedUser={userProfile}
+            />
         </View>
     );
 }
@@ -510,6 +525,23 @@ const styles = StyleSheet.create({
         backgroundColor: colors.gold, // "#FFD700"
         width: 60,
         height: 60,
+        borderRadius: 30,
+        alignItems: "center",
+        justifyContent: "center",
+        borderWidth: 1,
+        borderColor: colors.borderLight, // "#EAE6DA"
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 4,
+    },
+    fabWork: {
+        position: "absolute",
+        bottom: 170,
+        right: 35,
+        backgroundColor: colors.gold, // "#FFD700"
+        width: 50,
+        height: 50,
         borderRadius: 30,
         alignItems: "center",
         justifyContent: "center",

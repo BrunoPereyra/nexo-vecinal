@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
-import { GetJobsAssignedNoCompleted, GetJobsAssignedCompleted } from '@/services/JobsService';
+import { GetJobsAssignedNoCompleted, GetJobsAssignedCompleted, GetJobRequestsReceived } from '@/services/JobsService';
 import * as Notifications from 'expo-notifications';
 import colors from '@/style/colors';
 
@@ -20,9 +20,10 @@ const JobsStatusScreen: React.FC = () => {
 
   const [jobsNotCompleted, setJobsNotCompleted] = useState<any[]>([]);
   const [jobsCompleted, setJobsCompleted] = useState<any[]>([]);
+  const [jobRequests, setJobRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
-  const [selectedTab, setSelectedTab] = useState<'assigned' | 'completed'>('assigned');
+  const [selectedTab, setSelectedTab] = useState<'assigned' | 'completed' | 'requests'>('assigned');
   const [highlightedJobTitle, setHighlightedJobTitle] = useState<string | null>(null);
 
   // Suscribirse a notificaciones push y capturar el jobTitle
@@ -43,12 +44,18 @@ const JobsStatusScreen: React.FC = () => {
       setError('');
 
       try {
-        const [responseNotCompleted, responseCompleted] = await Promise.all([
+
+        const [responseNotCompleted, responseCompleted, responseRequests] = await Promise.all([
           GetJobsAssignedNoCompleted(token),
           GetJobsAssignedCompleted(token),
+          GetJobRequestsReceived(token),
         ]);
         setJobsNotCompleted(responseNotCompleted?.data || []);
         setJobsCompleted(responseCompleted?.data || []);
+
+        console.log("BB", responseRequests);
+
+        setJobRequests(responseRequests?.jobs || []);
       } catch (err: any) {
         setError('Error al obtener los trabajos');
         console.error(err);
@@ -90,6 +97,14 @@ const JobsStatusScreen: React.FC = () => {
           Completados
         </Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.tabButton, selectedTab === 'requests' && styles.activeTab]}
+        onPress={() => setSelectedTab('requests')}
+      >
+        <Text style={[styles.tabText, selectedTab === 'requests' && styles.activeTabText]}>
+          Solicitudes
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -109,7 +124,12 @@ const JobsStatusScreen: React.FC = () => {
     );
   }
 
-  const jobsToShow = selectedTab === 'assigned' ? jobsNotCompleted : jobsCompleted;
+  const jobsToShow =
+    selectedTab === 'assigned'
+      ? jobsNotCompleted
+      : selectedTab === 'completed'
+        ? jobsCompleted
+        : jobRequests;
 
   return (
     <View style={styles.container}>
@@ -123,7 +143,9 @@ const JobsStatusScreen: React.FC = () => {
           <Text style={styles.emptyText}>
             {selectedTab === 'assigned'
               ? 'No se encontraron trabajos asignados sin completar'
-              : 'No se encontraron trabajos completados'}
+              : selectedTab === 'completed'
+                ? 'No se encontraron trabajos completados'
+                : 'No se encontraron solicitudes de trabajo'}
           </Text>
         }
       />
