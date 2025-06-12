@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
-import { GetJobsAssignedNoCompleted, GetJobsAssignedCompleted, GetJobRequestsReceived } from '@/services/JobsService';
+import { GetJobsAssignedNoCompleted, GetJobsAssignedCompleted, GetJobRequestsReceived, acceptJobRequest, rejectJobRequest } from '@/services/JobsService';
 import * as Notifications from 'expo-notifications';
 import colors from '@/style/colors';
+import CustomAlert from '@/components/CustomAlert';
 
 const JobsStatusScreen: React.FC = () => {
   const { token } = useAuth();
@@ -25,6 +26,10 @@ const JobsStatusScreen: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [selectedTab, setSelectedTab] = useState<'assigned' | 'completed' | 'requests'>('assigned');
   const [highlightedJobTitle, setHighlightedJobTitle] = useState<string | null>(null);
+
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
 
   // Suscribirse a notificaciones push y capturar el jobTitle
   useEffect(() => {
@@ -52,9 +57,6 @@ const JobsStatusScreen: React.FC = () => {
         ]);
         setJobsNotCompleted(responseNotCompleted?.data || []);
         setJobsCompleted(responseCompleted?.data || []);
-
-        console.log("BB", responseRequests);
-
         setJobRequests(responseRequests?.jobs || []);
       } catch (err: any) {
         setError('Error al obtener los trabajos');
@@ -65,18 +67,83 @@ const JobsStatusScreen: React.FC = () => {
     };
     fetchJobs();
   }, [token]);
+  const handleAcceptJob = async (job: any) => {
+    try {
+      await acceptJobRequest(job.id, token as string);
+      setAlertMessage('Trabajo aceptado correctamente');
+      setAlertType('success');
+      setAlertVisible(true);
+      // Opcional: refresca la lista de trabajos
+    } catch (error) {
+      setAlertMessage('Error al aceptar el trabajo');
+      setAlertType('error');
+      setAlertVisible(true);
+    }
+  };
+
+  const handleRejectJob = async (job: any) => {
+    try {
+      // Llama a tu endpoint de rechazar (debes crearlo en JobsService.ts)
+      await rejectJobRequest(job.id, token as string);
+      setAlertMessage('Trabajo rechazado correctamente');
+      setAlertType('info');
+      setAlertVisible(true);
+      // Opcional: refresca la lista de trabajos
+    } catch (error) {
+      setAlertMessage('Error al rechazar el trabajo');
+      setAlertType('error');
+      setAlertVisible(true);
+    }
+  };
+
+  // Ocultar el alert después de unos segundos
+  useEffect(() => {
+    if (alertVisible) {
+      const timeout = setTimeout(() => setAlertVisible(false), 2500);
+      return () => clearTimeout(timeout);
+    }
+  }, [alertVisible]);
 
   const renderItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={[
-        styles.card,
-        item.title === highlightedJobTitle && styles.highlightedCard,
-      ]}
-      onPress={() => router.push(`/jobsStatus/JobDetailWorker?id=${item.id}`)}
-    >
-      <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.status}>Estado: {item.status}</Text>
-    </TouchableOpacity>
+    <View style={styles.card}>
+      <TouchableOpacity
+        style={[
+          item.title === highlightedJobTitle && styles.highlightedCard,
+        ]}
+        onPress={() => router.push(`/jobsStatus/JobDetailWorker?id=${item.id}`)}
+      >
+        <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.status}>Estado: {item.status}</Text>
+      </TouchableOpacity>
+      {selectedTab === 'requests' && (
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 12 }}>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: colors.primary,
+              paddingVertical: 10,
+              borderRadius: 8,
+              alignItems: 'center',
+            }}
+            onPress={() => handleAcceptJob(item)}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Aceptar trabajo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={{
+              flex: 1,
+              backgroundColor: colors.errorRed,
+              paddingVertical: 10,
+              borderRadius: 8,
+              alignItems: 'center',
+            }}
+            onPress={() => handleRejectJob(item)}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>Rechazar</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
   );
 
   const renderTabs = () => (
@@ -149,6 +216,7 @@ const JobsStatusScreen: React.FC = () => {
           </Text>
         }
       />
+      <CustomAlert visible={alertVisible} message={alertMessage} type={alertType} />
     </View>
   );
 };

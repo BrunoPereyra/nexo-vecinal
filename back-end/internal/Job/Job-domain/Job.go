@@ -15,6 +15,7 @@ const (
 	JobStatusInProgress JobStatus = "in_progress" // En curso, ya se eligió un trabajador
 	JobStatusCompleted  JobStatus = "completed"   // Finalizado y cerrado
 	JobStatusCancelled  JobStatus = "cancelled"   // Cancelado
+	JobStatusRejected   JobStatus = "rejected"    // Rechazado
 )
 
 // Feedback representa la opinión y puntuación que puede dejar un usuario.

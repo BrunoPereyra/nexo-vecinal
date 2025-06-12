@@ -790,3 +790,55 @@ func (j *JobHandler) GetJobRequestsReceived(c *fiber.Ctx) error {
 		"jobs":    jobs,
 	})
 }
+
+// AcceptJobRequest permite que el trabajador acepte una solicitud directa
+func (j *JobHandler) AcceptJobRequest(c *fiber.Ctx) error {
+	idValue := c.Context().UserValue("_id").(string)
+	workerID, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
+	}
+
+	var body struct {
+		JobID string `json:"jobId"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Bad Request"})
+	}
+	jobID, err := primitive.ObjectIDFromHex(body.JobID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid job ID"})
+	}
+
+	err = j.JobService.AcceptJobRequest(jobID, workerID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No autorizado o error al aceptar", "error": err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Trabajo aceptado correctamente"})
+}
+
+// RejectJobRequest permite que el trabajador rechace una solicitud directa
+func (j *JobHandler) RejectJobRequest(c *fiber.Ctx) error {
+	idValue := c.Context().UserValue("_id").(string)
+	workerID, err := primitive.ObjectIDFromHex(idValue)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid user ID"})
+	}
+
+	var body struct {
+		JobID string `json:"jobId"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Bad Request"})
+	}
+	jobID, err := primitive.ObjectIDFromHex(body.JobID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "Invalid job ID"})
+	}
+
+	err = j.JobService.RejectJobRequest(jobID, workerID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"message": "No autorizado o error al rechazar", "error": err.Error()})
+	}
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Trabajo rechazado correctamente"})
+}

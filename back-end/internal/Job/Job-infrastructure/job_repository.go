@@ -1792,9 +1792,13 @@ func (repo *JobRepository) GetJobRequestsReceived(userID primitive.ObjectID, pag
 	const pageSize = 10
 	skip := (page - 1) * pageSize
 
+	//tambien quiero que no me traigas a los que ya estan compleados o a los que ya existe un usuario asignado igual a userID
+
 	filter := bson.M{
-		"jobType":  "solicitud",
-		"workerId": userID,
+		"jobType":                         "solicitud",
+		"workerId":                        userID,
+		"status":                          bson.M{"$nin": []string{string(jobdomain.JobStatusCompleted), string(jobdomain.JobStatusRejected)}},
+		"assignedApplication.applicantId": bson.M{"$ne": userID},
 	}
 
 	opts := options.Find().SetSkip(int64(skip)).SetLimit(pageSize).SetSort(bson.M{"createdAt": -1})

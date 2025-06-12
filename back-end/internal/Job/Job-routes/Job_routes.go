@@ -55,5 +55,7 @@ func JobRoutes(App *fiber.App, redisClient *redis.Client, newMongoDB *mongo.Clie
 	App.Get("/job/get-recommended-jobs", middleware.UseExtractor(), JobHandler.GetRecommendedJobsForUser) // Obtener trabajos recomendados para el usuario
 
 	App.Get("/job/get-job-requests-received", middleware.UseExtractor(), JobHandler.GetJobRequestsReceived) // Obtener solicitudes de trabajo recibidas
-
+	// solicitudes de trabajos
+	App.Post("/job/accept-job-request", middleware.UseExtractor(), JobHandler.AcceptJobRequest)
+	App.Post("/job/reject-job-request", middleware.UseExtractor(), JobHandler.RejectJobRequest)
 }

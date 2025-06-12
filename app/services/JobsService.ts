@@ -618,3 +618,40 @@ export const GetJobRequestsReceived = async (token: string, page: number = 1) =>
         console.error("Error en GetJobRequestsReceived:", error);
     }
 };
+export const acceptJobRequest = async (jobId: string, token: string) => {
+    try {
+        const res = await fetch(`${API}/job/accept-job-request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ jobId })
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en acceptJobRequest:", error);
+        throw error;
+    }
+}; export const rejectJobRequest = async (jobId: string, token: string) => {
+    try {
+        const res = await fetch(`${API}/job/reject-job-request`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ jobId })
+        });
+        if (!res.ok) {
+            throw new Error(`Error HTTP: ${res.status}`);
+        }
+        return await res.json();
+    } catch (error) {
+        console.error("Error en rejectJobRequest:", error);
+        throw error;
+    }
+};

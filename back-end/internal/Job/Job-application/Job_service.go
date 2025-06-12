@@ -53,6 +53,9 @@ func (js *JobService) CreateJob(createReq jobdomain.CreateJobRequest, userID pri
 	// notificar a los usuarios interesados
 	// si es una solicitud mandalo al trabajador en cuestion
 	if newJob.WorkerID != primitive.NilObjectID {
+		if newJob.WorkerID == userID {
+			return jobID, errors.New("no te podes solicitar un trabajo")
+		}
 		err = js.JobRepository.SendNotificationToWorker(newJob.WorkerID, fmt.Sprintf("Nuevo trabajo asignado: %s", newJob.Title), "Se te ha asignado un nuevo trabajo.")
 		return jobID, err
 	}
@@ -204,4 +207,57 @@ func (js *JobService) GetRecommendedJobsForUser(userID primitive.ObjectID, page 
 }
 func (js *JobService) GetJobRequestsReceived(userID primitive.ObjectID, page int) ([]jobdomain.Job, error) {
 	return js.JobRepository.GetJobRequestsReceived(userID, page)
+}
+func (js *JobService) AcceptJobRequest(jobID, workerID primitive.ObjectID) error {
+	job, err := js.JobRepository.GetJobByID(jobID)
+	if err != nil {
+		return err
+	}
+	// Verifica que el usuario sea el destinatario de la solicitud
+	if job.WorkerID != workerID {
+		return errors.New("no autorizado: no eres el destinatario de la solicitud")
+	}
+	// Asigna al trabajador y cambia el estado
+	selectedApp := jobdomain.Application{
+		ApplicantID: workerID,
+		Proposal:    "Solicitud aceptada directamente",
+		Price:       job.Budget,
+		AppliedAt:   time.Now(),
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"assignedApplication": selectedApp,
+			"status":              jobdomain.JobStatusInProgress,
+			"updatedAt":           time.Now(),
+		},
+	}
+	if err := js.JobRepository.UpdateJob(jobID, update); err != nil {
+		return err
+	}
+	// Notifica al creador del job
+	go js.JobRepository.SendNotificationToWorker(job.UserID, "Solicitud aceptada", "El trabajador aceptó tu solicitud de trabajo.")
+	return nil
+}
+func (js *JobService) RejectJobRequest(jobID, workerID primitive.ObjectID) error {
+	job, err := js.JobRepository.GetJobByID(jobID)
+	if err != nil {
+		return err
+	}
+	// Verifica que el usuario sea el destinatario de la solicitud
+	if job.WorkerID != workerID {
+		return errors.New("no autorizado: no eres el destinatario de la solicitud")
+	}
+	// Cambia el estado a "rechazado" o elimina el workerId, según tu lógica
+	update := bson.M{
+		"$set": bson.M{
+			"status":    jobdomain.JobStatusRejected,
+			"updatedAt": time.Now(),
+		},
+	}
+	if err := js.JobRepository.UpdateJob(jobID, update); err != nil {
+		return err
+	}
+	// Notifica al creador del job
+	go js.JobRepository.SendNotificationToWorker(job.UserID, "Solicitud rechazada", "El trabajador rechazó tu solicitud de trabajo.")
+	return nil
 }
