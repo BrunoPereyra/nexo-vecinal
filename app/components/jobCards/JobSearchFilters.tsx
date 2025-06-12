@@ -195,7 +195,6 @@ const JobSearchFilters: React.FC<JobSearchFiltersProps> = ({ onSearch }) => {
                                         onPress={handleMapPress}
                                         onMapReady={() => {
                                             setIsMapReady(true);
-                                            console.log("Mapa listo");
                                         }}
                                     >
                                         {location && isMapReady && <Marker coordinate={location} />}

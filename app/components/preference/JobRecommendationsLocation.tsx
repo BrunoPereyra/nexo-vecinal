@@ -13,6 +13,8 @@ import colors from "@/style/colors";
 import { useAuth } from "@/context/AuthContext";
 import { ReqLocationTags, saveLocationTags } from "@/services/userService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CustomAlert from "@/components/CustomAlert";
+
 interface LocationPreferencesSetupProps {
     onSave: () => void; // Callback para notificar al componente padre cuando se guarden las preferencias
     onClose: () => void; // Callback para cerrar el modal sin guardar
@@ -25,6 +27,25 @@ const JobRecommendationsLocation: React.FC<LocationPreferencesSetupProps> = ({ o
     const [radius, setRadius] = useState<number>(5000);
     const [saving, setSaving] = useState(false);
 
+    // Estados para CustomAlert
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
+
+    const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setAlertMessage(message);
+        setAlertType(type);
+        setAlertVisible(true);
+    };
+
+    // Ocultar el alert automáticamente después de unos segundos
+    React.useEffect(() => {
+        if (alertVisible) {
+            const timeout = setTimeout(() => setAlertVisible(false), 2500);
+            return () => clearTimeout(timeout);
+        }
+    }, [alertVisible]);
+
     const toggleTag = (tag: string) => {
         setSelectedTags((prev) => {
             if (prev.includes(tag)) {
@@ -32,7 +53,7 @@ const JobRecommendationsLocation: React.FC<LocationPreferencesSetupProps> = ({ o
             } else if (prev.length < 3) {
                 return [...prev, tag];
             } else {
-                Alert.alert("Límite alcanzado", "Solo puedes seleccionar hasta 3 especializaciones.");
+                showAlert("Solo puedes seleccionar hasta 3 especializaciones.", "error");
                 return prev;
             }
         });
@@ -47,11 +68,11 @@ const JobRecommendationsLocation: React.FC<LocationPreferencesSetupProps> = ({ o
 
     const handleSubmit = async () => {
         if (selectedTags.length === 0) {
-            Alert.alert("Error", "Debes seleccionar al menos un tag de especialización.");
+            showAlert("Debes seleccionar al menos un tag de especialización.", "error");
             return;
         }
         if (!location) {
-            Alert.alert("Error", "Debes seleccionar tu zona de disponibilidad en el mapa.");
+            showAlert("Debes seleccionar tu zona de disponibilidad en el mapa.", "error");
             return;
         }
 
@@ -72,12 +93,13 @@ const JobRecommendationsLocation: React.FC<LocationPreferencesSetupProps> = ({ o
                     "jobRecommendationsLocation",
                     JSON.stringify(filters)
                 );
+                showAlert("Preferencias guardadas correctamente.", "success");
                 onSave();
             } else {
-                Alert.alert("Error", res.message || "No se pudo guardar la información.");
+                showAlert(res.message || "No se pudo guardar la información.", "error");
             }
         } catch (error: any) {
-            Alert.alert("Error", error.message || "Ocurrió un error al guardar.");
+            showAlert(error.message || "Ocurrió un error al guardar.", "error");
         } finally {
             setSaving(false);
         }
@@ -145,6 +167,8 @@ const JobRecommendationsLocation: React.FC<LocationPreferencesSetupProps> = ({ o
                         {saving ? <ActivityIndicator color={colors.textLight} /> : <Text style={styles.modalButtonText}>Guardar</Text>}
                     </TouchableOpacity>
                 </View>
+
+                <CustomAlert visible={alertVisible} message={alertMessage} type={alertType} />
             </View>
         </ScrollView>
     );

@@ -31,7 +31,6 @@ export const createOrUpdateContentReport = async (reportData: any, token: string
         });
 
         if (!res.ok) {
-            console.log(res.json());
 
         }
         return await processResponse(res);

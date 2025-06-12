@@ -61,7 +61,6 @@ const Home: React.FC = () => {
   }, [activeSection]);
 
   useEffect(() => {
-    console.log("activeJobTab", activeJobTab);
 
     AsyncStorage.setItem("lastActiveJobTab", activeJobTab);
   }, [activeJobTab]);

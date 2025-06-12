@@ -7,8 +7,8 @@ import Purchases, {
     PurchasesPackage,
 } from 'react-native-purchases';
 
-const REVENUECAT_PUBLIC_API_KEY = 'goog_oIZTsprdqkzekMuxDuIgcXGHqcz';
-
+import Constants from 'expo-constants';
+const REVENUECAT_PUBLIC_API_KEY = Constants.expoConfig?.extra?.REVENUECAT_PUBLIC_API_KEY || '';
 export const useRevenueCat = (userId: string) => {
     const [offerings, setOfferings] = useState<PurchasesOffering | null>(null);
     const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);

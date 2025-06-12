@@ -16,6 +16,7 @@ import { useAuth } from "@/context/AuthContext";
 import { ReqLocationTags, saveLocationTags, } from "@/services/userService";
 import { useRevenueCat } from "@/hooks/useInAppPurchase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CustomAlert from "@/components/CustomAlert";
 
 
 interface SubscriptionSectionProps {
@@ -34,6 +35,9 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
     const [subscriptionConfirmVisible, setSubscriptionConfirmVisible] = useState(false);
     const [UserId, setUserId] = useState<string>("");
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
 
     useEffect(() => {
         const checkSubscription = async () => {
@@ -67,7 +71,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
             setSelectedTags(selectedTags.filter((t) => t !== tag));
         } else {
             if (selectedTags.length >= 3) {
-                Alert.alert("Límite alcanzado", "Solo puedes seleccionar hasta 3 especializaciones.");
+                showAlert("Solo puedes seleccionar hasta 3 especializaciones.", "error");
                 return;
             }
             setSelectedTags([...selectedTags, tag]);
@@ -85,11 +89,11 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
 
     const handleSubmit = async () => {
         if (selectedTags.length === 0) {
-            Alert.alert("Error", "Debes seleccionar al menos un tag de especialización.");
+            showAlert("Debes seleccionar al menos un tag de especialización.", "error");
             return;
         }
         if (!location) {
-            Alert.alert("Error", "Debes seleccionar tu zona de disponibilidad en el mapa.");
+            showAlert("Debes seleccionar tu zona de disponibilidad en el mapa.", "error");
             return;
         }
         const filters: ReqLocationTags = {
@@ -104,15 +108,14 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
         try {
             const res = await saveLocationTags(filters, token as string);
             if (res.message === "save location") {
-                Alert.alert("Éxito", "Preferencias actualizadas correctamente.");
-                // Luego de guardar, mostrar modal para confirmar la suscripción.
+                showAlert("Preferencias actualizadas correctamente.", "success");
                 setSubscriptionConfirmVisible(true);
             } else {
-                Alert.alert("Error", res.message || "No se pudo actualizar las preferencias.");
+                showAlert(res.message || "No se pudo actualizar las preferencias.", "error");
             }
             setModalVisible(false);
         } catch (error: any) {
-            Alert.alert("Error", error.message || "No se pudo actualizar la suscripción.");
+            showAlert(error.message || "No se pudo actualizar la suscripción.", "error");
         } finally {
             setSubscribing(false);
         }
@@ -120,6 +123,19 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
     const handleConfirmSubscription = async () => {
         buySubscription();
     };
+
+    const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setAlertMessage(message);
+        setAlertType(type);
+        setAlertVisible(true);
+    };
+
+    useEffect(() => {
+        if (alertVisible) {
+            const timeout = setTimeout(() => setAlertVisible(false), 2500);
+            return () => clearTimeout(timeout);
+        }
+    }, [alertVisible]);
 
 
     return (
@@ -239,6 +255,7 @@ const SubscriptionSection: React.FC<SubscriptionSectionProps> = ({
                     </View>
                 </View>
             </Modal>
+            <CustomAlert visible={alertVisible} message={alertMessage} type={alertType} />
         </View>
     );
 };

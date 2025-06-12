@@ -20,6 +20,11 @@ import {
 } from '@/services/JobsService';
 import { JobCardProfiles } from '../jobCards/JobCardProfiles';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from "@/components/CustomAlert";
+import colors from "@/style/colors";
+import { router } from 'expo-router';
+import { createReports } from '@/services/admin';
+import CreateJob from '../jobCards/CreateJob';
 
 interface VisitedProfileModalProps {
     visible: boolean;
@@ -27,7 +32,7 @@ interface VisitedProfileModalProps {
     userId: string;
 }
 
-const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onClose, userId, }) => {
+const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onClose, userId }) => {
     const { token, logout } = useAuth();
     const [userProfile, setUserProfile] = useState<any>(null);
     const [globalLoading, setGlobalLoading] = useState<boolean>(true);
@@ -41,6 +46,25 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
     const [reportModalVisible, setReportModalVisible] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
     const [requestJobVisible, setRequestJobVisible] = useState(false);
+
+    // ALERT STATE
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
+
+    const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setAlertMessage(message);
+        setAlertType(type);
+        setAlertVisible(true);
+    };
+
+    useEffect(() => {
+        if (alertVisible) {
+            const timeout = setTimeout(() => setAlertVisible(false), 2500);
+            return () => clearTimeout(timeout);
+        }
+    }, [alertVisible]);
+
     useEffect(() => {
         if (!visible) return;
         const fetchProfile = async () => {
@@ -252,7 +276,7 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                                         title="Enviar"
                                         onPress={async () => {
                                             if (!reportMessage.trim() || !token || !userId) {
-                                                alert('El reporte no puede estar vacío');
+                                                showAlert('El reporte no puede estar vacío', 'error');
                                                 return;
                                             }
                                             try {
@@ -262,15 +286,15 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                                                 };
                                                 const res = await createReports(reportData, token);
                                                 if (res && res.reporterUserId) {
-                                                    alert('Reporte enviado exitosamente');
+                                                    showAlert('Reporte enviado exitosamente', 'success');
                                                     setReportMessage('');
                                                     setReportModalVisible(false);
                                                 } else {
-                                                    alert('No se pudo enviar el reporte');
+                                                    showAlert('No se pudo enviar el reporte', 'error');
                                                 }
                                             } catch (error) {
                                                 console.error('Error enviando reporte:', error);
-                                                alert('Ocurrió un error al enviar el reporte');
+                                                showAlert('Ocurrió un error al enviar el reporte', 'error');
                                             }
                                         }}
                                         color="#FFD700"
@@ -309,19 +333,16 @@ const VisitedProfileModal: React.FC<VisitedProfileModalProps> = ({ visible, onCl
                         onClose={() => setRequestJobVisible(false)}
                         onJobCreated={(job) => {
                             setRequestJobVisible(false);
-                            // Opcional: mostrar mensaje de éxito o refrescar trabajos
+                            showAlert("Trabajo creado exitosamente.", "success");
                         }}
                         preselectedUser={userProfile}
                     />
+                    <CustomAlert visible={alertVisible} message={alertMessage} type={alertType} />
                 </View>
             </Modal>
         </>
     );
 };
-import colors from "@/style/colors";
-import { router } from 'expo-router';
-import { createReports } from '@/services/admin';
-import CreateJob from '../jobCards/CreateJob';
 
 const styles = StyleSheet.create({
     fullScreenContainer: {

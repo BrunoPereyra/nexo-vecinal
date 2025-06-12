@@ -82,7 +82,7 @@ export default function ProtectedLayout() {
               }}
             />
 
-            <Tabs.Screen
+            {/* <Tabs.Screen
               name="cursos"
               options={{
                 title: 'Cursos',
@@ -99,7 +99,7 @@ export default function ProtectedLayout() {
                   />
                 ),
               }}
-            />
+            /> */}
 
             <Tabs.Screen
               name="profile"

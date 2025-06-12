@@ -24,6 +24,7 @@ import { createReports } from '@/services/admin';
 import { JobCardProfiles } from '@/components/jobCards/JobCardProfiles';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '@/style/colors';
+import CustomAlert from '@/components/CustomAlert';
 
 type Job = {
     id: string;
@@ -48,6 +49,15 @@ export default function VisitedProfileScreen() {
     const [reportModalVisible, setReportModalVisible] = useState(false);
     const [reportMessage, setReportMessage] = useState('');
     const [loading, setLoading] = useState<boolean>(true);
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState('');
+    const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
+
+    const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        setAlertMessage(message);
+        setAlertType(type);
+        setAlertVisible(true);
+    };
 
     // Cargar el perfil del usuario visitado
     useEffect(() => {
@@ -211,6 +221,13 @@ export default function VisitedProfileScreen() {
         </View>
     );
 
+    useEffect(() => {
+        if (alertVisible) {
+            const timeout = setTimeout(() => setAlertVisible(false), 2500);
+            return () => clearTimeout(timeout);
+        }
+    }, [alertVisible]);
+
     if (loading || !userProfile) {
         return (
             <View style={styles.center}>
@@ -292,7 +309,7 @@ export default function VisitedProfileScreen() {
                                 title="Enviar"
                                 onPress={async () => {
                                     if (!reportMessage.trim() || !token || !id) {
-                                        alert('El reporte no puede estar vacío');
+                                        showAlert('El reporte no puede estar vacío', 'error');
                                         return;
                                     }
                                     try {
@@ -302,15 +319,15 @@ export default function VisitedProfileScreen() {
                                         };
                                         const res = await createReports(reportData, token);
                                         if (res && res.reporterUserId) {
-                                            alert('Reporte enviado exitosamente');
+                                            showAlert('Reporte enviado exitosamente', 'success');
                                             setReportMessage('');
                                             setReportModalVisible(false);
                                         } else {
-                                            alert('No se pudo enviar el reporte');
+                                            showAlert('No se pudo enviar el reporte', 'error');
                                         }
                                     } catch (error) {
                                         console.error('Error enviando reporte:', error);
-                                        alert('Ocurrió un error al enviar el reporte');
+                                        showAlert('Ocurrió un error al enviar el reporte', 'error');
                                     }
                                 }}
                                 color="#FFD700"
@@ -356,6 +373,7 @@ export default function VisitedProfileScreen() {
                 onJobCreated={() => setRequestJobVisible(false)}
                 preselectedUser={userProfile}
             />
+            <CustomAlert visible={alertVisible} message={alertMessage} type={alertType} />
         </View>
     );
 }

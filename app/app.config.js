@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import Constants from 'expo-constants';
+
 
 export default {
     expo: {
@@ -99,7 +101,8 @@ export default {
             EXPO_URL_APIWS: process.env.EXPO_URL_APIWS,
             router: {
                 origin: false
-            }
+            },
+            REVENUECAT_PUBLIC_API_KEY: process.env.REVENUECAT_PUBLIC_API_KEY
         },
 
         // Campos extendidos que requieren app.config.js

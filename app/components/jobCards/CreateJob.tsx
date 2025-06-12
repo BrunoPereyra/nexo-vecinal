@@ -23,6 +23,7 @@ import { createJob, solicitarTrabajoAUnTrabajador } from "@/services/JobsService
 import { useAuth } from "@/context/AuthContext";
 import ErrorBoundary from "../ErrorBoundary";
 import colors from "@/style/colors";
+import CustomAlert from "@/components/CustomAlert";
 
 type CreateJobProps = {
   visible: boolean;
@@ -45,6 +46,10 @@ export const CreateJob: React.FC<CreateJobProps> = ({
   const [budget, setBudget] = useState("");
   const [isMapReady, setIsMapReady] = useState(false);
   const [image, setImage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error' | 'info'>('info');
   const { token, tags: availableTags } = useAuth();
 
   const handleMapPress = (e: MapPressEvent) => {
@@ -79,7 +84,20 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       setImage(result.assets[0].uri);
     }
   };
-  const [loading, setLoading] = useState(false);
+
+  // Ocultar el alert automáticamente después de unos segundos
+  useEffect(() => {
+    if (alertVisible) {
+      const timeout = setTimeout(() => setAlertVisible(false), 2500);
+      return () => clearTimeout(timeout);
+    }
+  }, [alertVisible]);
+
+  const showAlert = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setAlertVisible(true);
+  };
 
   const handleSubmit = async () => {
     if (
@@ -89,28 +107,32 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       !budget.trim() ||
       !location
     ) {
-      Alert.alert(
-        "Error",
-        "Todos los campos son obligatorios y debes seleccionar una ubicación y al menos una etiqueta."
+      showAlert(
+        "Todos los campos son obligatorios y debes seleccionar una ubicación y al menos una etiqueta.",
+        "error"
       );
       return;
     }
     setLoading(true)
     const budgetNumber = parseFloat(budget);
     if (isNaN(budgetNumber) || budgetNumber <= 0) {
-      Alert.alert("Error", "El presupuesto debe ser un número mayor que 0.");
+      showAlert("El presupuesto debe ser un número mayor que 0.", "error");
+      setLoading(false);
       return;
     }
     if (title.length < 3 || title.length > 100) {
-      Alert.alert("Error", "El título debe tener entre 3 y 100 caracteres.");
+      showAlert("El título debe tener entre 3 y 100 caracteres.", "error");
+      setLoading(false);
       return;
     }
     if (description.length < 10 || description.length > 1000) {
-      Alert.alert("Error", "La descripción debe tener entre 10 y 1000 caracteres.");
+      showAlert("La descripción debe tener entre 10 y 1000 caracteres.", "error");
+      setLoading(false);
       return;
     }
     if (budgetNumber <= 2000) {
-      Alert.alert("Error", "El presupuesto debe ser mayor a 2000.");
+      showAlert("El presupuesto debe ser mayor a 2000.", "error");
+      setLoading(false);
       return;
     }
 
@@ -149,7 +171,7 @@ export const CreateJob: React.FC<CreateJobProps> = ({
       }
 
       if (response && response.message === "Job created successfully") {
-        Alert.alert("Éxito", "Trabajo creado exitosamente.");
+        showAlert("Trabajo creado exitosamente.", "success");
         if (onJobCreated) {
           onJobCreated(response.job);
         }
@@ -162,11 +184,11 @@ export const CreateJob: React.FC<CreateJobProps> = ({
         setImage(null);
         onClose();
       } else {
-        Alert.alert("Error", response?.message || "No se pudo crear el trabajo.");
+        showAlert(response?.message || "No se pudo crear el trabajo.", "error");
       }
     } catch (error) {
       console.error("Error al crear el trabajo:", error);
-      Alert.alert("Error", "Ocurrió un error al crear el trabajo.");
+      showAlert("Ocurrió un error al crear el trabajo.", "error");
     } finally {
       setLoading(false)
     }
@@ -279,6 +301,8 @@ export const CreateJob: React.FC<CreateJobProps> = ({
               </View>
             </ScrollView>
           </View>
+          {/* CustomAlert al final del modal */}
+          <CustomAlert visible={alertVisible} message={alertMessage} type={alertType} />
         </View>
       </KeyboardAvoidingView>
     </Modal>

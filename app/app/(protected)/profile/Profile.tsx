@@ -69,8 +69,6 @@ export default function ProfileScreen() {
             }
             try {
                 const data = await getUserToken(token);
-                console.log(data);
-
                 if (data?.data) {
                     setUserProfile(data.data);
                     setBiografia(data.data.Biography || "");
