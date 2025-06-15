@@ -206,3 +206,16 @@
         padding: 15px 10px;
     }
 }
+
+@media (max-width: 700px) {
+    .map-container {
+        max-width: 98vw;
+        border-radius: 14px;
+    }
+
+    #map {
+        height: 180px !important;
+        min-height: 120px;
+        border-radius: 14px;
+    }
+}

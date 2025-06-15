@@ -14,17 +14,22 @@ const searchNameInput = document.getElementById('search-name');
 
 const MAX_VISIBLE_TAGS = 6; // How many tags to show initially
 
-let map, marker, currentCoords = null;
-let radiusCircle = null; // Círculo del radio
+let map, marker, radiusCircle = null; // Círculo del radio
 let allTags = []; // Store all fetched tags
+
+// Coordenadas de Córdoba Capital
+const defaultCoords = [-31.4167, -64.1833]; // [lat, lng]
+const defaultZoom = 11;
+let currentCoords = defaultCoords.slice();
 
 function updateRadiusCircle() {
     if (!map || !currentCoords) return;
     const radius = Number(radiusInput.value) || 0;
+
     if (radiusCircle) {
-        map.removeLayer(radiusCircle);
-    }
-    if (radius > 0) {
+        radiusCircle.setLatLng(currentCoords); // 🟢 Mover
+        radiusCircle.setRadius(radius);        // 🟢 Ajustar tamaño
+    } else {
         radiusCircle = L.circle(currentCoords, {
             radius: radius,
             color: "#3AAFA9",
@@ -35,59 +40,72 @@ function updateRadiusCircle() {
     }
 }
 
+
+
+
 function setMarkerDragHandler() {
     marker.on('dragend', function (e) {
         const { lat, lng } = e.target.getLatLng();
         currentCoords = [lat, lng];
-        updateRadiusCircle();
-        // Optional: Trigger a search or update a display for the new location
+        map.setView(currentCoords);
+
+        // 🟢 Mover el círculo si ya existe
+        if (radiusCircle) {
+            radiusCircle.setLatLng(currentCoords);
+        } else {
+            // 🟢 Si no existe aún, crearlo
+            const radius = Number(radiusInput.value) || 0;
+            radiusCircle = L.circle(currentCoords, {
+                radius: radius,
+                color: "#3AAFA9",
+                fillColor: "#3AAFA9",
+                fillOpacity: 0.15,
+                weight: 2
+            }).addTo(map);
+        }
     });
 }
+
+
 
 // Inicializar mapa con Leaflet y geolocalización
-function initMap() {
-    const defaultCoords = [-31.4167, -64.1833]; // Córdoba Capital
-    const defaultZoom = 11;
 
-    if (!navigator.geolocation) {
-        currentCoords = defaultCoords;
-        map = L.map('map').setView(currentCoords, defaultZoom);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-        }).addTo(map);
-        marker = L.marker(currentCoords, { draggable: true }).addTo(map);
-        setMarkerDragHandler();
-        updateRadiusCircle();
-        return;
+function initMap() {
+    // Elimina el mapa anterior si existe
+    if (map) {
+        map.remove();
     }
 
-    navigator.geolocation.getCurrentPosition((pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        currentCoords = [lat, lng];
+    // Inicializa el mapa
+    map = L.map('map').setView(defaultCoords, defaultZoom);
 
-        map = L.map('map').setView(currentCoords, defaultZoom);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+    }).addTo(map);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-        }).addTo(map);
+    // Agrega el marcador draggable
+    marker = L.marker(defaultCoords, { draggable: true }).addTo(map);
 
-        marker = L.marker(currentCoords, { draggable: true }).addTo(map);
-        setMarkerDragHandler();
-        updateRadiusCircle();
-    }, () => {
-        // Fallback if user denies permission or geo-location fails
-        currentCoords = defaultCoords;
-        map = L.map('map').setView(currentCoords, defaultZoom);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
-        }).addTo(map);
-        marker = L.marker(currentCoords, { draggable: true }).addTo(map);
-        setMarkerDragHandler();
-        updateRadiusCircle();
-    });
+    // ✅ Asigna el handler para mover el círculo con el marcador
+    setMarkerDragHandler();
+
+    // ✅ Dibuja el círculo al cargar el mapa
+    updateRadiusCircle();
+
+    // Redibuja mapa si el layout aún no está listo
+    setTimeout(() => {
+        map.invalidateSize();
+    }, 0);
 }
+
+
+// Inicializa el mapa cuando el DOM está listo
 document.addEventListener('DOMContentLoaded', initMap);
+
+// Redibuja el mapa si la ventana cambia de tamaño
+window.addEventListener('resize', () => {
+    if (map) map.invalidateSize();
+});
 // Control de radio con botones
 radiusMinus.addEventListener('click', () => {
     let val = parseInt(radiusInput.value, 10) || 0;
@@ -107,7 +125,7 @@ radiusPlus.addEventListener('click', () => {
 radiusInput.addEventListener('input', updateRadiusCircle); // Keep this for direct input changes if allowed
 
 // Cambia el valor por defecto del radio a 15000
-radiusInput.value = 15000;
+radiusInput.value = 5000;
 
 // Modifica fetchTags para seleccionar los primeros 4 tags y buscar automáticamente
 async function fetchTags() {
@@ -535,4 +553,5 @@ window.onclick = function (event) {
     if (event.target === document.getElementById('perfil-modal')) {
         document.getElementById('perfil-modal').style.display = 'none';
     }
+
 };
