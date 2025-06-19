@@ -1,33 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Nexo Vecinal - Trabajos de Oficio en Argentina</title>
+  <title>Nexo Vecinal - Trabajadores de Oficio Verificados en Argentina | Plomeros, Electricistas, Gasistas y más</title>
   
+  <meta name="google-site-verification" content="google416ff70a01b707a9" />
+
+  <meta name="description" content="Encontrá trabajadores de oficios verificados y recomendados cerca tuyo: plomeros, electricistas, gasistas, albañiles y más. Nexo Vecinal conecta vecinos con profesionales confiables en Argentina.">
+  <meta name="keywords" content="trabajadores de oficio, plomeros, electricistas, gasistas, albañiles, oficios, recomendados, verificados, Córdoba, Argentina, buscar trabajadores, profesionales, servicios, confianza, comunidad, Nexo Vecinal">
   <meta name="robots" content="index, follow" />
-  <meta property="og:title" content="Nexo Vecinal - Oficios de confianza en Argentina" />
-  <meta property="og:description" content="Conectá con trabajadores verificados y recomendados en plomería, electricidad, albañilería y más." />
-  <meta property="og:image" content="https://tusitio.com/assets/preview-nexo.png" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Nexo Vecinal - Trabajadores de Oficio Verificados en Argentina" />
+  <meta property="og:description" content="Conectá con plomeros, electricistas, gasistas, albañiles y más trabajadores de oficio verificados y recomendados cerca tuyo en Argentina." />
+  <meta property="og:image" content="https://nexovecinal.netlify.app/assets/logo-nexovecinal.png" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://tusitio.com" />
+  <meta property="og:url" content="https://nexovecinal.netlify.app/" />
+
+  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  
+  <meta name="twitter:title" content="Nexo Vecinal - Trabajadores de Oficio Verificados en Argentina" />
+  <meta name="twitter:description" content="Encontrá trabajadores de oficios verificados y recomendados cerca tuyo: plomeros, electricistas, gasistas, albañiles y más." />
+  <meta name="twitter:image" content="https://nexovecinal.netlify.app/assets/logo-nexovecinal.png" />
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/logo-nexovecinal.png" type="image/png">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="styles/base.css">
-<link rel="stylesheet" href="styles/layout.css">
-<link rel="stylesheet" href="styles/hero.css">
-<link rel="stylesheet" href="styles/search.css">
-<link rel="stylesheet" href="styles/cards.css">
-<link rel="stylesheet" href="styles/modal.css">
-<link rel="stylesheet" href="styles/sobre-nexo.css">
-<link rel="stylesheet" href="styles/footer.css">
-<link rel="stylesheet" href="styles/responsive.css">
-<link rel="stylesheet" href="styles/perfil.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/hero.css">
+  <link rel="stylesheet" href="styles/search.css">
+  <link rel="stylesheet" href="styles/cards.css">
+  <link rel="stylesheet" href="styles/modal.css">
+  <link rel="stylesheet" href="styles/sobre-nexo.css">
+  <link rel="stylesheet" href="styles/footer.css">
+  <link rel="stylesheet" href="styles/responsive.css">
+  <link rel="stylesheet" href="styles/perfil.css">
 
+  <!-- JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+   
 </head>
+
 <body>
   <div class="main-bg">
     <section class="hero-section">
@@ -35,10 +54,9 @@
             <img src="assets/ilustracion-trabajador.png" alt="Trabajador de oficios con mapa y herramientas" class="hero-illustration">
         </div> -->
         <div class="container hero-content-container"> 
-            <img src="assets/logo-nexovecinal-transparente.png" alt="Nexo Vecinal" class="logo-nexo"/>
+            <img src="assets/logo-nexovecinal-transparente.png"  alt="Logo de Nexo Vecinal, plataforma de oficios verificados en Argentina"" class="logo-nexo"/>
             <h1 class="hero-title">Nexo Vecinal</h1>
             <div class="hero-sub">Conectá con trabajadores de oficios cerca tuyo</div>
-            
             <ul class="hero-benefits-list">
                 <li><svg class="check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Plomeros, Electricistas, Gasistas y más</li>
                 <li><svg class="check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Verificados por la comunidad</li>
@@ -207,5 +225,17 @@
   </div>
 </div>
   <script src="main.js"></script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Nexo Vecinal",
+  "url": "https://nexovecinal.netlify.app/",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://nexovecinal.netlify.app/?search={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
 </body>
 </html>
