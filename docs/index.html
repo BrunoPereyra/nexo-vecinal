@@ -56,7 +56,9 @@
         <div class="container hero-content-container"> 
             <img src="assets/logo-nexovecinal-transparente.png"  alt="Logo de Nexo Vecinal, plataforma de oficios verificados en Argentina"" class="logo-nexo"/>
             <h1 class="hero-title">Nexo Vecinal</h1>
-            <div class="hero-sub">Conectá con trabajadores de oficios cerca tuyo</div>
+            <div class="hero-sub"><p class="hero-seo-text">
+  <strong>Trabajadores de oficio</strong> verificados y recomendados. Buscá profesionales de confianza cerca tuyo.
+</p></div>
             <ul class="hero-benefits-list">
                 <li><svg class="check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Plomeros, Electricistas, Gasistas y más</li>
                 <li><svg class="check-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17L4 12"/></svg>Verificados por la comunidad</li>
@@ -225,17 +227,21 @@
   </div>
 </div>
   <script src="main.js"></script>
-  <script type="application/ld+json">
+<script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@type": "WebSite",
+  "@type": "Organization",
   "name": "Nexo Vecinal",
   "url": "https://nexovecinal.netlify.app/",
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": "https://nexovecinal.netlify.app/?search={search_term_string}",
-    "query-input": "required name=search_term_string"
+  "logo": "https://nexovecinal.netlify.app/assets/logo-nexovecinal.png",
+  "sameAs": [],
+  "description": "Conectá con plomeros, gasistas y electricistas verificados en Argentina. Trabajadores de confianza cerca tuyo.",
+  "areaServed": {
+    "@type": "Country",
+    "name": "Argentina"
   }
 }
+</script>
+
 </body>
 </html>
