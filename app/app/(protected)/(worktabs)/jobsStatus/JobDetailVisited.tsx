@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import MapView, { Marker, UrlTile } from 'react-native-maps';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { GetJobDetailvisited, } from '@/services/JobsService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FeedbackSection } from '@/components/FeedbackSection';

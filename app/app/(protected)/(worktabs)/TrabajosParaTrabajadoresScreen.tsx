@@ -4,43 +4,30 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
-  Image,
   Modal,
   Button
 } from "react-native";
+import { useRouter } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import UsersFeed from "@/components/userCards/UsersFeed";
+import JobsFeed from "@/components/jobs/JobsFeed";
+import RecommendedJobsFeed from "@/components/recommendedJobs/RecommendedJobsFeed";
 import colors from "@/style/colors";
 import SubscriptionSection from "@/components/Subscription/SubscriptionSection";
-import { FontAwesome5 } from "@expo/vector-icons";
 
-const Home: React.FC = () => {
-  const [activeSection, setActiveSection] = useState<"trabajadores">("trabajadores");
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [loadingAvatar, setLoadingAvatar] = useState(true);
+export default function TrabajosParaTrabajadoresScreen() {
+  const router = useRouter();
+  const [allowed, setAllowed] = useState<boolean | null>(null);
+  const [activeJobTab, setActiveJobTab] = useState<"para ti" | "jobs">("para ti");
   const [showPromoBanner, setShowPromoBanner] = useState(false);
   const [subscriptionVisible, setSubscriptionVisible] = useState(false);
 
-  useEffect(() => {
-    const loadAvatar = async () => {
-      try {
-        const storedAvatar = await AsyncStorage.getItem("avatar");
-        setAvatar(storedAvatar);
-      } catch (err) {
-        console.error("Error cargando el avatar:", err);
-      } finally {
-        setLoadingAvatar(false);
-      }
-    };
-    loadAvatar();
-  }, []);
 
   useEffect(() => {
     const loadTabsFromCache = async () => {
       try {
-        const cachedSection = await AsyncStorage.getItem("lastActiveSection");
-        if (cachedSection === "trabajadores") {
-          setActiveSection(cachedSection);
+        const cachedJobTab = await AsyncStorage.getItem("lastActiveJobTab");
+        if (cachedJobTab === "para ti" || cachedJobTab === "jobs") {
+          setActiveJobTab(cachedJobTab);
         }
       } catch (err) {
         // Ignorar errores de cache
@@ -50,8 +37,8 @@ const Home: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    AsyncStorage.setItem("lastActiveSection", activeSection);
-  }, [activeSection]);
+    AsyncStorage.setItem("lastActiveJobTab", activeJobTab);
+  }, [activeJobTab]);
 
   useEffect(() => {
     const checkBannerStatus = async () => {
@@ -78,7 +65,6 @@ const Home: React.FC = () => {
           setShowPromoBanner(false);
         }
       } catch (err) {
-        console.error("Error comprobando estado del banner:", err);
         setShowPromoBanner(true);
       }
     };
@@ -91,32 +77,41 @@ const Home: React.FC = () => {
       const now = Date.now().toString();
       await AsyncStorage.setItem('promoBannerDismissedAt', now);
       setShowPromoBanner(false);
-    } catch (err) {
-      console.error("Error ocultando el banner:", err);
-    }
+    } catch (err) { }
   };
+
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          {/* Aquí podrías mostrar el avatar */}
-        </View>
-        <Image source={require('@/assets/images/logo-nexovecinal-transparente.png')} style={styles.logo} />
-        <View style={{ width: 40, height: 40 }} />
-      </View>
-
-      {/* Solo el tab de Trabajadores */}
-      <View style={styles.mainTabsContainer}>
+      {/* Sub-tabs SOLO para la sección Trabajos */}
+      <View style={styles.subTabsContainer}>
         <TouchableOpacity
-          style={styles.mainTabButton}
-          onPress={() => setActiveSection("trabajadores")}
+          style={[
+            styles.subTabButton,
+            activeJobTab === "para ti" && styles.activeSubTab,
+          ]}
+          onPress={() => setActiveJobTab("para ti")}
         >
-          <FontAwesome5 name="users" size={17} color={colors.textDark} />
-          <Text style={[styles.mainTabText, styles.activeMainTabText]}>
-            Trabajadores
+          <Text style={[
+            styles.subTabText,
+            activeJobTab === "para ti" && styles.activeSubTabText
+          ]}>
+            Para ti
           </Text>
-          <View style={styles.tabUnderline} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.subTabButton,
+            activeJobTab === "jobs" && styles.activeSubTab,
+          ]}
+          onPress={() => setActiveJobTab("jobs")}
+        >
+          <Text style={[
+            styles.subTabText,
+            activeJobTab === "jobs" && styles.activeSubTabText
+          ]}>
+            Trabajos
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -150,100 +145,24 @@ const Home: React.FC = () => {
       </Modal>
 
       <View style={styles.feedContainer}>
-        <UsersFeed />
+        {activeJobTab === "para ti" && <RecommendedJobsFeed />}
+        {activeJobTab === "jobs" && <JobsFeed />}
       </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    backgroundColor: colors.background,
-  },
-  avatarContainer: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-  },
-  avatar: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 20,
-  },
-  avatarPlaceholder: {
-    width: "100%",
-    height: "100%",
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  avatarText: {
-    color: colors.textDark,
-    fontWeight: "bold",
-  },
-  logo: {
-    width: 50,
-    height: 50,
-    resizeMode: "cover",
-    borderRadius: 30,
-    overflow: "hidden",
-  },
-
-  // Main Tabs (Trabajos / Trabajadores)
-  mainTabsContainer: {
-    flexDirection: "row",
-    marginBottom: 10,
-    // borderRadius: 8,
-    backgroundColor: colors.warmWhite,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-  },
-  mainTabButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    height: 28,
-    backgroundColor: "transparent",
-    position: "relative",
-  },
-  mainTabText: {
-    fontSize: 15,
-    color: colors.textMuted,
-    fontWeight: "600",
-    marginLeft: 7,
-  },
-  activeMainTabText: {
-    color: colors.textDark,
-    fontWeight: "bold",
-  },
-  tabUnderline: {
-    position: "absolute",
-    bottom: -1,
-    left: 18,
-    right: 18,
-    height: 3,
-    backgroundColor: colors.primary,
-    borderRadius: 10,
-  },
-  tabIcon: {
-    marginRight: 6,
-  },
-  // Sub Tabs (Para ti / Trabajos)
   subTabsContainer: {
     flexDirection: "row",
     overflow: "hidden",
     height: 26,
+    marginTop: 10,
+    marginBottom: 10,
   },
   subTabButton: {
     flex: 1,
@@ -268,23 +187,12 @@ const styles = StyleSheet.create({
     color: colors.textDark,
     fontWeight: "bold",
   },
-  subTabUnderline: {
-    position: "absolute",
-    bottom: 0,
-    left: 8,
-    right: 8,
-    height: 2,
-    backgroundColor: colors.gold,
-    borderRadius: 2,
-  },
-
   feedContainer: {
     flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: 0,
     paddingTop: 4,
   },
-
   promoBanner: {
     backgroundColor: colors.gold,
     padding: 10,
@@ -329,5 +237,3 @@ const styles = StyleSheet.create({
     margin: 20
   },
 });
-
-export default Home;

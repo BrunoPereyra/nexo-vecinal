@@ -1,20 +1,42 @@
-import React from 'react';
+import React, {useEffect,useState}from 'react';
 import { StatusBar, TouchableOpacity, StyleSheet, View, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { ProtectedRoute } from '../../components/ProtectedRoute';
 import colors from '@/style/colors';
+import { Image } from 'react-native';
 
 export default function ProtectedLayout() {
   const router = useRouter();
 
+  const [isWork, setIsWork] = useState(false);
+
+  // useEffect(() => {
+  //   const checkWork = async () => {
+  //     try {
+  //       const premiumDataJson = await AsyncStorage.getItem('userPremiumData');
+  //       if (premiumDataJson) {
+  //         const premiumData = JSON.parse(premiumDataJson);
+  //         if (premiumData.Intentions === "work") {
+  //           setIsWork(true);
+  //           return;
+  //         }
+  //       }
+  //       setIsWork(true);
+  //     } catch {
+  //       setIsWork(false);
+  //     }
+  //   };
+  //   checkWork();
+  // }, []);
 
   return (
     <ProtectedRoute>
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor={colors.textDark} barStyle="light-content" />
         <View style={styles.absoluteWrapper}>
+          
           <Tabs
             initialRouteName="home"
             screenOptions={{
@@ -22,7 +44,7 @@ export default function ProtectedLayout() {
               tabBarShowLabel: false,
               tabBarStyle: styles.tabBarStyle,
               tabBarActiveTintColor: '#757575',
-              tabBarInactiveTintColor:   colors.textDark,
+              tabBarInactiveTintColor: colors.textDark,
             }}
           >
             <Tabs.Screen
@@ -44,6 +66,16 @@ export default function ProtectedLayout() {
               }}
             />
 
+            {/* SOLO visibles si isWork es true */}
+            <Tabs.Screen
+              name="(worktabs)"
+              options={{
+                title: '(worktabs)',
+                href: null,
+                unmountOnBlur: false,
+                tabBarStyle: { display: 'none' },
+              }}
+            />
             <Tabs.Screen
               name="Agenda"
               options={{
@@ -62,44 +94,6 @@ export default function ProtectedLayout() {
                 ),
               }}
             />
-
-            <Tabs.Screen
-              name="jobsStatus"
-              options={{
-                title: 'Jobs Status',
-                tabBarIcon: ({ color, size, focused }) => (
-                  <View style={[styles.iconWrapper, focused && styles.iconWrapper]}>
-                    <Ionicons name="briefcase-outline" size={focused ? size + 6 : size} color={color} />
-                  </View>
-                ),
-                tabBarButton: (props) => (
-                  <TouchableOpacity
-                    {...props}
-                    onPress={() => router.push('/(protected)/jobsStatus/jobs')}
-                    style={styles.tabButton}
-                  />
-                ),
-              }}
-            />
-
-            {/* <Tabs.Screen
-              name="cursos"
-              options={{
-                title: 'Cursos',
-                tabBarIcon: ({ color, size, focused }) => (
-                  <View style={[styles.iconWrapper, focused && styles.iconWrapper]}>
-                    <Ionicons name="book-outline" size={focused ? size + 6 : size} color={color} />
-                  </View>
-                ),
-                tabBarButton: (props) => (
-                  <TouchableOpacity
-                    {...props}
-                    onPress={() => router.push('/(protected)/cursos/cursos')}
-                    style={styles.tabButton}
-                  />
-                ),
-              }}
-            /> */}
 
             <Tabs.Screen
               name="profile"
