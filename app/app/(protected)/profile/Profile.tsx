@@ -60,7 +60,7 @@ export default function ProfileScreen() {
     };
 
     useEffect(() => {
-
+        // quiero que guarde si el usuario titnt un data.data
         const fetchProfile = async () => {
             if (!token) {
                 setError("Token no proporcionado");
@@ -80,6 +80,7 @@ export default function ProfileScreen() {
                             await AsyncStorage.setItem('userPremiumData', JSON.stringify(Premium));
                         }
                     }
+                    await AsyncStorage.setItem('workSupportVisible', data.data.availableToWork ? 'true' : 'false');
 
                     if (
                         (data.data.availableToWork === false || data.data.availableToWork === undefined) &&
