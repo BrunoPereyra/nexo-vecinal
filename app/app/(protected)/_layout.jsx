@@ -90,9 +90,10 @@ export default function ProtectedLayout() {
                   <Image
                     source={require('@/assets/images/logo-nexovecinal-transparente.png')}
                     style={{
-                      width: focused ? 32 : 26,
-                      height: focused ? 32 : 26,
+                      width: focused ? 55 :35,
+                      height: focused ? 55 : 35,
                       resizeMode: 'contain',
+                      borderRadius: 25,
                     }}
                   />
                 ),
@@ -228,8 +229,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent', // Ya tiene fondo el mainTabButton
   },
   mainIconImage: {
-    width: 40, // Tamaño de la imagen cuando NO está enfocada
-    height: 40,
+    width: 70, // Tamaño de la imagen cuando NO está enfocada
+    height: 70,
     resizeMode: 'contain',
     tintColor: colors.textDark, // Puedes darle un tintColor si quieres que el logo sea monocromático
   },
@@ -242,8 +243,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent', // Ya tiene fondo el mainTabButton
   },
   mainIconImageFocused: {
-    width: 50, // Tamaño de la imagen cuando está enfocada (más grande)
-    height: 50,
+    width: 80, // Tamaño de la imagen cuando está enfocada (más grande)
+    height: 80,
     resizeMode: 'contain',
     tintColor: colors.white, // Color blanco para que destaque en el fondo primario
   },

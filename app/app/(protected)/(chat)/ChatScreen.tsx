@@ -18,7 +18,8 @@ import Constants from "expo-constants";
 import colors from '@/style/colors';
 import { useFocusEffect } from '@react-navigation/native';
 
-const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "http://192.168.0.28:9000";
+const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "https://192.168.0.28:9000";
+console.log("APIWS:", APIWS);
 
 interface GroupedItem {
   type: 'date' | 'message';
@@ -209,6 +210,9 @@ export default function ChatJobs() {
         text: newMessage.trim(),
       };
       setNewMessage('');
+      console.log("AA");
+      console.log(messageData);
+
       await sendChatMessage(messageData, token);
     } catch (err) {
       console.error('Error al enviar mensaje:', err);
