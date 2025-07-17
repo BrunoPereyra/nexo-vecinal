@@ -9,7 +9,7 @@ export default {
         version: "1.3.0",
         orientation: "portrait",
         icon: "./assets/images/logo-nexovecinal.png",
-        scheme: "nexovecinal",
+        scheme: "com.nexovecinal.app",
         userInterfaceStyle: "automatic",
         newArchEnabled: true,
         owner: "brunopereyra",
@@ -62,6 +62,9 @@ export default {
         },
 
         plugins: [
+            // [
+            // "@reactnative-google-signin/google-signin",
+            // ],
             "expo-router",
             [
                 "expo-splash-screen",

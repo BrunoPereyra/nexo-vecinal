@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +19,8 @@ import { SaveUserCodeConfirm, SignupService } from '@/services/authService';
 import colors from '@/style/colors';
 import { savePushToken } from '@/services/userService';
 
+WebBrowser.maybeCompleteAuthSession();
+
 export default function SignupScreen() {
   const [nameUser, setNameUser] = useState('');
   const [fullName, setFullName] = useState('');
@@ -34,6 +38,60 @@ export default function SignupScreen() {
   // La intención internamente se maneja como "hire" o "work", pero se muestran en español
   const [intention, setIntention] = useState<'hire' | 'work'>('hire');
   const [referral, setReferral] = useState<'amigo' | 'instagram' | 'facebook'>('amigo');
+
+
+  const [googleRequest, googleResponse, promptAsync] = Google.useAuthRequest({
+    clientId: 'TU_CLIENT_ID.apps.googleusercontent.com', // 👈🏼 CAMBIÁ ESTO
+  });
+  useEffect(() => {
+    if (googleResponse?.type === 'success') {
+      const { authentication } = googleResponse;
+      if (authentication?.accessToken) {
+        handleGoogleLogin(authentication.accessToken);
+      }
+    }
+  }, [googleResponse]);
+  const handleGoogleLogin = async (accessToken: string) => {
+    try {
+      const res = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const userInfo = await res.json();
+
+      // Datos de usuario de Google
+      const emailGoogle = userInfo.email;
+      const fullNameGoogle = userInfo.name || '';
+      const username = emailGoogle.split('@')[0]; // username por defecto
+      const fakeBirthDate = '2000-01-01';
+      const defaultGender = 'Masculino';
+
+      const data = await SignupService(
+        emailGoogle,
+        'google-oauth', // contraseña dummy
+        username,
+        fullNameGoogle,
+        fakeBirthDate,
+        defaultGender
+      );
+
+      if (data?.token) {
+        await login(data.token, data._id, data.avatar, data.nameUser);
+        await savePushToken(data.token, pushToken ?? '');
+        router.push('/(protected)/home');
+      } else if (data?.message === 'existing_user') {
+        // ya registrado, loguear
+        await login(data.token, data._id, data.avatar, data.nameUser);
+        await savePushToken(data.token, pushToken ?? '');
+        router.push('/(protected)/home');
+      } else {
+        setErrorMessage(data?.message || 'No se pudo registrar con Google');
+      }
+    } catch (error) {
+      console.error('Error en login Google:', error);
+      setErrorMessage('Falló el registro con Google');
+    }
+  };
+
 
   const { login, pushToken } = useAuth();
   const router = useRouter();
@@ -152,6 +210,18 @@ export default function SignupScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.inner}>
+          <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+            <Text style={styles.signupButtonText}>Registrarse</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.signupButton, { backgroundColor: '#fff', borderWidth: 1, borderColor: colors.gold, marginTop: 10 }]}
+            onPress={() => promptAsync()}
+          >
+            <Text style={[styles.signupButtonText, { color: colors.gold }]}>
+              Registrarse con Google
+            </Text>
+          </TouchableOpacity>
+
           <Text style={styles.title}>Registro</Text>
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>

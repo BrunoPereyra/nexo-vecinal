@@ -75,3 +75,33 @@ export const SaveUserCodeConfirm = async (code: string, referral: string, Intent
         alert('Ocurrió un error');
     }
 };
+
+// google auth
+
+export const loginWithGoogle = async (googleAccessToken: string) => {
+    console.log("Intentando iniciar sesión con Google...");
+    console.log("Token de acceso de Google:", googleAccessToken);
+
+    try {
+        const response = await fetch('TU_URL_DEL_BACKEND/api/auth/google', { // <-- ¡IMPORTANTE! Reemplaza con la URL de tu endpoint de backend
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ googleAccessToken }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            // Maneja errores específicos de tu backend aquí
+            throw new Error(data.message || 'Error en el backend al iniciar sesión con Google');
+        }
+
+        // Tu backend debería devolver algo como: { token: '...', _id: '...', avatar: '...', nameUser: '...' }
+        return data;
+    } catch (error) {
+        console.error("Error al comunicar con el backend para Google Login:", error);
+        throw error;
+    }
+};
