@@ -315,27 +315,35 @@ func (u *EditProfile) ValidateEditProfile() error {
 }
 
 type Google_callback_Complete_Profile_And_Username struct {
-	NameUser   string    `json:"nameUser" validate:"nameuser,required,min=4,max=20"`
-	Email      string    `json:"email" validate:"required,email"`
-	Password   string    `json:"password" validate:"required,min=8"`
-	Pais       string    `json:"pais" bson:"Pais"`
-	Ciudad     string    `json:"ciudad" bson:"Ciudad"`
-	Biography  string    `json:"biography" validate:"max=600"`
-	HeadImage  string    `json:"headImage"`
-	BirthDate  time.Time `json:"birthDate"`
-	Gender     string    `json:"Gender,omitempty"`
-	Situation  string    `json:"situation,omitempty"`
-	ZodiacSign string    `json:"zodiacSign,omitempty"`
-	Referral   string    `json:"referral"`
+	NameUser      string    `json:"nameUser" validate:"nameuser,required,min=4,max=20"`
+	Email         string    `json:"email" validate:"required,email"`
+	Password      string    `json:"password" validate:"required,min=8"`
+	Pais          string    `json:"pais" bson:"Pais"`
+	Ciudad        string    `json:"ciudad" bson:"Ciudad"`
+	Biography     string    `json:"biography" validate:"max=600"`
+	HeadImage     string    `json:"headImage"`
+	Gender        string    `json:"Gender,omitempty"`
+	Situation     string    `json:"situation,omitempty"`
+	ZodiacSign    string    `json:"zodiacSign,omitempty"`
+	Referral      string    `json:"referral"`
+	Intentions    string    `json:"Intentions" bson:"Intentions" validate:"required,oneof=hire work"`
+	BirthDate     string    `json:"BirthDate" default:""`
+	BirthDateTime time.Time `json:"-" bson:"BirthDate"`
 }
 
 func (u *Google_callback_Complete_Profile_And_Username) ValidateUser() error {
 	validate := validator.New()
-	if u.BirthDate.IsZero() || u.BirthDate.String() == "" {
-		u.BirthDate = time.Now()
-	}
 	validate.RegisterValidation("nameuser", nameUserValidator)
 
+	if u.BirthDate != "" {
+		_, err := time.Parse("2006-01-02", u.BirthDate)
+		if err != nil {
+			return err
+		}
+
+		birthDate, _ := time.Parse("2006-01-02", u.BirthDate)
+		u.BirthDateTime = birthDate
+	}
 	return validate.Struct(u)
 }
 

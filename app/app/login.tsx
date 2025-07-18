@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { loginNameUser, loginWithGoogle } from '../services/authService';
@@ -9,7 +9,6 @@ import colors from '@/style/colors';
 // Importaciones para Google Sign-In
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Para guardar el token de acceso de Google
 import { makeRedirectUri } from "expo-auth-session";
 
 // Asegúrate de que WebBrowser esté listo antes de cualquier uso
@@ -22,99 +21,99 @@ export default function LoginScreen() {
   const { login, pushToken } = useAuth();
   const router = useRouter();
 
-  // ***** IMPORTANTE: Aquí debes usar el ID de Cliente de Google de tipo "Android" *****
-  // Obtenlo de Google Cloud Console > APIs y Servicios > Credenciales
-  // Asegúrate de que este ID de cliente esté configurado con:
-  //   - "Nombre del paquete": "com.nexovecinal.app" (o el que sea tu package en app.json)
-  //   - "Huella digital del certificado de firma SHA-1": La que obtuviste de 'gradlew signingReport'
   const googleClientId = "386642666747-g8lf2q1q0uok13r7iuqelfquubau1d9g.apps.googleusercontent.com"; // VERIFICA ESTE ID
 
-  // --- CONFIGURACIÓN DE GOOGLE AUTH ---
-  // Para tu flujo con 'com.nexovecinal.app:/oauthredirect', el 'androidClientId' es el más relevante.
-  // El 'webClientId' se usa para aplicaciones web o para Expo Go cuando no hay un 'scheme' nativo configurado.
-  // En tu caso actual, con el redirect URI 'com.nexovecinal.app:/oauthredirect', Google espera un CLIENT ID DE ANDROID.
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: googleClientId, // <--- Este debe ser tu ID de Cliente de TIPO ANDROID de Google Cloud Console
-    iosClientId: googleClientId,     // <--- Si planeas iOS, necesitarás un ID de Cliente de TIPO IOS diferente aquí
-    // webClientId: 'TU_ID_DE_CLIENTE_WEB_DE_GOOGLE.apps.googleusercontent.com', // Puedes comentarlo o quitarlo si no lo necesitas para web
-    scopes: ['profile', 'email'], // Permisos que solicitas
+    clientId: googleClientId,
+    scopes: ["openid", "profile", "email"],
     redirectUri: makeRedirectUri({
-      scheme: "com.nexovecinal.app",
+      native: "com.nexovecinal.app:/login",
     }),
   });
 
-  // Logs para depuración (déjalos mientras depuras)
-  console.log("Request de Google Auth:", request);
-  console.log("Response de Google Auth:", response);
+  async function handleGoogleLogin(idToken: string) {
+    try {
+      const resLoginGoogle = await loginWithGoogle(idToken);
+      console.log("Login con Google exitoso:", resLoginGoogle);
 
-  // Efecto para manejar la respuesta de Google
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      if (authentication?.accessToken) {
-        // *** AQUÍ IMPRIMIMOS EL TOKEN DE ACCESO DE GOOGLE ***
-        console.log("¡Éxito en Google Auth! Access Token:", authentication.accessToken);
-        Alert.alert("Google Auth Exitoso", `Token: ${authentication.accessToken.substring(0, 30)}...`); // Muestra un Alert simple
-
-        // Ahora, envía este token a tu backend para verificarlo y obtener el token de tu propia API
-        handleGoogleLoginBackend(authentication.accessToken);
-
-        // Opcional: Guardar el token de acceso de Google si lo necesitas para futuras llamadas a APIs de Google
-        // AsyncStorage.setItem('googleAccessToken', authentication.accessToken);
-      } else {
-        setErrorMessage('No se pudo obtener el token de acceso de Google.');
-        console.error("Google Auth Error: No accessToken en la respuesta de éxito.");
+      if (resLoginGoogle.message === "redirect to complete user") {
+        // Redirigir a la pantalla de completar perfil
+        router.push({
+          pathname: "/CompleteProfileScreen",
+          params: {
+            email: resLoginGoogle.data,
+            fullName: resLoginGoogle.fullName,
+            avatar: resLoginGoogle.avatar
+          }
+        });
+        return;
       }
-    } else if (response?.type === 'error') {
-      setErrorMessage(`Error de autenticación con Google: ${response.error?.message || 'Desconocido'}`);
-      console.error("Google Auth Error:", response.error);
-    } else if (response?.type === 'cancel') { // Manejar explícitamente el 'cancel'
-      setErrorMessage('Autenticación con Google cancelada por el usuario.');
-      console.log("Google Auth: Usuario canceló el flujo.");
-    } else if (response?.type === 'dismiss') { // Manejar explícitamente el 'dismiss'
-      setErrorMessage('Ventana de autenticación de Google cerrada inesperadamente.');
-      console.log("Google Auth: Ventana descartada por el usuario o sistema.");
+
+      // Si recibimos 'token', entonces sí hacemos login
+      if (resLoginGoogle.message === "token") {
+        console.log("Login con Google exitoso:", resLoginGoogle);
+
+        await login(
+          resLoginGoogle.data,     // aquí data es tu JWT interno
+          resLoginGoogle._id,
+          resLoginGoogle.avatar,
+          resLoginGoogle.nameUser
+        );
+        await savePushToken(resLoginGoogle.data, pushToken || "");
+        router.replace("/(protected)/home");
+        return;
+      }
+
+      // Cualquier otro caso, mostramos error
+      throw new Error("Respuesta inesperada del backend");
+    } catch (err: any) {
+      console.error("Fallo login backend con Google", err);
+      setErrorMessage(err.message || "Error al iniciar sesión con Google.");
+    }
+  }
+
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token: idToken } = response.params;
+
+      if (idToken) {
+        handleGoogleLogin(idToken);
+      } else {
+        console.error("No se recibió el id_token de Google");
+        setErrorMessage("Error al iniciar sesión con Google.");
+      }
+    } else if (response?.type === "error") {
+      console.error("Error en la respuesta de Google:", response.params);
+      setErrorMessage("Error al iniciar sesión con Google.");
     }
   }, [response]);
 
   // Función para enviar el token de Google a tu backend
-  const handleGoogleLoginBackend = async (googleAccessToken: string) => {
+  console.log("xxxx");
+
+  const handleGoogleLoginBackend = async (idToken: string) => {
     try {
-      // **IMPORTANTE**: Esta es una función hipotética que tú deberías implementar en 'authService.js'
-      // Tu backend DEBE:
-      // 1. Recibir el googleAccessToken.
-      // 2. Usar ese token para verificar la identidad del usuario con Google (ej. Google OAuth2 API).
-      // 3. Si el usuario existe en tu base de datos (por su email de Google), iniciar sesión.
-      // 4. Si no existe, crear una nueva cuenta para ese usuario (o asociar su cuenta de Google a una existente).
-      // 5. Devolver tu propio token de autenticación y los datos del usuario (data._id, data.avatar, data.nameUser).
+      const response = await fetch("https://tu-backend.com/api/auth/google", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: idToken }), // <-- Esto es un id_token
+      });
 
-      // *** SIMULACIÓN DEL BACKEND PARA PROBAR EL FLUJO ***
-      // Esto es solo para que puedas ver que el flujo llega hasta aquí.
-      // EN PRODUCCIÓN, DEBES LLAMAR A TU FUNCIÓN loginWithGoogle REAL.
-      console.log("Simulando llamada al backend con Google Access Token:", googleAccessToken);
-      // const data = await loginWithGoogle(googleAccessToken); // <--- DESCOMENTA Y USA ESTO CUANDO TENGAS TU BACKEND
+      if (!response.ok) throw new Error("Error del servidor");
 
-      // --- Datos de ejemplo para simular la respuesta de tu backend ---
-      const simulatedBackendData = {
-        token: "tu_token_de_autenticacion_backend_simulado_12345",
-        _id: "id_usuario_simulado_google",
-        avatar: "https://via.placeholder.com/150",
-        nameUser: "Usuario Google Simulado"
-      };
-      const data = simulatedBackendData; // Usamos datos simulados por ahora
-
-
+      const data = await response.json();
       await login(data.token, data._id, data.avatar, data.nameUser);
-      await savePushToken(data.token, pushToken ? pushToken : "");
+      await savePushToken(data.token, pushToken ?? "");
       router.replace("/profile/Profile");
-
     } catch (error) {
-      console.error("Error al autenticar Google en el backend:", error);
-      setErrorMessage('Error al iniciar sesión con Google. Por favor, intenta de nuevo.');
-      // Opcional: Mostrar un error más específico si el backend lo proporciona
-      // setErrorMessage(error.message || 'Error al iniciar sesión con Google.');
+      console.error("Error en login con backend:", error);
+      setErrorMessage("Error al iniciar sesión con Google.");
     }
   };
+
 
   const handleLogin = async () => {
     try {

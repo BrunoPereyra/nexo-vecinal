@@ -795,26 +795,16 @@ func (u *UserRepository) UpdateLastConnection(userID primitive.ObjectID) error {
 
 func (u *UserRepository) FindEmailForOauth2Updata(user *domain.Google_callback_Complete_Profile_And_Username) (*domain.User, error) {
 	NameUserLower := strings.ToLower(user.NameUser)
-	_, err := u.FindNameUser(NameUserLower, "")
+	_, err := u.FindNameUser(NameUserLower, user.Email)
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
 			return nil, err
 		}
+		fmt.Println("No user found with the given NameUser, proceeding to update profile.")
 		GoMongoDBColl := u.mongoClient.Database("NEXO-VECINAL")
-
 		GoMongoDBCollUsers := GoMongoDBColl.Collection("Users")
-		GoMongoDBCollStreams := GoMongoDBColl.Collection("Streams")
 
 		filter := bson.M{"Email": user.Email}
-
-		var existingUser *domain.User
-		err = GoMongoDBCollUsers.FindOne(context.Background(), filter).Decode(&existingUser)
-		if err != nil {
-			return nil, err
-		}
-		if existingUser.NameUser != "" {
-			return nil, errors.New("NameUser exists")
-		}
 
 		update := bson.M{
 			"$set": bson.M{
@@ -829,6 +819,7 @@ func (u *UserRepository) FindEmailForOauth2Updata(user *domain.Google_callback_C
 				"Sex":          user.Gender,
 				"Situation":    user.Situation,
 				"ZodiacSign":   user.ZodiacSign,
+				"Intentions":   user.Intentions,
 			},
 		}
 
@@ -838,19 +829,8 @@ func (u *UserRepository) FindEmailForOauth2Updata(user *domain.Google_callback_C
 		if err != nil {
 			return nil, err
 		}
-		filterStream := bson.M{"StreamerID": existingUser.ID}
-		updateStream := bson.M{
-			"$set": bson.M{
-				"Streamer": user.NameUser,
-			},
-		}
 
-		_, err = GoMongoDBCollStreams.UpdateOne(context.Background(), filterStream, updateStream)
-
-		if err != nil {
-			return nil, err
-		}
-		return existingUser, nil
+		return nil, nil
 	}
 	return nil, errors.New("nameuser exist")
 

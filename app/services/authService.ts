@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-const API = "https://deploy.pinkker.tv/9000"
+const API = "http://192.168.0.28:9000"
 
 export const loginNameUser = async (NameUser: string, password: string) => {
 
@@ -61,47 +61,75 @@ export const SignupService = async (
 };
 
 
-export const SaveUserCodeConfirm = async (code: string, referral: string, Intentions: string) => {
+export const SaveUserCodeConfirm = async (
+    code: string,
+    referral: string,
+    Intentions: string
+) => {
+    console.log(code,
+        referral,
+        Intentions);
     try {
         const res = await fetch(API + "/user/SaveUserCodeConfirm", {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code, referral, Intentions })
+            body: JSON.stringify({
+                code,
+                referral,
+                Intentions
+            })
         });
-        return await res.json();
 
+
+        return await res.json();
     } catch (error) {
         console.error(error);
         alert('Ocurrió un error');
     }
 };
 
-// google auth
 
-export const loginWithGoogle = async (googleAccessToken: string) => {
-    console.log("Intentando iniciar sesión con Google...");
-    console.log("Token de acceso de Google:", googleAccessToken);
-
+export const loginWithGoogle = async (idToken: string) => {
     try {
-        const response = await fetch('TU_URL_DEL_BACKEND/api/auth/google', { // <-- ¡IMPORTANTE! Reemplaza con la URL de tu endpoint de backend
-            method: 'POST',
+        const res = await fetch(`${API}/user/google_callback?code=${encodeURIComponent(idToken)}`, {
+            method: "GET", // no pongas body acá
             headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
             },
-            body: JSON.stringify({ googleAccessToken }),
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        if (!response.ok) {
-            // Maneja errores específicos de tu backend aquí
-            throw new Error(data.message || 'Error en el backend al iniciar sesión con Google');
+        if (res.ok) {
+            return data;
+        } else {
+            throw new Error(data?.message || "Login con Google falló");
         }
-
-        // Tu backend debería devolver algo como: { token: '...', _id: '...', avatar: '...', nameUser: '...' }
-        return data;
     } catch (error) {
-        console.error("Error al comunicar con el backend para Google Login:", error);
+        console.error("Error en login con Google:", error);
         throw error;
     }
+};
+
+
+export const CompleteGoogleProfile = async (payload: {
+    email: string;
+    nameUser: string;
+    password: string;
+    fullName: string;
+    birthDate: string;
+    Gender: string;
+    Intentions: string;
+}) => {
+    console.log(payload);
+
+    const res = await fetch(API + "/user/Google_callback_Complete_Profile_And_Username", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    console.log(await res.json());
+
+    if (!res.ok) throw new Error("Error al completar perfil");
+    return await res.json();
 };

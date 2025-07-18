@@ -4,17 +4,18 @@ import (
 	application "back-end/internal/user/user-application"
 	domain "back-end/internal/user/user-domain"
 	userdomain "back-end/internal/user/user-domain"
-	oauth2 "back-end/pkg/OAuth2"
 	configoauth2 "back-end/pkg/OAuth2/configOAuth2"
 	"back-end/pkg/auth"
 	"back-end/pkg/helpers"
 	"back-end/pkg/jwt"
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"google.golang.org/api/idtoken"
 )
 
 type UserHandler struct {
@@ -57,7 +58,6 @@ func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx
 		})
 	}
 	user.NameUser = req.NameUser
-
 	tokenRequest, err := jwt.CreateToken(user)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -65,13 +65,13 @@ func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx
 			"data":    err.Error(),
 		})
 	}
-	// err = h.userService.UpdatePinkkerProfitPerMonthRegisterLinkReferent(req.Referral)
-	// if err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-	// 		"message": "token error",
-	// 		"data":    err.Error(),
-	// 	})
-	// }
+	metricsErr := h.userService.UserMetricts(user, req.Intentions, req.Referral)
+	if metricsErr != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "StatusInternalServerError",
+			"data":    metricsErr,
+		})
+	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":  "token",
@@ -83,68 +83,58 @@ func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx
 
 }
 func (h *UserHandler) Google_callback(c *fiber.Ctx) error {
-	code := c.Query("code")
-	googleConfig := configoauth2.LoadConfig()
-	token, err := googleConfig.Exchange(context.TODO(), code)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "StatusInternalServerError",
-			"data":    err.Error(),
+	rawIDToken := c.Query("code")
+	if rawIDToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Falta el parámetro 'code' (ID Token)",
 		})
 	}
 
-	userInfo, err := oauth2.GetUserInfoFromGoogle(token)
+	// 1) Validar el ID Token directamente
+	payload, err := idtoken.Validate(context.Background(), rawIDToken, os.Getenv("GOOGLE_CLIENT_ID"))
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"message": "StatusInternalServerError",
+		fmt.Println(err)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"message": "ID Token inválido",
 			"data":    err.Error(),
 		})
 	}
-	user, existUser := h.userService.FindNameUser(userInfo.Name, userInfo.Email)
-	if existUser != nil {
-		if existUser == mongo.ErrNoDocuments {
-			newUser := &userdomain.UserModelValidator{
-				FullName: userInfo.Name,
-				NameUser: "",
-				Password: "",
-				Pais:     "",
-				Ciudad:   "",
-				Email:    userInfo.Email,
-			}
+	// 2) Extraer datos básicos
+	email := payload.Claims["email"].(string)
+	fullName := payload.Claims["name"].(string)
+	avatar := payload.Claims["picture"].(string)
 
-			userDomaion := h.userService.UserDomaionUpdata(newUser, userInfo.Picture, "")
-			_, errSaveUser := h.userService.SaveUser(userDomaion)
-			if errSaveUser != nil {
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-					"message": "StatusInternalServerError",
-					"data":    errSaveUser.Error(),
-				})
-			}
-
-			return c.Status(fiber.StatusOK).JSON(fiber.Map{
-				"message": "redirect to complete user",
-				"data":    userInfo.Email,
-			})
-		}
-
+	// 3) Buscar en BD
+	user, err := h.userService.FindNameUser("", email)
+	if err != nil {
+		// si no existe, pedir completar perfil
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"message":  "redirect to complete user",
+			"data":     email,
+			"fullName": fullName,
+			"avatar":   avatar,
+		})
 	}
 
+	// 4) Si existe pero no completó username
 	if user.NameUser == "" {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message": "redirect to complete user",
-			"data":    userInfo.Email,
+			"data":    email,
 		})
 	}
-	tokenRequest, err := jwt.CreateToken(user)
+
+	// 5) Usuario completo: generar JWT interno
+	tokenStr, err := jwt.CreateToken(user)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"message": "StatusBadRequest",
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "token error",
 			"data":    err.Error(),
 		})
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"message":  "token",
-		"data":     tokenRequest,
+		"data":     tokenStr,
 		"_id":      user.ID,
 		"avatar":   user.Avatar,
 		"nameUser": user.NameUser,

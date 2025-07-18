@@ -155,6 +155,7 @@ func (u *UserService) FindNameUserInternalOperation(NameUser string, Email strin
 
 // oauth2
 func (u *UserService) FindEmailForOauth2Updata(user *domain.Google_callback_Complete_Profile_And_Username) (*domain.User, error) {
+	u.UserDomainUpdate(user, "")
 	userFind, err := u.roomRepository.FindEmailForOauth2Updata(user)
 	return userFind, err
 }
