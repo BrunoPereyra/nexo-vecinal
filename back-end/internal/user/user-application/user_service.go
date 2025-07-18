@@ -99,6 +99,53 @@ func (u *UserService) UserDomaionUpdata(newUser *domain.UserModelValidator, avat
 	return &modelNewUser
 }
 
+// signup
+func (u *UserService) UserDataSignupGoogle(newUser *domain.Google_callback_Complete_Profile_And_Username, passwordHash string) *userdomain.User {
+	var modelNewUser domain.User
+	modelNewUser.Avatar = newUser.Avatar
+	if modelNewUser.Avatar == "" {
+		avatarConf := config.FotoPerfil()
+		modelNewUser.Avatar = avatarConf
+	}
+	modelNewUser.NameUser = newUser.NameUser
+
+	modelNewUser.FullName = newUser.FullName
+	modelNewUser.PasswordHash = passwordHash
+	modelNewUser.Banner = ""
+	modelNewUser.Biography = "Biografia no configurada"
+	modelNewUser.Pais = newUser.Pais
+	modelNewUser.Ciudad = newUser.Ciudad
+	modelNewUser.Email = newUser.Email
+	modelNewUser.Timestamp = time.Now()
+	modelNewUser.Followers = make(map[primitive.ObjectID]domain.FollowInfo)
+	modelNewUser.Following = make(map[primitive.ObjectID]domain.FollowInfo)
+	modelNewUser.Verified = false
+	modelNewUser.BirthDate = newUser.BirthDateTime
+	modelNewUser.PanelAdminNexoVecinal.Level = 0
+	modelNewUser.PanelAdminNexoVecinal.Asset = false
+	modelNewUser.PanelAdminNexoVecinal.Date = time.Now()
+	modelNewUser.PanelAdminNexoVecinal.Code = ""
+	modelNewUser.Banned = false
+	fifteenDaysAgo := time.Now().AddDate(0, 0, -15)
+	modelNewUser.EditProfiile.Biography = fifteenDaysAgo
+	modelNewUser.EditProfiile.NameUser = time.Now()
+	modelNewUser.Location = domain.GeoPoint{
+		Type:        "Point",
+		Coordinates: []float64{-64.183333, -31.416667},
+	}
+	modelNewUser.AvailableToWork = false
+	genderMap := map[string]string{
+		"Masculino": "male",
+		"Femenino":  "female",
+	}
+	if translatedGender, exists := genderMap[newUser.Gender]; exists {
+		modelNewUser.Gender = translatedGender
+	} else {
+		modelNewUser.Gender = newUser.Gender // Si no se encuentra, lo dejamos tal cual
+	}
+
+	return &modelNewUser
+}
 func (u *UserService) SaveUserRedis(newUser *domain.User) (string, error) {
 	code, err := u.roomRepository.SaveUserRedis(newUser)
 	return code, err
@@ -154,9 +201,8 @@ func (u *UserService) FindNameUserInternalOperation(NameUser string, Email strin
 }
 
 // oauth2
-func (u *UserService) FindEmailForOauth2Updata(user *domain.Google_callback_Complete_Profile_And_Username) (*domain.User, error) {
-	u.UserDomainUpdate(user, "")
-	userFind, err := u.roomRepository.FindEmailForOauth2Updata(user)
+func (u *UserService) UserCreateSignupGoogle(user *userdomain.User) (*domain.User, error) {
+	userFind, err := u.roomRepository.UserCreateSignupGoogle(user)
 	return userFind, err
 }
 

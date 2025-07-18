@@ -116,19 +116,19 @@ export const CompleteGoogleProfile = async (payload: {
     email: string;
     nameUser: string;
     password: string;
-    fullName: string;
-    birthDate: string;
+    FullName: string;
+    BirthDates: string;
     Gender: string;
     Intentions: string;
+    Referral: string;
+    Avatar: string;
 }) => {
-    console.log(payload);
 
     const res = await fetch(API + "/user/Google_callback_Complete_Profile_And_Username", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
     });
-    console.log(await res.json());
 
     if (!res.ok) throw new Error("Error al completar perfil");
     return await res.json();

@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -45,7 +46,7 @@ func (ms *MetricsService) RegisterUser(ctx context.Context, gender, intention, r
 	if err != nil {
 		return err
 	}
-
+	fmt.Println("referer", referer)
 	totalPath := "days." + day + ".userRegistrations.total"
 	refererPath := "days." + day + ".userRegistrations.referers." + referer
 
@@ -60,6 +61,7 @@ func (ms *MetricsService) RegisterUser(ctx context.Context, gender, intention, r
 		},
 	}
 	_, err = coll.UpdateByID(ctx, docID, update)
+
 	return err
 }
 

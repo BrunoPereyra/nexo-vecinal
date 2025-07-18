@@ -28,7 +28,6 @@ func NewUserHandler(chatService *application.UserService) *UserHandler {
 	}
 }
 
-// ____________
 // login google
 func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx) error {
 
@@ -50,7 +49,8 @@ func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx
 	go helpers.HashPassword(req.Password, passwordHashChan)
 	passwordHash := <-passwordHashChan
 	req.Password = passwordHash
-	user, err := h.userService.FindEmailForOauth2Updata(&req)
+	UserDomainUpdate := h.userService.UserDataSignupGoogle(&req, passwordHash)
+	user, err := h.userService.UserCreateSignupGoogle(UserDomainUpdate)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"message": "StatusBadRequest",
@@ -82,6 +82,7 @@ func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx
 	})
 
 }
+
 func (h *UserHandler) Google_callback(c *fiber.Ctx) error {
 	rawIDToken := c.Query("code")
 	if rawIDToken == "" {

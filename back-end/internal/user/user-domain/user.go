@@ -315,6 +315,8 @@ func (u *EditProfile) ValidateEditProfile() error {
 }
 
 type Google_callback_Complete_Profile_And_Username struct {
+	Avatar        string    `json:"Avatar" default:"https://res.cloudinary.com/pinkker/image/upload/v1680478837/foto_default_obyind.png" bson:"Avatar"`
+	FullName      string    `json:"FullName" bson:"FullName"`
 	NameUser      string    `json:"nameUser" validate:"nameuser,required,min=4,max=20"`
 	Email         string    `json:"email" validate:"required,email"`
 	Password      string    `json:"password" validate:"required,min=8"`
@@ -325,7 +327,7 @@ type Google_callback_Complete_Profile_And_Username struct {
 	Gender        string    `json:"Gender,omitempty"`
 	Situation     string    `json:"situation,omitempty"`
 	ZodiacSign    string    `json:"zodiacSign,omitempty"`
-	Referral      string    `json:"referral"`
+	Referral      string    `json:"Referral" validate:"required"`
 	Intentions    string    `json:"Intentions" bson:"Intentions" validate:"required,oneof=hire work"`
 	BirthDate     string    `json:"BirthDate" default:""`
 	BirthDateTime time.Time `json:"-" bson:"BirthDate"`

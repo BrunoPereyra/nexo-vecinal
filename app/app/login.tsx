@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'expo-router';
 import { loginNameUser, loginWithGoogle } from '../services/authService';
@@ -20,6 +20,8 @@ export default function LoginScreen() {
   const [errorMessage, setErrorMessage] = useState('');
   const { login, pushToken } = useAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
 
   const googleClientId = "386642666747-g8lf2q1q0uok13r7iuqelfquubau1d9g.apps.googleusercontent.com"; // VERIFICA ESTE ID
 
@@ -33,6 +35,7 @@ export default function LoginScreen() {
 
   async function handleGoogleLogin(idToken: string) {
     try {
+      setLoading(true); // 
       const resLoginGoogle = await loginWithGoogle(idToken);
       console.log("Login con Google exitoso:", resLoginGoogle);
 
@@ -60,7 +63,7 @@ export default function LoginScreen() {
           resLoginGoogle.nameUser
         );
         await savePushToken(resLoginGoogle.data, pushToken || "");
-        router.replace("/(protected)/home");
+        router.replace("/(protected)/profile/Profile");
         return;
       }
 
@@ -69,6 +72,8 @@ export default function LoginScreen() {
     } catch (err: any) {
       console.error("Fallo login backend con Google", err);
       setErrorMessage(err.message || "Error al iniciar sesión con Google.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -88,31 +93,6 @@ export default function LoginScreen() {
       setErrorMessage("Error al iniciar sesión con Google.");
     }
   }, [response]);
-
-  // Función para enviar el token de Google a tu backend
-  console.log("xxxx");
-
-  const handleGoogleLoginBackend = async (idToken: string) => {
-    try {
-      const response = await fetch("https://tu-backend.com/api/auth/google", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: idToken }), // <-- Esto es un id_token
-      });
-
-      if (!response.ok) throw new Error("Error del servidor");
-
-      const data = await response.json();
-      await login(data.token, data._id, data.avatar, data.nameUser);
-      await savePushToken(data.token, pushToken ?? "");
-      router.replace("/profile/Profile");
-    } catch (error) {
-      console.error("Error en login con backend:", error);
-      setErrorMessage("Error al iniciar sesión con Google.");
-    }
-  };
 
 
   const handleLogin = async () => {
@@ -134,9 +114,19 @@ export default function LoginScreen() {
       console.error("Error al iniciar sesión con usuario/contraseña:", error);
     }
   };
-
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.gold} />
+        <Text style={{ marginTop: 15, color: colors.textDark }}>Iniciando sesión con Google...</Text>
+      </View>
+    );
+  }
   return (
+
+
     <View style={styles.container}>
+
       <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}
@@ -168,8 +158,12 @@ export default function LoginScreen() {
         <Text style={styles.googleButtonText}>Iniciar sesión con Google</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/signup')}>
-        <Text style={styles.loginButtonText}>Ir a registro</Text>
+      <TouchableOpacity
+        style={styles.googleButton}
+        onPress={() => promptAsync()}
+        disabled={!request} // Deshabilita el botón si la request de Google no está lista
+      >
+        <Text style={styles.googleButtonText}>Registro con Google</Text>
       </TouchableOpacity>
     </View>
   );

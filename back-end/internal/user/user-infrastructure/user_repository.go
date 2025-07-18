@@ -793,46 +793,21 @@ func (u *UserRepository) UpdateLastConnection(userID primitive.ObjectID) error {
 	return nil
 }
 
-func (u *UserRepository) FindEmailForOauth2Updata(user *domain.Google_callback_Complete_Profile_And_Username) (*domain.User, error) {
+func (u *UserRepository) UserCreateSignupGoogle(user *domain.User) (*domain.User, error) {
 	NameUserLower := strings.ToLower(user.NameUser)
 	_, err := u.FindNameUser(NameUserLower, user.Email)
 	if err != nil {
 		if err != mongo.ErrNoDocuments {
 			return nil, err
 		}
-		fmt.Println("No user found with the given NameUser, proceeding to update profile.")
-		GoMongoDBColl := u.mongoClient.Database("NEXO-VECINAL")
-		GoMongoDBCollUsers := GoMongoDBColl.Collection("Users")
-
-		filter := bson.M{"Email": user.Email}
-
-		update := bson.M{
-			"$set": bson.M{
-				"NameUser":     user.NameUser,
-				"PasswordHash": user.Password,
-				"Email":        user.Email,
-				"Pais":         user.Pais,
-				"Ciudad":       user.Ciudad,
-				"Biography":    user.Biography,
-				"HeadImage":    user.HeadImage,
-				"BirthDate":    user.BirthDate,
-				"Sex":          user.Gender,
-				"Situation":    user.Situation,
-				"ZodiacSign":   user.ZodiacSign,
-				"Intentions":   user.Intentions,
-			},
-		}
-
-		// Realizar la actualización
-		_, err = GoMongoDBCollUsers.UpdateOne(context.Background(), filter, update)
-
+		idtoken, err := u.SaveUser(user)
+		user.ID = idtoken
 		if err != nil {
-			return nil, err
+			return user, err
 		}
-
-		return nil, nil
+		return user, nil
 	}
-	return nil, errors.New("nameuser exist")
+	return user, errors.New("nameuser exist")
 
 }
 func (u *UserRepository) EditProfile(profile domain.EditProfile, id primitive.ObjectID) error {

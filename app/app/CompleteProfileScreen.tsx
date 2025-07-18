@@ -23,11 +23,12 @@ WebBrowser.maybeCompleteAuthSession();
 export default function CompleteProfileScreen() {
     const { login, pushToken } = useAuth();
     const router = useRouter();
-    const params = useLocalSearchParams<{ email: string; fullName: string }>();
+    const params = useLocalSearchParams<{ email: string; fullName: string; avatar: string }>();
 
     // Pre‑llenado de Google
     const email = params.email!;
     const fullName = params.fullName!;
+    const avatar = params.avatar!;
 
     // Campos editables
     const [nameUser, setNameUser] = useState('');
@@ -37,6 +38,7 @@ export default function CompleteProfileScreen() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [gender, setGender] = useState<'Masculino' | 'Femenino'>('Masculino');
     const [intention, setIntention] = useState<'hire' | 'work'>('hire');
+    const [referral, setReferral] = useState<'amigo' | 'instagram' | 'facebook'>('amigo');
     const [errorMessage, setErrorMessage] = useState('');
 
     const getDisplayBirthDate = () => {
@@ -63,25 +65,24 @@ export default function CompleteProfileScreen() {
         }
 
         try {
-
             const formattedBirth = `${birthDate.getFullYear()}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`;
             const data = await CompleteGoogleProfile({
                 email,
                 nameUser,
                 password,
-                fullName,
-                birthDate: formattedBirth,
+                FullName: fullName,
+                Avatar: avatar,
+                BirthDates: formattedBirth,
                 Gender: gender,
-                Intentions: intention,    // <-- campo agregado
+                Intentions: intention,
+                Referral: referral,
             });
-
             // Hacer login con el token recibido
-            await login(data.token, data._id, data.avatar, data.nameUser);
-            await savePushToken(data.token, pushToken || '');
-            router.replace('/(protected)/home');
+            await login(data.data, data._id, data.avatar, data.nameUser);
+            await savePushToken(data.data, pushToken || '');
+            router.replace('/(protected)/profile/Profile');
         } catch (err: any) {
-            console.log("err:", err);
-
+            console.log('err:', err);
             setErrorMessage(err.message || 'Error al completar perfil');
         }
     };
@@ -94,7 +95,7 @@ export default function CompleteProfileScreen() {
         >
             <ScrollView
                 contentContainerStyle={[styles.container, { flexGrow: 1 }]}
-                keyboardShouldPersistTaps="handled"
+                keyboardShouldPersistTaps='handled'
             >
                 <View style={styles.inner}>
                     <Text style={styles.title}>Completa tu perfil</Text>
@@ -112,8 +113,8 @@ export default function CompleteProfileScreen() {
                     <Text style={styles.label}>Nombre de usuario</Text>
                     <TextInput
                         style={styles.input}
-                        placeholder="Nombre de usuario"
-                        placeholderTextColor="#888"
+                        placeholder='Nombre de usuario'
+                        placeholderTextColor='#888'
                         value={nameUser}
                         onChangeText={setNameUser}
                     />
@@ -123,13 +124,13 @@ export default function CompleteProfileScreen() {
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={[styles.input, styles.inputWithIcon]}
-                            placeholder="Contraseña"
-                            placeholderTextColor="#888"
+                            placeholder='Contraseña'
+                            placeholderTextColor='#888'
                             secureTextEntry
                             value={password}
                             onChangeText={setPassword}
                         />
-                        <Ionicons name="lock-closed" size={20} color={colors.gold} style={styles.iconRight} />
+                        <Ionicons name='lock-closed' size={20} color={colors.gold} style={styles.iconRight} />
                     </View>
 
                     {/* Confirmar contraseña */}
@@ -137,13 +138,13 @@ export default function CompleteProfileScreen() {
                     <View style={styles.inputContainer}>
                         <TextInput
                             style={[styles.input, styles.inputWithIcon]}
-                            placeholder="Confirmar contraseña"
-                            placeholderTextColor="#888"
+                            placeholder='Confirmar contraseña'
+                            placeholderTextColor='#888'
                             secureTextEntry
                             value={confirmPassword}
                             onChangeText={setConfirmPassword}
                         />
-                        <Ionicons name="lock-closed" size={20} color={colors.gold} style={styles.iconRight} />
+                        <Ionicons name='lock-closed' size={20} color={colors.gold} style={styles.iconRight} />
                     </View>
 
                     {/* Fecha de nacimiento */}
@@ -158,8 +159,8 @@ export default function CompleteProfileScreen() {
                     {showDatePicker && (
                         <DateTimePicker
                             value={birthDate}
-                            mode="date"
-                            display="default"
+                            mode='date'
+                            display='default'
                             maximumDate={new Date()}
                             onChange={handleDateChange}
                         />
@@ -211,6 +212,24 @@ export default function CompleteProfileScreen() {
                         </TouchableOpacity>
                     </View>
 
+                    {/* Referencia */}
+                    <Text style={styles.label}>Referencia</Text>
+                    <View style={styles.genderOptions}>
+                        {['amigo', 'instagram', 'facebook'].map(r => (
+                            <TouchableOpacity
+                                key={r}
+                                style={styles.genderOption}
+                                onPress={() => setReferral(r as any)}
+                            >
+                                <Ionicons
+                                    name={referral === r ? 'radio-button-on' : 'radio-button-off'}
+                                    size={24}
+                                    color={referral === r ? colors.gold : '#888'}
+                                />
+                                <Text style={styles.optionText}>{r.charAt(0).toUpperCase() + r.slice(1)}</Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                     {/* Botón enviar */}
                     <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
                         <Text style={styles.submitText}>Completar Registro</Text>
