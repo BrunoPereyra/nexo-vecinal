@@ -10,29 +10,32 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProtectedLayout() {
   const router = useRouter();
-  const [isWork, setIsWork] = useState(true); // Default to true, will be updated by useEffect
+  const [isWork, setIsWork] = useState(false); // Default to true, will be updated by useEffect
+  const [isLoading, setIsLoading] = useState(true); // State to manage loading
+useEffect(() => {
+  const interval = setInterval(async () => {
+    try {
+      const availableToWork = await AsyncStorage.getItem('availableToWork');
 
-  useEffect(() => {
-    const checkWork = async () => {
-      try {
-        const workSupportVisible = await AsyncStorage.getItem('workSupportVisible');
-        console.log("workSupportVisible", workSupportVisible);
-        
-        if (workSupportVisible == "true") {
-          setIsWork(true);
-          return;
-        }else{
-          setIsWork(false);
-          return;
-        }
-      } catch (error) {
-          setIsWork(false);
-
-        console.error("Failed to load work support visibility:", error);
+      if (availableToWork === "true") {
+        setIsWork(true);
+      } else {
+        setIsWork(false);
       }
-    };
-    checkWork();
-  }, []);
+    } catch (error) {
+      setIsWork(false);
+    }finally {
+      setIsLoading(false); // ✅ Marcar como cargado
+    }
+
+  }, 2000);
+
+  return () => clearInterval(interval);
+}, []);
+
+if (isLoading) {
+  return null; // O un loading spinner si querés feedback visual
+}
 
   return (
     <ProtectedRoute>

@@ -142,7 +142,7 @@ export default function ChatJobs() {
   const subscribeWebSocket = useCallback(() => {
     if (!chatRoom) return;
     ws.current = new WebSocket(`${APIWS}/chat/subscribe/${chatRoom.id}`);
-    let pingInterval: NodeJS.Timeout;
+    let pingInterval: number;
     ws.current.onopen = () => {
       pingInterval = setInterval(() => {
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
@@ -168,21 +168,26 @@ export default function ChatJobs() {
   }, [chatRoom]);
 
   // useFocusEffect para gestionar la conexión WebSocket
-  useFocusEffect(
-    useCallback(() => {
-      // Al entrar en foco, si tenemos chatRoom y no hay conexión, suscribir
-      if (chatRoom && !ws.current) {
-        subscribeWebSocket();
+  // Cada vez que cambia chatRoom, cerramos la conexión anterior y re-suscribimos
+  useEffect(() => {
+    // Cierra la conexión vieja
+    if (ws.current) {
+      ws.current.close();
+      ws.current = null;
+    }
+    // Abre una nueva si hay room
+    if (chatRoom) {
+      subscribeWebSocket();
+    }
+    // Limpieza al desmontar
+    return () => {
+      if (ws.current) {
+        ws.current.close();
+        ws.current = null;
       }
-      return () => {
-        // Al perder foco, cerramos la conexión
-        if (ws.current) {
-          ws.current.close();
-          ws.current = null;
-        }
-      };
-    }, [chatRoom, subscribeWebSocket])
-  );
+    };
+  }, [chatRoom, subscribeWebSocket]);
+
   useEffect(() => {
     if (!loading) {
       setTimeout(() => {
@@ -210,9 +215,6 @@ export default function ChatJobs() {
         text: newMessage.trim(),
       };
       setNewMessage('');
-      console.log("AA");
-      console.log(messageData);
-
       await sendChatMessage(messageData, token);
     } catch (err) {
       console.error('Error al enviar mensaje:', err);

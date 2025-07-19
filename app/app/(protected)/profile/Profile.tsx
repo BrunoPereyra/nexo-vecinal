@@ -81,7 +81,7 @@ export default function ProfileScreen() {
                         }
                     }
                     await AsyncStorage.setItem('workSupportVisible', data.data.availableToWork ? 'true' : 'false');
-
+                    await AsyncStorage.setItem('availableToWork', data.data.availableToWork ? 'true' : 'false');
                     if (
                         (data.data.availableToWork === false || data.data.availableToWork === undefined) &&
                         (data.data.Intentions === "work" || data.data.Intentions === undefined)

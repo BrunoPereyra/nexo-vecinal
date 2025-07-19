@@ -139,6 +139,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             setToken(null);
             await AsyncStorage.removeItem('token');
+            await AsyncStorage.removeItem('id');
+            await AsyncStorage.removeItem('avatar');
+            await AsyncStorage.removeItem('nameUser');
+            await AsyncStorage.removeItem('userPremiumData');
+            await AsyncStorage.removeItem('workSupportVisible');
+            await AsyncStorage.removeItem('availableToWork');
+
         } catch (error) {
             console.error('Error removing token', error);
         }
