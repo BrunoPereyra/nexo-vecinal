@@ -16,7 +16,7 @@ export default function ProtectedLayout() {
     const checkWork = async () => {
       try {
         const workSupportVisible = await AsyncStorage.getItem('workSupportVisible');
-        console.log(workSupportVisible);
+        console.log("workSupportVisible", workSupportVisible);
         
         if (workSupportVisible == "true") {
           setIsWork(true);
