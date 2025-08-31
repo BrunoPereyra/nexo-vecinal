@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
-const API = "https://deploy.pinkker.tv/9000"
-
+// const API = "https://deploy.pinkker.tv/9000"
+const API = "http://192.168.0.28:9000"
 export const loginNameUser = async (NameUser: string, password: string) => {
 
     try {
@@ -106,6 +106,8 @@ export const loginWithGoogle = async (idToken: string) => {
             throw new Error(data?.message || "Login con Google falló");
         }
     } catch (error) {
+        console.log("cgarar");
+
         console.error("Error en login con Google:", error);
         throw error;
     }

@@ -1,6 +1,6 @@
 import Constants from "expo-constants";
-const API = "https://deploy.pinkker.tv/9000"
-
+// const API = "https://deploy.pinkker.tv/9000"
+const API = "http://192.168.0.28:9000"
 // Interfaz que define la estructura de un mensaje de soporte.
 export interface SupportMessage {
     id?: string; // ahora es opcional

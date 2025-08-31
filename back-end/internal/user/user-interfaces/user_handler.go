@@ -84,6 +84,7 @@ func (h *UserHandler) Google_callback_Complete_Profile_And_Username(c *fiber.Ctx
 }
 
 func (h *UserHandler) Google_callback(c *fiber.Ctx) error {
+	fmt.Println("Google_callback")
 	rawIDToken := c.Query("code")
 	if rawIDToken == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{

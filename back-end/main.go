@@ -29,7 +29,7 @@ import (
 func main() {
 	redisClient := setupRedisClient()
 	newMongoDB := setupMongoDB()
-	// defer redisClient.Close()
+	defer redisClient.Close()
 	defer newMongoDB.Disconnect(context.Background())
 
 	app := fiber.New(fiber.Config{
@@ -66,12 +66,28 @@ func main() {
 	log.Fatal(app.Listen(":" + PORT))
 }
 
+// // quiero que devuelvas un reddit pero como no tengo un addres devolvelo pero que no tenga en que conectar
+// func setupRedisClient() *redis.Client {
+// 	// Inicia un servidor Redis en memoria usando miniredis
+// 	mr, err := miniredis.Run()
+// 	if err != nil {
+// 		panic(fmt.Sprintf("No se pudo iniciar miniredis: %v", err))
+// 	}
+
+// 	client := redis.NewClient(&redis.Options{
+// 		Addr: mr.Addr(), // Usa la dirección del servidor en memoria
+// 		DB:   0,
+// 	})
+// 	fmt.Println("Redis local (miniredis) iniciado en", mr.Addr())
+// 	return client
+// }
+
 func setupRedisClient() *redis.Client {
-	PasswordRedis := config.PASSWORDREDIS()
+	// PasswordRedis := config.PASSWORDREDIS()
 	ADDRREDIS := config.ADDRREDIS()
 	client := redis.NewClient(&redis.Options{
 		Addr:     ADDRREDIS,
-		Password: PasswordRedis,
+		Password: "",
 		DB:       0,
 	})
 
@@ -82,6 +98,7 @@ func setupRedisClient() *redis.Client {
 	fmt.Println("Redis connect")
 	return client
 }
+
 func setupMongoDB() *mongo.Client {
 	URI := config.MONGODB_URI()
 	if URI == "" {

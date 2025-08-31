@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
-const API = "https://deploy.pinkker.tv/9000"
+// const API = "https://deploy.pinkker.tv/9000"
+const API = "http://192.168.0.28:9000"
 
 
 /**
@@ -276,6 +277,8 @@ export const getTags = async (token: string) => {
 export const addTag = async (tag: string, token: string) => {
 
     try {
+        console.log(tag, token);
+
         const res = await fetch(`${API}/admin/tags`, {
             method: "POST",
             headers: {

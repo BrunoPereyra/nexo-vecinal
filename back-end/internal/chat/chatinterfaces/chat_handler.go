@@ -5,6 +5,7 @@ import (
 	"back-end/internal/chat/chatapplication"
 	"back-end/internal/chat/chatdomain"
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -112,6 +113,7 @@ func (h *ChatHandler) MarkMessageAsRead(c *fiber.Ctx) error {
 }
 
 func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
+	fmt.Println("Nueva conexión WebSocket")
 	chatRoomID := c.Params("chatRoomId")
 	if chatRoomID == "" {
 		c.WriteMessage(websocket.TextMessage, []byte("chatRoomId es requerido"))
@@ -131,6 +133,7 @@ func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
 		for {
 			_, _, err := c.ReadMessage()
 			if err != nil {
+				fmt.Println("Error al leer mensaje:", err)
 				return
 			}
 		}
@@ -143,10 +146,13 @@ func (h *ChatHandler) SubscribeMessages(c *websocket.Conn) {
 			return
 		default:
 			msg, err := pubsub.ReceiveMessage(ctx)
+			fmt.Println(msg)
 			if err != nil {
+				fmt.Println("Error al recibir mensaje:", err)
 				return
 			}
 			if err := c.WriteMessage(websocket.TextMessage, []byte(msg.Payload)); err != nil {
+				fmt.Println("Error al enviar mensaje:", err)
 				return
 			}
 		}

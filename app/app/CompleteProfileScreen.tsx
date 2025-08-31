@@ -21,6 +21,8 @@ import { savePushToken } from '@/services/userService';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function CompleteProfileScreen() {
+    console.log("AAA");
+
     const { login, pushToken } = useAuth();
     const router = useRouter();
     const params = useLocalSearchParams<{ email: string; fullName: string; avatar: string }>();

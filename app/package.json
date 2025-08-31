@@ -15,6 +15,7 @@
     "preset": "jest-expo"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.1",
     "@expo-google-fonts/poppins": "^0.4.0",
     "@expo/vector-icons": "^14.0.2",
     "@maplibre/maplibre-react-native": "^10.1.4",
@@ -32,7 +33,7 @@
     "expo-dev-client": "~5.2.4",
     "expo-device": "^7.0.2",
     "expo-dotenv": "^0.1.0",
-    "expo-font": "~13.3.1",
+    "expo-font": "~13.3.2",
     "expo-haptics": "~14.1.4",
     "expo-image-manipulator": "~13.1.7",
     "expo-image-picker": "^16.0.6",

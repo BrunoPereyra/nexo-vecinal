@@ -36,6 +36,8 @@ export default function LoginScreen() {
   async function handleGoogleLogin(idToken: string) {
     try {
       setLoading(true); // 
+      console.log("pepe");
+
       const resLoginGoogle = await loginWithGoogle(idToken);
       console.log("Login con Google exitoso:", resLoginGoogle);
 
@@ -55,7 +57,6 @@ export default function LoginScreen() {
       // Si recibimos 'token', entonces sí hacemos login
       if (resLoginGoogle.message === "token") {
         console.log("Login con Google exitoso:", resLoginGoogle);
-
         await login(
           resLoginGoogle.data,     // aquí data es tu JWT interno
           resLoginGoogle._id,
@@ -70,6 +71,7 @@ export default function LoginScreen() {
       // Cualquier otro caso, mostramos error
       throw new Error("Respuesta inesperada del backend");
     } catch (err: any) {
+      console.log("wgat");
       console.error("Fallo login backend con Google", err);
       setErrorMessage(err.message || "Error al iniciar sesión con Google.");
     } finally {

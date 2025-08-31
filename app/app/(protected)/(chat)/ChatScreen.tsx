@@ -16,9 +16,10 @@ import { getChatRoom, sendChatMessage, getMessagesBetween, Message, ChatRoom } f
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Constants from "expo-constants";
 import colors from '@/style/colors';
-import { useFocusEffect } from '@react-navigation/native';
 
-const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "https://192.168.0.28:9000";
+// const APIWS = Constants.expoConfig?.extra?.EXPO_URL_APIWS ?? "https://192.168.0.28:9000";
+const APIWS = "ws://192.168.0.28:9000";
+
 console.log("APIWS:", APIWS);
 
 interface GroupedItem {
